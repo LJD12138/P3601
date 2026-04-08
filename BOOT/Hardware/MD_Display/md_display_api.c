@@ -1,0 +1,900 @@
+
+
+/*******************************************************************************************************************************
+ * Project : ProjectTeam
+ * Module  : G:\1Baiku_Projects\15-M50\1.software\M5004-1\APP\Hardware\MD_Display
+ * File    : md_display_api.c
+ * Date    : 2026-01-10 16:47:26
+ * Author  : LJD(291483914@qq.com)
+ * Desc    : description
+ * -------------------------------------------------------
+ * todo    :
+ * 1.
+ * -------------------------------------------------------
+ * Copyright (c) 2026 -inc
+*******************************************************************************************************************************/
+
+
+//****************************************************Includes******************************************************************//
+#include "MD_Display/md_display_api.h"
+
+#if(boardDISPLAY_EN)
+#include "MD_Display/md_display_iface.h"
+
+#if(boardUSE_OS)
+#include "freertos.h"
+#include "task.h"
+#endif  //boardUSE_OS
+
+//****************************************************Macros*******************************************************************//
+
+
+
+//****************************************************Parameter Initialization************************************************//
+
+
+
+//****************************************************Function Declaration****************************************************//
+
+
+//WIFI标识
+void Display_IconWifi(void)
+{
+	HT1621DispIcon2(S1_ICON_SEG_INDEX,S1_ICON_COM_INDEX);
+}
+
+//Bluetooth标识
+void Display_IconBL(void)
+{
+	HT1621DispIcon2(S2_ICON_SEG_INDEX,S2_ICON_COM_INDEX);
+}
+
+//USB标识
+void Display_IconUsb                                                                                                    (void)
+{
+	HT1621DispIcon2(S3_ICON_SEG_INDEX,S3_ICON_COM_INDEX);
+}
+
+//照明标识
+void Display_IconLight(void)
+{
+	HT1621DispIcon2(S4_ICON_SEG_INDEX,S4_ICON_COM_INDEX);
+}
+
+//公插头标识
+void Display_MaleHead(void)
+{
+	HT1621DispIcon2(S5_ICON_SEG_INDEX,S5_ICON_COM_INDEX);
+}
+
+//太阳能标识
+void Display_IconPvIn(void)
+{
+	HT1621DispIcon2(S6_ICON_SEG_INDEX,S6_ICON_COM_INDEX);
+}
+
+//低温标识
+void Display_IconUT(void)
+{
+	HT1621DispIcon2(S7_ICON_SEG_INDEX,S7_ICON_COM_INDEX);
+}
+
+//高温标识
+void Display_IconOT(void)
+{
+	HT1621DispIcon2(S8_ICON_SEG_INDEX,S8_ICON_COM_INDEX);
+}
+
+//系统异常标识
+void Display_IconSysErr(void)
+{
+	HT1621DispIcon2(S9_ICON_SEG_INDEX,S9_ICON_COM_INDEX);
+}
+
+//UPS标识
+void Display_IconUps(void)
+{
+	HT1621DispIcon2(S10_ICON_SEG_INDEX,S10_ICON_COM_INDEX);
+}
+
+//更新标识
+void Display_IconUpdata(void)
+{
+	HT1621DispIcon2(S11_ICON_SEG_INDEX,S11_ICON_COM_INDEX);
+}
+
+//电池锁标识
+void Display_IconBatLock(void)
+{
+	HT1621DispIcon1(S12_ICON_SEG_INDEX,S12_ICON_COM_INDEX);
+}
+
+//电池异常标识
+void Display_IconBatErr(void)
+{
+	HT1621DispIcon1(S13_ICON_SEG_INDEX,S13_ICON_COM_INDEX);
+}
+
+//电池扇热标识
+void Display_IconFan(void)
+{
+	HT1621DispIcon1(S14_ICON_SEG_INDEX,S14_ICON_COM_INDEX);
+}
+
+//蜂鸣器标识
+void Display_IconBuz(void)
+{
+	// HT1621DispIcon1(S14_ICON_SEG_INDEX,S14_ICON_COM_INDEX);
+}
+
+//DC输入标识
+void Display_IconDcIn(void)
+{
+	HT1621DispIcon2(S16_ICON_SEG_INDEX,S16_ICON_COM_INDEX);
+}
+
+//安德森输入标识
+void Display_InputAnderson(void)
+{
+	HT1621DispIcon2(S17_ICON_SEG_INDEX,S17_ICON_COM_INDEX);
+}
+
+//母头输入标识
+void Display_IconAcIn(void)
+{
+	HT1621DispIcon2(S18_ICON_SEG_INDEX,S18_ICON_COM_INDEX);
+}
+
+//输出过载标识
+void Display_IconOL(void)
+{
+	HT1621DispIcon1(S23_ICON_SEG_INDEX,S23_ICON_COM_INDEX);
+}
+
+//输出过温标识
+void Display_IconOutOT(void)
+{
+	HT1621DispIcon1(S24_ICON_SEG_INDEX,S24_ICON_COM_INDEX);
+}
+
+//输出AC标识
+void Display_IconAcOut(void)
+{
+	HT1621DispIcon1(S25_ICON_SEG_INDEX,S25_ICON_COM_INDEX);
+}
+
+//输出USB标识
+void Display_IconUsbOut(void)
+{
+	HT1621DispIcon1(S26_ICON_SEG_INDEX,S26_ICON_COM_INDEX);
+}
+
+//输出DC标识
+void Display_IconDcOut(void)
+{
+	HT1621DispIcon1(S27_ICON_SEG_INDEX,S27_ICON_COM_INDEX);
+}
+
+//百分号%标识
+void Display_SymbolPerCent(void)
+{
+	HT1621DispIcon1(S29_ICON_SEG_INDEX,S29_ICON_COM_INDEX);
+}
+
+
+/***********************************************************************************************************************
+-----函数功能	待机模式
+-----作者       LJD
+-----日期       2026-01-10
+************************************************************************************************************************/
+void Display_SetStandbyMode(void)
+{
+	dispLIGHT_POWER_OFF();//关背光
+	Ht1621Wr_Comd(LCDOFF,12);
+	Ht1621Wr_Comd(SYSDIS,12);//Standby
+	
+}
+
+/***********************************************************************************************************************
+-----函数功能	运行模式
+-----作者       LJD
+-----日期       2026-01-10
+************************************************************************************************************************/
+void Display_SetRunMode(void)
+{
+	dispLIGHT_POWER_ON(); //开背光
+	Ht1621Wr_Comd(BIAS3DUTY4,12);
+	Ht1621Wr_Comd(RC256,12);
+	Ht1621Wr_Comd(SYSEN,12);
+	Ht1621Wr_Comd(LCDON,12);
+	Ht1621Wr_Comd(TIMERDIS,12);
+}
+
+/***********************************************************************************************************************
+-----函数功能	清除显示缓存区
+-----作者       LJD
+-----日期       2026-01-10
+************************************************************************************************************************/
+void Display_ClearData(void)//清屏
+{
+      FillLcdAll1(0);
+	  FillLcdAll2(0);	
+}
+
+/***********************************************************************************************************************
+-----函数功能	刷新显示
+-----作者       LJD
+-----日期       2026-01-10
+************************************************************************************************************************/
+void Display_RefreshData(void)//显示数据
+{
+     FillLcdFromBuff1();		
+	 FillLcdFromBuff2();	
+}
+
+/***********************************************************************************************************************
+-----函数功能	清空不显示
+-----作者       LJD
+-----日期       2026-01-10
+************************************************************************************************************************/
+void Display_NoShowAll(void)
+{	
+	dispLIGHT_POWER_OFF();//关灯
+	Display_ClearData();//清屏	
+	Display_RefreshData();//显示数据
+}
+
+/***********************************************************************************************************************
+-----函数功能	全部显示
+-----作者       LJD
+-----日期       2026-01-10
+************************************************************************************************************************/
+void Display_ShowAll(void)
+{
+	dispLIGHT_POWER_ON();//测试
+	Display_ClearData();//清屏
+	FillLcdAll1(0xFF);
+	FillLcdAll2(0xFF);
+	Display_RefreshData();//显示数据
+}
+
+/***********************************************************************************************************************
+-----函数功能	显示ON
+-----作者       LJD
+-----日期       2026-01-10
+************************************************************************************************************************/
+void Display_ShowON(void)
+{
+	DisplayNum1(7,0);
+	DisplayNum1(8,26);
+}
+
+/***********************************************************************************************************************
+-----函数功能	显示OFF
+-----作者       LJD
+-----日期       2026-01-10
+************************************************************************************************************************/
+void Display_ShowOFF(void)//关机界面
+{
+	DisplayNum1(7,0);
+	DisplayNum1(8,17);
+    DisplayNum1(9,17);
+}
+
+/***********************************************************************************************************************
+-----函数功能	永久显示
+-----作者       LJD
+-----日期       2026-01-10
+************************************************************************************************************************/
+void Display_ForeverShow(void)
+{
+    S_Display(15);//INPUT
+	S_Display(20);//-
+	S_Display(21);//OUTPUT
+}
+
+/***********************************************************************************************************************
+-----函数功能	初始化状态显示
+-----备注		100mS隔间时间运行
+-----作者       LJD
+-----日期       2026-01-10
+************************************************************************************************************************/
+void Display_ShowInitState(void)
+{
+	static u8 j=1;
+	static u8 ALL_ON_flag=0;
+	
+	dispLIGHT_POWER_ON();//开灯
+	
+ 
+	if(ALL_ON_flag==0)
+	{
+		ALL_ON_flag=1;
+		Display_SetRunMode();
+		FillLcdAll1(0xFF);
+	    FillLcdAll2(0xFF);
+		Display_RefreshData();
+		
+		#if(boardUSE_OS)
+		vTaskDelay(400);
+		#endif  //boardUSE_OS
+	}
+	
+	Display_ClearData();
+	
+ 	Display_InPwr(0);     //Input界面   
+    Display_OutPwr(3600);   //Out界面
+	
+	Display_TimRoll(1);//TIM时间滚动
+	
+	DisplayNum2(0,10);//TIM --
+	DisplayNum2(1,10);//TIM --
+	Y_Display(11);//M
+	
+	Display_BAT(0,false,0);         //BAT等级界面	
+    T_Display(j);
+	
+	DisplayNum1(10,10);          //SOC界面--
+	DisplayNum1(11,10);	         //SOC界面--
+	
+
+    j++;if(j>10)j=1;
+	Display_RefreshData();
+}
+
+/***********************************************************************************************************************
+-----函数功能	显示时间
+-----传入参数   sw:0不使用时间框，1-8格数选择，9常亮
+-----传入参数   min:0-5940
+-----作者       LJD
+-----日期       2026-01-10
+************************************************************************************************************************/
+void Display_Time(u8 sw,u16 min)//Tim界面
+{
+	u8 i=0;
+	float f_min=0.00;
+	
+	if(min>=TIM_MAX)//>99H
+	{
+		DisplayNum2(0,9);
+		DisplayNum2(1,9);
+		Y_Display(10);//+
+		Y_Display(12);//H
+	}
+	else
+	{
+		if(min>59)
+		{
+		   
+		   Y_Display(12);//H
+			
+		   f_min=min/6.0;
+		   min=(u16)f_min;
+		   if(min<=99)
+		   {
+			 Y_Display(13);//.
+		   }
+		}
+		else
+		{
+		   Y_Display(11);
+		}	
+		
+		if(min>9)
+		{
+			
+			
+			if(min>99)
+			{
+				DisplayNum2(0,min/100);
+				DisplayNum2(1,min/10%10);
+			}
+			else
+			{
+				DisplayNum2(0,min/10);
+				DisplayNum2(1,min%10);
+			}
+		}
+		else
+		{
+		DisplayNum2(1,min%10);
+		}
+    }
+	  
+	Y_Display(9);//显示时间图标
+	
+	if(sw!=0)
+	{
+		if(sw==9)
+		{
+		  for(i=1;i<9;i++){Y_Display(i);}//显示时间外框
+		}
+		else
+		{
+			if(sw>8){sw=8;}
+			Y_Display(sw);
+		}
+    }
+}
+
+/***********************************************************************************************************************
+-----函数功能	时间滚动
+-----传入参数   tim 0常亮时间框--注意Display_Tim, 其他延时时间框格数时间
+-----作者       LJD
+-----日期       2026-01-10
+************************************************************************************************************************/
+void Display_TimRoll(u8 tim)//时间滚动
+{
+	static u8 i=1;
+	static u8 tim_dly=0;
+    u8 bat_grade=2;
+	u8 t=0;
+	
+	if(tim==0)
+	{
+	  for(t=1;t<9;t++){Y_Display(t);}//显示时间外框
+	}
+	else
+	{
+	   bat_grade=i+1;	
+		
+		
+			
+	   for(;bat_grade<9;)
+	   {
+		  Y_Display(bat_grade);
+		  bat_grade++;
+		  t++;
+	   }
+	   
+	   bat_grade=1;
+	   t=8-t;
+	   for(;bat_grade<t;)
+	   {
+		  Y_Display(bat_grade);
+		  bat_grade++;
+	   }
+	   
+		tim_dly++;
+		if(tim_dly>=tim)
+		{
+			tim_dly=0;	   
+		   i++;if(i>8)i=1;
+		}
+    }
+}
+
+u8  FullWait;           //发送等待
+/***********************************************************************************************************************
+-----函数功能	充满时候显示的时间
+-----作者       LJD
+-----日期       2026-01-10
+************************************************************************************************************************/
+void Display_ShowChgFullTime(void)
+{
+
+	FullWait++;
+	
+	if(FullWait<10)
+	{
+	   Display_TimRoll(1);//时间滚动
+	}
+    else 
+	{
+		if(FullWait>90)
+		{
+	      FullWait=0;
+		}
+
+	    Display_TimRoll(0);//常亮时间框
+	}
+}
+
+/***********************************************************************************************************************
+-----函数功能	BAT充电滚动等级界面
+-----传入参数   soc
+-----作者       LJD
+-----日期       2026-01-10
+************************************************************************************************************************/
+void Display_BatChgRoll(u8 soc)
+{
+	int bat_grade=0;
+	static u8 i=0;
+	
+	bat_grade=(11-(soc/10));
+	
+	 
+	 if(i<bat_grade)
+     {	     
+		 i++;
+	 }
+	else
+	{
+         i=1;
+	}	
+	T_Display(i);
+	T_Display(11);//[]
+	S_Display(30);//()
+	
+}
+
+#define CHG_BAT_DLY_TIM_S 2	//*300mS
+/***********************************************************************************************************************
+-----函数功能
+-----传入参数   cds 1:充电,0放电
+-----传入参数   en_sw 1闪烁，0不闪烁
+-----传入参数   soc
+-----作者       LJD
+-----日期       2026-01-10
+************************************************************************************************************************/
+void Display_BAT(u8 cds,bool en_sw,u8 soc)
+{
+	u8 i=0;
+	int bat_grade=0;
+	static bool sw=false;
+	static u8 chg_dey_tim=0;
+	/*
+    ===========BAT等级界面============
+    【1】  充电统一闪烁--->CHG_BAT_DLY_TIM_S
+    【2】  放电--->
+	       [1]en_sw：1，低于<10%闪烁
+	       [2]en_sw：0，低于<10%不闪烁
+    */
+	
+	if(cds)
+    {		
+	   chg_dey_tim++;  
+	   if(chg_dey_tim<CHG_BAT_DLY_TIM_S)
+	   {			   
+		   sw=false;
+	   }
+	   else if(chg_dey_tim<(CHG_BAT_DLY_TIM_S*2-1))
+	   {
+		  sw=true;
+	   }
+	   else if(chg_dey_tim<(CHG_BAT_DLY_TIM_S*2+1))
+	   {
+		  chg_dey_tim=0;
+	   }
+    }
+   
+    if(soc>=98)
+    {
+	   for(i=1;i<12;i++){T_Display(i);}     
+    }
+    else if(soc>=10)
+    {
+	   bat_grade=(11-(soc/10));
+	
+	   if(sw){bat_grade-=1;}
+		  
+	   
+	   
+	   for(;bat_grade<11;)
+	   {
+		   
+          T_Display(bat_grade);
+		  bat_grade++;
+	   }
+    }
+	else if((soc>0)&&(soc<=9))
+	{
+		if(cds)
+		{
+		  if(sw)T_Display(10);
+		}
+		else
+		{
+			if(en_sw)
+			{
+			   if(sw)
+			   {
+				   sw=false;
+				   T_Display(10);
+			   }
+			   else
+			   {
+				  sw=true;
+			   }
+			}
+	    }
+	}
+
+    T_Display(11);//[]
+	S_Display(30);//()
+}
+
+/***********************************************************************************************************************
+-----函数功能	SOC界面
+-----传入参数   soc
+-----作者       LJD
+-----日期       2026-01-10
+************************************************************************************************************************/
+void Display_Soc(u8 soc)
+{
+	if(soc>SOC_MAX)
+	{
+	   soc=SOC_MAX;
+	}
+	
+  if(soc>=100)
+  {
+      S_Display(28);	
+	  DisplayNum1(10,0);
+	  DisplayNum1(11,0);
+  }
+  else
+  {
+	  if(soc>9)
+	  {
+		  DisplayNum1(10,soc/10);
+	  }
+	  DisplayNum1(11,soc%10);
+  }
+  Display_SymbolPerCent();//%
+}
+
+/***********************************************************************************************************************
+-----函数功能	Input界面
+-----传入参数   power
+-----作者       LJD
+-----日期       2026-01-10
+************************************************************************************************************************/
+void Display_InPwr(u16 power)
+{
+	u8 i=0;
+	bool ack=false;
+	
+	if(power>POWER_MAX)
+	{
+	   power=POWER_MAX;
+	}
+	
+	if(power==0)
+	{
+		#if IN_OUT_ZEOR_POWER_HOR
+	    for(i=2;i<6;i++){DisplayNum2(i,10);}//----
+		#elif IN_OUT_ONE_ZEOR_POWER
+		i=5;DisplayNum2(i,0);//0
+		#else
+		for(i=2;i<6;i++){DisplayNum2(i,0);}//0000
+		#endif
+	}
+	else
+	{
+	  if(power/1000)
+	  {
+		  DisplayNum2(2,power/1000);
+		  ack=true;
+	  }
+	  if(power/100%10||ack)
+	  {
+		  DisplayNum2(3,power/100%10);
+		  ack=true;
+	  }
+	  if(power/10%10||ack)
+	  {
+		  DisplayNum2(4,power/10%10);
+	  }
+	  DisplayNum2(5,power%10);	  	  
+	}
+	
+	S_Display(19);//W	
+}
+
+/***********************************************************************************************************************
+-----函数功能	Out界面
+-----传入参数   power
+-----作者       LJD
+-----日期       2026-01-10
+************************************************************************************************************************/
+void Display_OutPwr(u16 power)
+{
+	u8 i=0;
+	bool ack=false;
+	
+	if(power>POWER_MAX)
+	{
+	   power=POWER_MAX;
+	}
+	
+	if(power==0)
+	{
+		#if IN_OUT_ZEOR_POWER_HOR
+	    for(i=6;i<10;i++){DisplayNum1(i,10);}//----
+		#elif IN_OUT_ONE_ZEOR_POWER
+		i=9;DisplayNum1(i,0);//0
+		#else
+		for(i=6;i<10;i++){DisplayNum1(i,0);}//0000
+		#endif
+	}
+	else
+	{
+	  if(power/1000)
+	  {
+		  DisplayNum1(6,power/1000);
+		  ack=true;
+	  }
+	  if(power/100%10||ack)
+	  {
+		  DisplayNum1(7,power/100%10);
+		  ack=true;
+	  }
+	  if(power/10%10||ack)
+	  {
+		  DisplayNum1(8,power/10%10);
+	  }
+	  DisplayNum1(9,power%10);	  	  
+	}
+	
+	S_Display(22);//W	
+}
+
+/***********************************************************************************************************************
+-----函数功能	显示错误代码
+-----传入参数   list
+-----作者       LJD
+-----日期       2026-01-10
+************************************************************************************************************************/
+void Display_ShowErrCode(uint32_t list)//Out错误界面
+{
+	DisplayNum2(0,list/10%10);
+	DisplayNum2(1,list%10);
+}
+
+/***********************************************************************************************************************
+-----函数功能	Out显示区显示数据
+-----传入参数   power
+-----作者       LJD
+-----日期       2026-01-10
+************************************************************************************************************************/
+void Display_OutNum(s16 num)
+{
+	bool ack=false;
+	vu16 us_pwr = abs(num);
+	
+	if(num==0)
+	{		 
+		DisplayNum1(9,0);//0
+	}
+	else
+	{
+		if(num > 0)
+		{
+			if(us_pwr/1000)
+			{
+			  DisplayNum1(6,us_pwr/1000);
+			  ack=true;
+			}
+			if(us_pwr%1000/100||ack)
+			{
+			  DisplayNum1(7,us_pwr%1000/100);
+			  ack=true;
+			}
+			
+			if(us_pwr%100/10||ack)
+			{
+			  DisplayNum1(8,us_pwr%100/10);
+			}
+			
+			DisplayNum1(9,us_pwr%10);
+		}
+		else
+		{
+			if(us_pwr/1000)
+			{
+			  DisplayNum1(6,us_pwr/1000);
+			  ack=true;
+			}
+			
+			if(us_pwr%1000/100||ack)
+			{
+				if(ack ==false)
+				{
+					 DisplayNum1(13,10);
+				}
+			
+			  DisplayNum1(7,us_pwr%1000/100);
+			  ack=true;
+			}
+			
+			
+			if(us_pwr%100/10||ack)
+			{
+				if(ack ==false)
+				{
+					 DisplayNum1(7,10);
+				}
+				
+				DisplayNum1(8,us_pwr%100/10);
+				ack=true;
+			}
+			
+			if(ack ==false)
+			{
+				 DisplayNum1(8,10);
+			}
+			DisplayNum1(9,us_pwr%10);
+		}
+	}
+}
+
+/***********************************************************************************************************************
+-----函数功能	更新进度
+-----备注		Out显示区和SOC区显示数据
+-----传入参数   frame_num
+-----传入参数   rec_frame_num
+-----作者       LJD
+-----日期       2026-01-10
+************************************************************************************************************************/
+void Display_UpdataProgress(u16 frame_num, u16 rec_frame_num)
+{
+	if(frame_num==0)
+	{		 
+		DisplayNum1(6,0);//0
+		DisplayNum1(7,0);//0
+		DisplayNum1(8,0);//0
+		DisplayNum1(9,0);//0
+	}
+	else
+	{
+	  Display_OutNum(frame_num);
+	  Display_Soc((frame_num * 100)/rec_frame_num);
+	}
+}
+
+/***********************************************************************************************************************
+-----函数功能	显示更新的设备状态
+-----传入参数   obj
+-----传入参数   proto
+-----传入参数   num
+-----作者       LJD
+-----日期       2026-01-10
+************************************************************************************************************************/
+void Display_UpdataState(u8 obj, u8 proto, u8 num)
+{
+	//协议
+	if(proto == 1)
+		DisplayNum2(2,21);//x XModem
+	else
+		DisplayNum2(2,13);//b 百酷
+	
+	DisplayNum2(3,10);//-
+	
+	//升级对象
+	if(obj == 2)
+		DisplayNum2(4,13);//b BMS
+	else if(obj == 1)
+		DisplayNum2(4,14);//c Console
+	
+	//机器序号
+	DisplayNum2(5,0);//0
+}
+
+/***********************************************************************************************************************
+-----函数功能	显示更新倒计时
+-----传入参数   min
+-----作者       LJD
+-----日期       2026-01-10
+************************************************************************************************************************/
+void Display_UpdataTime(u16 min)
+{
+	u8 i=0;
+
+	if(min>=60)//>99H
+	{
+		DisplayNum2(0, min/6/10);
+		DisplayNum2(1,min/6%10);
+		Y_Display(11);//M
+	}
+	else
+	{
+		DisplayNum2(0,min/10);
+		DisplayNum2(1,min%10);
+    }
+
+	Y_Display(9);//显示时间图标
+	for(i=1;i<9;i++){Y_Display(i);}//显示时间外框
+} 
+
+#endif  //boardDISPLAY_EN

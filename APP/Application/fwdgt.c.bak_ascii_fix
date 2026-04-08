@@ -1,0 +1,190 @@
+/*****************************************************************************************************************
+*                                                                                                                *
+ *                                         ?????????                                                           *
+*                       ?????????????????????????????????Ч??????????????λ????????????????            *
+*                       ????????????????????IRC40K,????????????????????                                  *
+******************************************************************************************************************/
+
+#include "fwdgt.h"
+#include "gd32f30x_rcu.h"
+#include "Print/print_api.h"
+
+#if(boardWDGT_EN)
+reset_reason_t g_reset_reason;
+
+static void vFwdgt_ResetPrintf(const char *str, ...)
+{
+    char log_buf[128] = {0};
+    va_list args;
+
+    va_start(args, str);
+    vsnprintf(log_buf, sizeof(log_buf), str, args);
+    va_end(args);
+
+    #if(boardPRINT_IFACE)
+    sMyPrint("%s", log_buf);
+    #endif
+
+    #if(printSEGGER)
+    SEGGER_RTT_printf(0, "%s", log_buf);
+    #endif
+}
+
+/*****************************************************************************************************************
+-----????????    ?????????
+-----???(???)  none
+-----???????    none
+-----???????    none
+-----?????      none
+*****************************************************************************************************************/
+void vFwdgt_Init(void)
+{
+  uint16_t timeout_t=0xFFFFU;
+	/* enable IRC40K */
+  rcu_osci_on(RCU_IRC40K);
+	
+	/* wait till IRC40K is ready */
+  while(SUCCESS != rcu_osci_stab_wait(RCU_IRC40K))
+  {
+	if(timeout_t > 0) timeout_t--;
+	else			  break;
+  }
+	
+  /* configure FWDGT counter clock: 40KHz(IRC40K)  / 128 = 0.312 KHz */
+  fwdgt_config(2*500,FWDGT_PSC_DIV128);				 //t = (1/0.312)x(2x500) = 3.2s
+	
+  fwdgt_write_disable();
+  /* After 1.6 seconds to generate a reset */
+  fwdgt_enable();
+}
+
+
+/*****************************************************************************************************************
+-----????????    ι??
+-----???(???)  ???????κε??ι??,??????????????
+-----???????    none
+-----???????    none
+-----?????      none
+*****************************************************************************************************************/
+void vFwdgt_Reload(void)
+{
+	/* uncock fwdgt write protect*/
+	fwdgt_write_enable();
+	/* feed fwdgt */
+	fwdgt_counter_reload();	
+}
+
+
+/*****************************************************************************************************************
+-----????????    ?????????????
+-----???(???)  ι???????????26S
+-----???????    none
+-----???????    none
+-----?????      none
+*****************************************************************************************************************/
+void vFwdgt_EnterLowPower(void)
+{
+	vFwdgt_Reload();
+  /* configure FWDGT counter clock: 40KHz(IRC40K)  / 256 = 0.156 KHz */
+  fwdgt_config(0xfff,FWDGT_PSC_DIV256);				 //t = 26S
+	
+  fwdgt_write_disable();
+  /* After 1.6 seconds to generate a reset */
+  fwdgt_enable();
+}
+
+
+/*****************************************************************************************************************
+-----????????    ?????????????
+-----???(???)  none
+-----???????    none
+-----???????    none
+-----?????      none
+*****************************************************************************************************************/
+void vFwdgt_ExitLowPower(void)
+{
+	vFwdgt_Reload();
+    vFwdgt_Init();
+}
+
+/*****************************************************************************************************************
+-----????????    ??????????λ???
+-----???(???)  none
+-----???????    none
+-----???????    none
+-----?????      none
+*****************************************************************************************************************/
+void vResetReason_Capture(void)
+{
+    g_reset_reason.ext_pin   = (rcu_flag_get(RCU_FLAG_EPRST)    == SET);
+    g_reset_reason.por       = (rcu_flag_get(RCU_FLAG_PORRST)   == SET);
+    g_reset_reason.sw        = (rcu_flag_get(RCU_FLAG_SWRST)    == SET);
+    g_reset_reason.fwdgt     = (rcu_flag_get(RCU_FLAG_FWDGTRST) == SET);
+    g_reset_reason.wwdgt     = (rcu_flag_get(RCU_FLAG_WWDGTRST) == SET);
+    g_reset_reason.low_power = (rcu_flag_get(RCU_FLAG_LPRST)    == SET);
+
+    // ????????????????????????
+    rcu_all_reset_flag_clear();
+}
+
+/*****************************************************************************************************************
+-----函数功能    输出复位原因
+-----说明(备注)  在系统初始化后调用,用于输出本次启动前的复位来源
+-----传入参数    none
+-----输出参数    none
+-----返回值      none
+*****************************************************************************************************************/
+void vFwdgt_PrintResetReason(void)
+{
+    vResetReason_Capture();
+
+    vFwdgt_ResetPrintf("\r\n[Reset] flag ext=%d por=%d sw=%d fwdgt=%d wwdgt=%d low_power=%d\r\n",
+                       g_reset_reason.ext_pin,
+                       g_reset_reason.por,
+                       g_reset_reason.sw,
+                       g_reset_reason.fwdgt,
+                       g_reset_reason.wwdgt,
+                       g_reset_reason.low_power);
+
+    if(g_reset_reason.fwdgt)
+    {
+        vFwdgt_ResetPrintf("[Reset] reason: FWDGT reset\r\n");
+    }
+    else if(g_reset_reason.wwdgt)
+    {
+        vFwdgt_ResetPrintf("[Reset] reason: WWDGT reset\r\n");
+    }
+    else if(g_reset_reason.sw)
+    {
+        vFwdgt_ResetPrintf("[Reset] reason: software reset\r\n");
+    }
+    else if(g_reset_reason.ext_pin)
+    {
+        vFwdgt_ResetPrintf("[Reset] reason: external pin reset\r\n");
+    }
+    else if(g_reset_reason.por)
+    {
+        vFwdgt_ResetPrintf("[Reset] reason: power on reset\r\n");
+    }
+    else if(g_reset_reason.low_power)
+    {
+        vFwdgt_ResetPrintf("[Reset] reason: low power reset\r\n");
+    }
+    else
+    {
+        vFwdgt_ResetPrintf("[Reset] reason: unknown\r\n");
+    }
+}
+
+#endif
+
+
+
+
+
+
+
+
+
+
+
