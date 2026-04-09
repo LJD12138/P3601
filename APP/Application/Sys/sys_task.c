@@ -128,7 +128,6 @@ static bool b_task_param_init(void)
 	
 	tSysInfo.sMaxTemp = 25;				//设置默认最高温度
 	tSysInfo.sMinTemp = 25;				//设置默认最低温度
-	tSysInfo.uInit.tFinish.bIF_Gpio = 1;
 	bSys_SetAutoOffTime(tAppMemParam.tSYS.usAutoOffTime);
 	bSys_SetDevState(DS_INIT, false);	//进入初始化
 	

@@ -42,6 +42,9 @@ void v_sys_queue_task_work(Task_T *tp_task)
 {
 	if(tSysInfo.eDevState != DS_WORK)
 		bSys_SetDevState(DS_WORK, false);
+
+	if(tSysInfo.uErrCode.tCode.bBootFault)
+		bSys_SetErrCode(SEC_BOOT_FAULT, false);
 	
 	//检查系统活跃状态
 	if(bSys_CheckActState() == true)

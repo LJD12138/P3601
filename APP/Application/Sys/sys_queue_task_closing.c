@@ -152,7 +152,7 @@ void v_sys_queue_task_closing(Task_T *tp_task)
 	if(tp_task->usTaskWaitCnt > (10000 / sysTASK_CLOSE_CYCLE_TIME) && tp_task->ucStep != STEP_END)
 	{
 		
-		bSys_SetErrCode(SEC_COLSE_FAULT, true);
+		bSys_SetErrCode(SEC_CLOSE_FAULT, true);
 		
 		if(uPrint.tFlag.bSysTask || uPrint.tFlag.bImportant)
 			log_w("bSysTask:关闭系统任务等待超时,步骤%d", tp_task->ucStep);

@@ -92,7 +92,7 @@ typedef enum
 	SEC_UV,				//«∑—π
 	SEC_OL,				//π˝‘ÿ
 	SEC_0_SOC,			//0%SOC
-	SEC_COLSE_FAULT,	//πÿ±’ ß∞‹
+	SEC_CLOSE_FAULT,	//πÿ±’ ß∞‹
 	SEC_BOOT_FAULT,		//ø™∆Ù ß∞‹
 }SysErrCode_E;
 

@@ -227,7 +227,7 @@ void vDc_Task(void *pvParameters)
 			//计算DC 总功率
             tDc.usOutPwr = (tDc.usOutCurr * tDc.usOutVolt) / 100;
 			
-			if(tDc.usOutPwr > 1)
+			if(tDc.usOutPwr > 2)
 				us_pwr_exist_cnt ++;
 			else 
 				us_pwr_exist_cnt = 0;
@@ -236,7 +236,7 @@ void vDc_Task(void *pvParameters)
 				tDc.usOutPwr = 0;
 			
 			//有功率刷新关闭时间
-			if(tDc.usOutPwr > 1)
+			if(tDc.usOutPwr > 2)
 				vDc_RefreshOffTime();
 		}
 		else
