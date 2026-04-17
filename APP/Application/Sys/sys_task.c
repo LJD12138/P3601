@@ -338,6 +338,11 @@ static void v_sys_check_prote(void)
 				bSys_SetErrCode(SEC_UV, true);
 			}
 		}
+		else if(tpSysTask->ucID == STI_WORK)
+		{ 
+			cQueue_AddQueueTask(tpSysTask, STI_ERR, SEC_UV ,false);
+			us_low_volt_cnt = 0;
+		}
 	}
 	else 
 	{
@@ -433,6 +438,12 @@ static void v_sys_check_prote(void)
 	{
 		if(tSysInfo.uErrCode.tCode.b0SOC == false)
 			us_soc_low_cnt++;
+		else if(tpSysTask->ucID == STI_WORK)
+		{
+			cQueue_AddQueueTask(tpSysTask, STI_ERR, SEC_0_SOC ,false);
+			us_soc_low_cnt = 0;
+		}
+
 		if(us_soc_low_cnt >= (2000/us_delay_time))
 		{
 			us_soc_low_cnt = 0;

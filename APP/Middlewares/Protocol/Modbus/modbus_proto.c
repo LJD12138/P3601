@@ -465,8 +465,8 @@ s8 cModbus_ProtoCheck(ModbusProtoRx_t* proto)
 					return (-10 + c_result);  //Ð£Ñé³ö´í
 				}
 				
-				c_result = 1;
 				b_modbus_jump_step(proto, MRS_ADDR);
+				return 1;
 			}
 		}
 		break;
@@ -491,7 +491,7 @@ s8 cModbus_ProtoCheck(ModbusProtoRx_t* proto)
 			b_modbus_jump_step(proto, MRS_ADDR);
 		break; 
 	}
-	return c_result;
+	return 0;
 }
 
 /*****************************************************************************************************************

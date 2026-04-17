@@ -687,7 +687,13 @@ u16 usDisp_ErrCodeDisplay(void)
 				us_err_step++;
 		
 		case 90:
-			us_err_step++;
+			#if(boardDC_EN)
+			if(tDc.uErrCode.tCode.bNtcLost)
+				break;
+			else
+			#endif  //boardDC_EN
+				us_err_step++;
+			
 		case 91:
 			us_err_step++;
 		}

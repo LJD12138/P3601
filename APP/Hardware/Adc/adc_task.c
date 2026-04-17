@@ -231,19 +231,15 @@ void vAdc_Task(void *pvParameters)
 		
 		//系统输入电压
 		tAdcSamp.usSysInVolt = us_filter_sys_input_volt_ad * adcVBMS_RES_RATIO;
-		tDc.usInVolt = tAdcSamp.usSysInVolt;
 
 		//DC温度
 		tAdcSamp.sDcTemp = LIMIT((307 - (37 * log((float)us_filter_dc_temp_ad))), -128, 127);
-		tDc.sMaxTemp = tAdcSamp.sDcTemp;
 		
 		//DC电压
 		tAdcSamp.usDcOutVolt = us_filter_dc_volt_ad * adcDC_VOLT_RES_RATIO;
-		tDc.usOutVolt = tAdcSamp.usDcOutVolt;
 		
 		//DC电流
 		tAdcSamp.fDcOutCurr = us_filter_dc_curr_ad * 0.0034f;
-		tDc.usOutCurr = tAdcSamp.fDcOutCurr * 10;//0.1A
 		
 		//USB温度
 		// tAdcSamp.sUsbTemp = LIMIT((307 - (37 * log((float)us_filter_usb_temp_ad))), -128, 127); 

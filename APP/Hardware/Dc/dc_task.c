@@ -220,6 +220,11 @@ void vDc_Task(void *pvParameters)
             break;
             
         }
+
+		tDc.sMaxTemp = tAdcSamp.sDcTemp;
+		tDc.usInVolt = tAdcSamp.usSysInVolt;
+		tDc.usOutVolt = tAdcSamp.usDcOutVolt;
+		tDc.usOutCurr = tAdcSamp.fDcOutCurr * 10;//0.1A
 		
 		//*********************************功率**********************************
 		if( tDc.eDevState >= DS_BOOTING)
@@ -357,9 +362,29 @@ static void v_dc_protect_process(void)
 	static u8 uc_clear_output_err_cnt = 0;
 	static u8 uc_close_fail_cnt = 0;
 	static u8 uc_clear_close_fail_cnt = 0;
+	static u8 uc_ntc_lost_cnt = 0;
 	static u8 uc_temp = 0;
 	
-	tDc.sMaxTemp = tAdcSamp.sDcTemp;
+	//NTC检测
+	if(tDc.eDevState == DS_WORK)
+	{
+		if(tDc.sMaxTemp == 0 && tDc.uErrCode.tCode.bNtcLost == 0)
+		{
+			uc_ntc_lost_cnt++;
+			if(uc_ntc_lost_cnt >= (3000 / dcTASK_CYCLE_TIME))
+			{
+				uc_ntc_lost_cnt = 0;
+				v_dc_set_error_code(DC_EC_NTC_LOST,true);
+			}
+		}
+		else if(tDc.sMaxTemp > 5)
+		{
+			uc_ntc_lost_cnt = 0;
+			
+			if(tDc.uErrCode.tCode.bNtcLost == 1)
+				v_dc_set_error_code(DC_EC_NTC_LOST,false);
+		}
+	}
 	
 	//--------------------------------------电源错误检查-------------------------------------
 	//工作状态才检查

@@ -17,7 +17,7 @@
 #if(boardDCAC_VOLT_TYPE==0)	//110V
 #define  		sysCHG_PWR_LEVEL3              		1500	
 #elif(boardDCAC_VOLT_TYPE==3) //230V
-#define  		sysCHG_PWR_LEVEL3              		1800
+#define  		sysCHG_PWR_LEVEL3              		2000
 #else
 #error "DCAC类型定义有误"
 #endif

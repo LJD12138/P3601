@@ -358,7 +358,7 @@ void dcacUSART_DMA_TX_IRQ_HANDLER(void)
 -----输出参数    none
 -----返回值      none
 ************************************************************************************************************************/
-static u8 uc_read_buff_len=0;
+static u16 uc_read_buff_len=0;
 void dcacUSART_IRQ_HANDLER(void)
 {
     if(RESET != usart_interrupt_flag_get(dcacUSART, USART_INT_FLAG_IDLE)) 

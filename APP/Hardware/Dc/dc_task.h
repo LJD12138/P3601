@@ -15,6 +15,7 @@ typedef enum
 	DC_EC_CLOSE_FAIL,
 	DC_EC_OUT_LOW,
 	DC_EC_OUT_HIGH,
+	DC_EC_NTC_LOST,
 }DcErrCode_E;
 
 typedef union
@@ -27,6 +28,7 @@ typedef union
 		u8 bCloseFail:1;     	//¹Ø±ÕÊ§°Ü
 		u8 bOutLow:1;			//Êä³öµÍ
 		u8 bOutHigh:1;			//Êä³ö¸ß
+		u8 bNtcLost:1;			//NTC¶ªÊ§
 	}tCode;
 	u8 ucErrCode;
 }DcErrCode_U;

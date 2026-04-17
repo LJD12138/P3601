@@ -187,9 +187,9 @@ bool b_dcac_cs_get_param3(void)
 ******************************************************************************************************************/
 bool b_dcac_cs_set_total_chg_pwr(u16 pwr)
 {
-	tDcacInit.usChgVolt = tAppMemParam.tBMS.usChgVolt; //0.1V
 	tDcacInit.usChgPwr = pwr;	//³äµç¹¦ÂÊW
 	tDcacInit.usDisChgPwr = tAppMemParam.tDCAC.usOutPwrRating;
+	tDcacInit.usChgVolt = tAppMemParam.tBMS.usChgVolt; //0.1V
 	if(c_dcac_data_trans(modbusWRITE_MULTI_REG, 
 						dcacREG_ADDR_SET_TOTAL_CHG_PWR, 
 						(u8*)&tDcacInit.usChgPwr, 
