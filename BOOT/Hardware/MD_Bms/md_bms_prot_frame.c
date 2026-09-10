@@ -1,10 +1,9 @@
-
-
 #include "MD_Bms/md_bms_prot_frame.h"
 
 #if(boardBMS_EN)
 #include "MD_Bms/md_bms_iface.h"
 #include "Print/print_task.h"
+#include "Sys/sys_task.h"
 
 #if(boardUSE_OS)
 #include "freertos.h"
@@ -14,46 +13,46 @@
 #define       	bmsTX_PROTO_BUFF_LEN                   	128
 #define       	bmsRX_PROTO_BUFF_LEN                   	256
 
-#define     	bmsDEV_ADRR								0x01
-#define    		bmsWAIT_NOTIFY_OUTTIME     				1000     //ÈÎÎñÍ¨Öª³¬Ê±Ê±¼ä MS
+#define     	bmsDEV_ADRR								0x10
+#define    		bmsWAIT_NOTIFY_OUTTIME     				1000     //ä»»åŠ¡é€šçŸ¥è¶…æ—¶æ—¶é—´ MS
 
 
-//****************************************************²ÎÊı³õÊ¼»¯**************************************************//
-__ALIGNED(4) BaikuProtoTx_t *tpBmsProtoTx = NULL;	//·¢ËÍĞ­Òé
+//****************************************************å‚æ•°åˆå§‹åŒ–**************************************************//
+__ALIGNED(4) BaikuProtoTx_t *tpBmsProtoTx = NULL;	//å‘é€åè®®
 __ALIGNED(4) BaikuProtoRx_t *tpBmsProtoRx = NULL;
 
-/*´´½¨»¥³âÁ¿*/
+/*åˆ›å»ºäº’æ–¥é‡*/
 #if(boardUSE_OS)
 SemaphoreHandle_t bmsSemaphoreMutex = NULL;
 #endif  //boardUSE_OS
 
 
-//****************************************************º¯ÊıÉùÃ÷****************************************************//
+//****************************************************å‡½æ•°å£°æ˜****************************************************//
 static s8 c_bms_data_trans(u8 cmd, u8* data, u8 len);
 
 
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    Í¨Ñ¶Ğ­Òé³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    é€šè®¯åè®®åˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 bool bBms_SendProtInit(void)
 {
-	s8 c_result = cBaiku_ProtoTransInit(&tpBmsProtoTx, 
+	s8 c_result = cBaiku_ProtoSendInit(&tpBmsProtoTx, 
 								bmsTX_PROTO_BUFF_LEN, 
 								bmsDEV_ADRR);
 	if(c_result <= 0)
 	{
 		if(uPrint.tFlag.bBmsTask || uPrint.tFlag.bImportant)
-			log_e("bBmsTask:tpBmsProtoTxĞ­Òé¶ÔÏó³õÊ¼»¯Ê§°Ü,´úÂë%d",c_result);
+			log_e("bBmsTask:tpBmsProtoTxåè®®å¯¹è±¡åˆå§‹åŒ–å¤±è´¥,ä»£ç %d",c_result);
 		
 		return false;
 	}
 
-	/* ´´½¨»¥³âĞÅºÅÁ¿ */
+	/* åˆ›å»ºäº’æ–¥ä¿¡å·é‡ */
 	#if(boardUSE_OS)
     bmsSemaphoreMutex = xSemaphoreCreateMutex();
 	#endif  //boardUSE_OS
@@ -63,14 +62,14 @@ bool bBms_SendProtInit(void)
 
 bool bBms_RecProtInit(void)
 {
-	s8 c_result = cBaiku_ProtoRecInit(&tpBmsProtoRx, 	//Ğ­ÒéÖ¸Õë
-								bmsRX_PROTO_BUFF_LEN,	//Ğ­Òé»º´æÆ÷´óĞ¡
-								bmsDEV_ADRR,			//Ğ­ÒéÉè±¸ID
-								boardREPET_TIMER_CYCLE_TMIE);//¼ÆÊıÆ÷²ÉÑùÊ±¼ä
+	s8 c_result = cBaiku_ProtoRecInit(&tpBmsProtoRx, 	//åè®®æŒ‡é’ˆ
+								bmsRX_PROTO_BUFF_LEN,	//åè®®ç¼“å­˜å™¨å¤§å°
+								sysDEV_ADRR,			//åè®®è®¾å¤‡ID
+								boardREPET_TIMER_CYCLE_TMIE);//è®¡æ•°å™¨é‡‡æ ·æ—¶é—´
 	if(c_result <= 0)
 	{
 		if(uPrint.tFlag.bBmsRecTask || uPrint.tFlag.bImportant)
-			log_e("bBmsRecTask:tpBmsProtoRxĞ­Òé¶ÔÏó³õÊ¼»¯Ê§°Ü,´úÂë%d",c_result);
+			log_e("bBmsRecTask:tpBmsProtoRxåè®®å¯¹è±¡åˆå§‹åŒ–å¤±è´¥,ä»£ç %d",c_result);
 		return false;
 	}
 	
@@ -84,11 +83,11 @@ bool bBms_RecProtInit(void)
 
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    Ö¸Áî:»ñÈ¡²ÎÊı
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    æŒ‡ä»¤:è·å–å‚æ•°
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
 s8 c_bms_cs_get_param(u8 num)
 {
@@ -96,11 +95,11 @@ s8 c_bms_cs_get_param(u8 num)
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    Ö¸Áî:¿ª¹ØBMS
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    æŒ‡ä»¤:å¼€å…³BMS
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
 s8 c_bms_cs_switch(TaskInParam_U u_in_param)
 {
@@ -108,30 +107,30 @@ s8 c_bms_cs_switch(TaskInParam_U u_in_param)
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    Ö¸Áî:Í¨ÖªBMSÖ÷¿ØÔÚÉı¼¶
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    æŒ‡ä»¤:é€šçŸ¥BMSä¸»æ§åœ¨å‡çº§
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
-s8 c_bms_cs_send_updata(void)
+s8 c_bms_cs_send_update(void)
 {
 	u8 data = 0;
-	return c_bms_data_trans(baikuCMD_COMSOLE_UPDATA, &data, 1);
+	return c_bms_data_trans(baikuCMD_COMSOLE_UPDATE, &data, 1);
 }
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ	Êı¾İ´«Êä
------ËµÃ÷(±¸×¢) 
------´«Èë²ÎÊı	cmd:Ö¸Áî
-				data:Ö¸ÏòÊı¾İÖ¸Õë
-				len:Êı¾İµÄ³¤¶È
------Êä³ö²ÎÊı	none
------·µ»ØÖµ		-1:Ğ´ÈëµÄLen³¬³ö×î´ó³¤¶È
-				-2:µÈ»á»Ø¸´³¬Ê±
-				-3:Êı¾İ·¢ËÍ´íÎó
-				0:ÎŞ²Ù×÷
-				1:²Ù×÷³É¹¦
+-----å‡½æ•°åŠŸèƒ½	æ•°æ®ä¼ è¾“
+-----è¯´æ˜(å¤‡æ³¨) 
+-----ä¼ å…¥å‚æ•°	cmd:æŒ‡ä»¤
+				data:æŒ‡å‘æ•°æ®æŒ‡é’ˆ
+				len:æ•°æ®çš„é•¿åº¦
+-----è¾“å‡ºå‚æ•°	none
+-----è¿”å›å€¼		-1:å†™å…¥çš„Lenè¶…å‡ºæœ€å¤§é•¿åº¦
+				-2:ç­‰ä¼šå›å¤è¶…æ—¶
+				-3:æ•°æ®å‘é€é”™è¯¯
+				0:æ— æ“ä½œ
+				1:æ“ä½œæˆåŠŸ
 ************************************************************************************************************************/
 static s8 c_bms_data_trans(u8 cmd, u8* data, u8 len)
 {
@@ -140,13 +139,17 @@ static s8 c_bms_data_trans(u8 cmd, u8* data, u8 len)
 	if(tpBmsProtoTx == NULL)
 		return 0;
 
-	//¿ªÊ¼»¥³â
 	#if(boardUSE_OS)
+	// æ£€æŸ¥äº’æ–¥é”æ˜¯å¦å·²åˆ›å»ºï¼Œå¹¶è·å–äº’æ–¥é”ä¿æŠ¤å…±äº«èµ„æºï¼ˆæœ€å¤šç­‰å¾…1ç§’ï¼‰
 	if(bmsSemaphoreMutex == NULL)
 		return 0;
-		
 	if(xSemaphoreTake(bmsSemaphoreMutex, pdMS_TO_TICKS(1000)) == pdFAIL)
 		return -99;
+
+	// æ¸…é™¤ä»»åŠ¡é€šçŸ¥ï¼Œé¿å…å†å²é€šçŸ¥å¹²æ‰°æœ¬æ¬¡é€šä¿¡
+	while(ulTaskNotifyTake(pdTRUE, 0) > 0)
+	{
+	}
 	#endif  //boardUSE_OS
 	
 	result = cBaiku_ProtoCreate(tpBmsProtoTx, cmd, data, len);
@@ -157,12 +160,12 @@ static s8 c_bms_data_trans(u8 cmd, u8* data, u8 len)
 
 		if(bBms_DataSendStart(tpBmsProtoTx->ucaFrameData, tpBmsProtoTx->ucFrameLen) == true)
 		{
-			//µÈ´ıÈÎÎñÍ¨Öª,µÈ´ıÊ±¼äÎª1S
+			//ç­‰å¾…ä»»åŠ¡é€šçŸ¥,ç­‰å¾…æ—¶é—´ä¸º1S
 			#if(boardUSE_OS)
 			if(ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(bmsWAIT_NOTIFY_OUTTIME)) <= 0)
 			{
 				if(uPrint.tFlag.bBmsTask)
-					log_w("bBmsTask:µÈ´ıÖ¸Áî0x%x»Ø¸´³¬Ê±",cmd);
+					log_w("bBmsTask:ç­‰å¾…æŒ‡ä»¤0x%xå›å¤è¶…æ—¶",cmd);
 				
 				result = -2;
 			}
@@ -172,8 +175,10 @@ static s8 c_bms_data_trans(u8 cmd, u8* data, u8 len)
 			result = -3;
 	}
 
-	//ÊÍ·Å»¥³âÁ¿
+	//é‡Šæ”¾äº’æ–¥é‡
 	#if(boardUSE_OS)
+	vTaskDelay(2);
+	
 	xSemaphoreGive(bmsSemaphoreMutex);
 	#endif  //boardUSE_OS
 

@@ -4,51 +4,51 @@
 #include "main.h"
 #include "lwrb.h"
 
-#define     	baikuCMD_SWITCH							0x01	//¿ª¹Ø»úÖ¸Áî
-#define     	baikuCMD_REPLY_SWITCH					0x02	//»Ø¸´¿ª¹Ø×´Ì¬
+#define     	baikuCMD_SWITCH							0x01	//å¼€å…³æœºæŒ‡ä»¤
+#define     	baikuCMD_REPLY_SWITCH					0x02	//å›å¤å¼€å…³çŠ¶æ€
 
-#define     	baikuCMD_SET_TIME						0x05    //ÉèÖÃÊ±¼ä
-#define     	baikuCMD_REPLY_SET_TIME					0x06    //»Ø¸´ÉèÖÃ½á¹û
+#define     	baikuCMD_SET_TIME						0x05    //è®¾ç½®æ—¶é—´
+#define     	baikuCMD_REPLY_SET_TIME					0x06    //å›å¤è®¾ç½®ç»“æœ
 
-#define     	baikuCMD_GET_PARAM						0x07    //Ö÷»ñÈ¡Êı¾İ
-#define     	baikuCMD_REPLY_PARAM					0x08    //»Ø¸´»ñÈ¡Êı¾İ
+#define     	baikuCMD_GET_PARAM						0x07    //ä¸»è·å–æ•°æ®
+#define     	baikuCMD_REPLY_PARAM					0x08    //å›å¤è·å–æ•°æ®
 
-#define     	baikuCMD_SET_CHG_PWR             		0x40	//ÉèÖÃ³äµç¹¦ÂÊ
-#define     	baikuCMD_REPLY_SET_CHG_PWR           	0x41	//»Ø¸´³äµç¹¦ÂÊ
-#define     	baikuCMD_CALI             				0x44	//Ğ£×¼
-#define     	baikuCMD_REPLY_CALI           			0x45	//»Ø¸´Ğ£×¼
+#define     	baikuCMD_SET_CHG_PWR             		0x40	//è®¾ç½®å……ç”µåŠŸç‡
+#define     	baikuCMD_REPLY_SET_CHG_PWR           	0x41	//å›å¤å……ç”µåŠŸç‡
+#define     	baikuCMD_CALI             				0x44	//æ ¡å‡†
+#define     	baikuCMD_REPLY_CALI           			0x45	//å›å¤æ ¡å‡†
 
-#define     	baikuCMD_GET_MEM_PARAM            		0x80	//»ñÈ¡¼ÇÒä²ÎÊı
-#define     	baikuCMD_REPLY_MEM_PARAM           		0x81	//»Ø¸´¼ÇÒä²ÎÊı
-#define     	baikuCMD_WRITE_MEM_PARAM            	0x82	//Ğ´Èë¼ÇÒä²ÎÊı
-#define     	baikuCMD_REPLY_WRITE_MEM_PARAM          0x83	//»Ø¸´¼ÇÒä²ÎÊı
-#define     	baikuCMD_SET_PRINT_STATE            	0x84	//ÉèÖÃPrint×´Ì¬
-#define     	baikuCMD_REPLY_SET_PRINT_STATE          0x85	//»Ø¸´ÉèÖÃ½á¹û
-#define     	baikuCMD_GET_PRINT_STATE            	0x86	//»ñÈ¡Print×´Ì¬
-#define     	baikuCMD_REPLY_PRINT_STATE          	0x87	//»Ø¸´Print×´Ì¬
-#define     	baikuCMD_SYS_SET            			0x88	//ÏµÍ³ÉèÖÃ
-#define     	baikuCMD_REPLY_SYS_SET           		0x89	//»Ø¸´ÏµÍ³ÉèÖÃ
+#define     	baikuCMD_GET_MEM_PARAM            		0x80	//è·å–è®°å¿†å‚æ•°
+#define     	baikuCMD_REPLY_MEM_PARAM           		0x81	//å›å¤è®°å¿†å‚æ•°
+#define     	baikuCMD_WRITE_MEM_PARAM            	0x82	//å†™å…¥è®°å¿†å‚æ•°
+#define     	baikuCMD_REPLY_WRITE_MEM_PARAM          0x83	//å›å¤è®°å¿†å‚æ•°
+#define     	baikuCMD_SET_PRINT_STATE            	0x84	//è®¾ç½®PrintçŠ¶æ€
+#define     	baikuCMD_REPLY_SET_PRINT_STATE          0x85	//å›å¤è®¾ç½®ç»“æœ
+#define     	baikuCMD_GET_PRINT_STATE            	0x86	//è·å–PrintçŠ¶æ€
+#define     	baikuCMD_REPLY_PRINT_STATE          	0x87	//å›å¤PrintçŠ¶æ€
+#define     	baikuCMD_SYS_SET            			0x88	//ç³»ç»Ÿè®¾ç½®
+#define     	baikuCMD_REPLY_SYS_SET           		0x89	//å›å¤ç³»ç»Ÿè®¾ç½®
 
-#define     	baikuCMD_REQ_CHG            			0x90	//ÇëÇó³äµç
-#define     	baikuCMD_REPLY_REQ_CHG           		0x91	//»Ø¸´ÇëÇó³äµç
+#define     	baikuCMD_REQ_CHG            			0x90	//è¯·æ±‚å……ç”µ
+#define     	baikuCMD_REPLY_REQ_CHG           		0x91	//å›å¤è¯·æ±‚å……ç”µ
 
-#define     	baikuCMD_GET_TEST_PARAM            		0xB0	//»ñÈ¡²âÊÔ²ÎÊı
-#define     	baikuCMD_REPLY_TEST_PARAM           	0xB1	//»Ø¸´²âÊÔ²ÎÊı
-#define     	baikuCMD_GET_ERR_LOG           			0xB2	//»ñÈ¡´íÎóÈÕÖ¾
+#define     	baikuCMD_GET_TEST_PARAM            		0xB0	//è·å–æµ‹è¯•å‚æ•°
+#define     	baikuCMD_REPLY_TEST_PARAM           	0xB1	//å›å¤æµ‹è¯•å‚æ•°
+#define     	baikuCMD_GET_ERR_LOG           			0xB2	//è·å–é”™è¯¯æ—¥å¿—
 
-#define     	baikuCMD_COMSOLE_UPDATA					0xC0    //ÉÏÎ»»úÖ÷¿ØÕıÔÚÉı¼¶
-#define     	baikuCMD_REPLY_COMSOLE_UPDATA			0xC1    //»Ø¸´Ó¦´ğ
-#define     	baikuCMD_SET_PROTO						0xC2    //ÉèÖÃÉı¼¶Ğ­Òé
-#define     	baikuCMD_REPLY_SET_PROTO				0xC3    //»Ø¸´Ó¦´ğ
-#define     	baikuCMD_RRQ_START_SEND					0xC4    //ÇëÇó¿ªÊ¼·¢ËÍ NAK
-#define     	baikuCMD_REPLY_DATA						0xC5    //»Ø¸´Êı¾İ
-#define     	baikuCMD_RRQ_CONT_SEND					0xC6    //ÇëÇó¼ÌĞø·¢ËÍ ACK
-#define     	baikuCMD_REPLY_FINISH					0xC7    //»Ø¸´Êı¾İÍê³É·¢ËÍ EOT
-#define     	baikuCMD_REPLY_CANEL					0xC8    //»Ø¸´Êı¾İÈ¡Ïû·¢ËÍ CAN
-#define     	baikuCMD_BMS_UPDATA						0xC9    //ÏÂÎ»»úBMSÕıÔÚÉı¼¶
-#define     	baikuCMD_REPLY_BMS_UPDATA				0xCA    //»Ø¸´Ó¦´ğ
-#define     	baikuCMD_MPPT_UPDATA					0xCB    //ÏÂÎ»»úMPPTÕıÔÚÉı¼¶
-#define     	baikuCMD_REPLY_MPPT_UPDATA				0xCC    //»Ø¸´Ó¦´ğ
+#define     	baikuCMD_COMSOLE_UPDATE					0xC0    //ä¸Šä½æœºä¸»æ§æ­£åœ¨å‡çº§
+#define     	baikuCMD_REPLY_COMSOLE_UPDATE			0xC1    //å›å¤åº”ç­”
+#define     	baikuCMD_SET_PROTO						0xC2    //è®¾ç½®å‡çº§åè®®
+#define     	baikuCMD_REPLY_SET_PROTO				0xC3    //å›å¤åº”ç­”
+#define     	baikuCMD_RRQ_START_SEND					0xC4    //è¯·æ±‚å¼€å§‹å‘é€ NAK
+#define     	baikuCMD_REPLY_DATA						0xC5    //å›å¤æ•°æ®
+#define     	baikuCMD_RRQ_CONT_SEND					0xC6    //è¯·æ±‚ç»§ç»­å‘é€ ACK
+#define     	baikuCMD_REPLY_FINISH					0xC7    //å›å¤æ•°æ®å®Œæˆå‘é€ EOT
+#define     	baikuCMD_REPLY_CANEL					0xC8    //å›å¤æ•°æ®å–æ¶ˆå‘é€ CAN
+#define     	baikuCMD_BMS_UPDATE						0xC9    //ä¸‹ä½æœºBMSæ­£åœ¨å‡çº§
+#define     	baikuCMD_REPLY_BMS_UPDATE				0xCA    //å›å¤åº”ç­”
+#define     	baikuCMD_MPPT_UPDATE					0xCB    //ä¸‹ä½æœºMPPTæ­£åœ¨å‡çº§
+#define     	baikuCMD_REPLY_MPPT_UPDATE				0xCC    //å›å¤åº”ç­”
 typedef enum
 {
 	RS_HEAD=0,
@@ -56,21 +56,21 @@ typedef enum
 	RS_END,
 }BaikuRxStep_E; 
 
-#pragma pack(1)
+/* #pragma pack(1) removed to fix alignment-related UsageFault */
 typedef struct
 {
-	//Êı¾İÖ¡¿ªÊ¼
+	//æ•°æ®å¸§å¼€å§‹
 	vu8             	ucHead;
 	vu8             	ucAddr;
 	vu8             	ucRemainLen;
 	u8*             	ucpRemainData;
-	//Êı¾İÖ¡½áÊø
+	//æ•°æ®å¸§ç»“æŸ
 						
     vu8             	ucCmd;    
     vu8             	ucSN;
 	vu8             	ucWaitRecLen;
-	vu8             	ucValidLen;    //ÓĞĞ§Êı¾İµÄ³¤¶È
-	u8*             	ucpValidData;  //Ö¸ÏòÓĞĞ§Êı¾İµÄÊ×µØÖ·
+	vu8             	ucValidLen;    //æœ‰æ•ˆæ•°æ®çš„é•¿åº¦
+	u8*             	ucpValidData;  //æŒ‡å‘æœ‰æ•ˆæ•°æ®çš„é¦–åœ°å€
 	vu16            	usRecOverTimeCnt;
 	vu16            	usLostOverTimeCnt;
 	u16            		usTaskCycleTime;
@@ -78,23 +78,24 @@ typedef struct
 	lwrb_t				tRxBuff;
 	u8             		ucaData[];
 }BaikuProtoRx_t;
-#pragma pack()
+/* #pragma pack() removed */
 
 #pragma pack(1)
 typedef struct
 {
 	vu8             	ucHead;
 	vu8             	ucAddr;
-	vu8             	ucFrameLen;    //Êı¾İÖ¡×Ü³¤¶È
-	u8             		ucaFrameData[];  //Êı¾İÖ¡
+	vu8             	ucFrameLen;    //æ•°æ®å¸§æ€»é•¿åº¦
+	u16            		usBuffSize;    //ucaFrameDataç¼“å†²åŒºå¤§å°
+	u8             		ucaFrameData[];  //æ•°æ®å¸§
 }BaikuProtoTx_t;
 #pragma pack()
 
 s8 cBaiku_ProtoRecInit(BaikuProtoRx_t** proto, u16 buff_len, u8 dev_addr, u16 cycle_time);
-s8 cBaiku_ProtoTransInit(BaikuProtoTx_t** proto, u16 buff_len, u8 dev_addr);
+s8 cBaiku_ProtoSendInit(BaikuProtoTx_t** proto, u16 buff_len, u8 dev_addr);
 s8 cBaiku_ProtoCreate(BaikuProtoTx_t* proto,u8 cmd, u8* data, u8 len);
 s8 cBaiku_ProtoCheck(BaikuProtoRx_t* proto);
-s8 cBaiku_UpdataCheck(BaikuProtoRx_t* proto, u8* ucp_data, u16 len);
+s8 cBaiku_UpdateCheck(BaikuProtoRx_t* proto, u8* ucp_data, u16 len);
 s8 cBaiku_StepWaitOutTime(BaikuProtoRx_t* proto);
 s8 cBaiku_ResetRxBuff(BaikuProtoRx_t* proto);
 

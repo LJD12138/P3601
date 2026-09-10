@@ -1,6 +1,6 @@
 /*****************************************************************************************************************
 *                                                                                                                *
- *                                         Ğ­Òé½âÎö¹¹Ôì                                                         *
+ *                                         åè®®è§£ææ„é€                                                          *
 *                                                                                                                *
 ******************************************************************************************************************/
 #include "Baiku/baiku_proto.h"
@@ -13,22 +13,22 @@
 #include "task.h"
 #endif
 
-//****************************************************¾Ö²¿ºê¶¨Òå**************************************************//
-#define      	protoHEAD_CODE         					0xAA  //Í·Âë
+//****************************************************å±€éƒ¨å®å®šä¹‰**************************************************//
+#define      	protoHEAD_CODE         					0xAA  //å¤´ç 
 
-//****************************************************º¯ÊıÉùÃ÷****************************************************//
-bool b_baiku_jump_step(BaikuProtoRx_t* proto, BaikuRxStep_E step);
-s8 c_baiku_proto_decrypt(BaikuProtoRx_t* proto);
+//****************************************************å‡½æ•°å£°æ˜****************************************************//
+static bool b_baiku_jump_step(BaikuProtoRx_t* proto, BaikuRxStep_E step);
+static s8 c_baiku_proto_decrypt(BaikuProtoRx_t* proto);
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ	½ÓÊÜĞ­Òé³õÊ¼»¯
------ËµÃ÷(±¸×¢)	none
------´«Èë²ÎÊı	proto:½ÓÊÜĞ­Òé½á¹¹Ìå
-				buff_len::Ğ­Òé»º´æÆ÷´óĞ¡
-				dev_addr:Éè±¸µØÖ·
-				cycle_time:Ğ­ÒéÑ­»·Ê±»ù
------Êä³ö²ÎÊı	none
------·µ»ØÖµ		Ğ¡ÓÚ0:²Ù×÷Ê§°Ü   µÈÓÚ0:Ã»²Ù×÷    ´óÓÚ0:²Ù×÷³É¹¦
+-----å‡½æ•°åŠŸèƒ½	æ¥å—åè®®åˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)	none
+-----ä¼ å…¥å‚æ•°	proto:æ¥å—åè®®ç»“æ„ä½“
+				buff_len::åè®®ç¼“å­˜å™¨å¤§å°
+				dev_addr:è®¾å¤‡åœ°å€
+				cycle_time:åè®®å¾ªç¯æ—¶åŸº
+-----è¾“å‡ºå‚æ•°	none
+-----è¿”å›å€¼		å°äº0:æ“ä½œå¤±è´¥   ç­‰äº0:æ²¡æ“ä½œ    å¤§äº0:æ“ä½œæˆåŠŸ
 ******************************************************************************************************************/
 s8 cBaiku_ProtoRecInit(BaikuProtoRx_t** proto, u16 buff_len, u8 dev_addr, u16 cycle_time)
 {
@@ -43,7 +43,7 @@ s8 cBaiku_ProtoRecInit(BaikuProtoRx_t** proto, u16 buff_len, u8 dev_addr, u16 cy
 	
 //	sMyPrint("Free Heap: %u\n", xPortGetFreeHeapSize());
 	
-	// ¶¯Ì¬·ÖÅäÄÚ´æ
+	// åŠ¨æ€åˆ†é…å†…å­˜
     size_t total_size = sizeof(BaikuProtoRx_t) + buff_len;
 	#if(boardUSE_OS)
 	*proto = (BaikuProtoRx_t*)pvPortMalloc(total_size);
@@ -69,13 +69,18 @@ s8 cBaiku_ProtoRecInit(BaikuProtoRx_t** proto, u16 buff_len, u8 dev_addr, u16 cy
 	}
 	else 
 	{
-		#if(boardUSE_OS)
-		vPortFree((*proto)->ucpRemainData);  //ÏÈÊÍ·Å×ÓÄÚ´æ,Òª²»»áµ¼ÖÂ±ÀÀ£
-		vPortFree((*proto));
-		#else
-		free((*proto)->ucpRemainData);  //ÏÈÊÍ·Å×ÓÄÚ´æ,Òª²»»áµ¼ÖÂ±ÀÀ£
-		free((*proto));
-		#endif
+		if (*proto != NULL)
+		{
+			#if(boardUSE_OS)
+			if ((*proto)->ucpRemainData != NULL)
+				vPortFree((*proto)->ucpRemainData);
+			vPortFree((*proto));
+			#else
+			if ((*proto)->ucpRemainData != NULL)
+				free((*proto)->ucpRemainData);
+			free((*proto));
+			#endif
+		}
 		result =  -2;
 	}
 	#if(boardUSE_OS)
@@ -86,15 +91,15 @@ s8 cBaiku_ProtoRecInit(BaikuProtoRx_t** proto, u16 buff_len, u8 dev_addr, u16 cy
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ	·¢ËÍĞ­Òé³õÊ¼»¯
------ËµÃ÷(±¸×¢)	none
------´«Èë²ÎÊı	proto:½ÓÊÜĞ­Òé½á¹¹Ìå
-				buff_len::Ğ­Òé»º´æÆ÷´óĞ¡
-				dev_addr:Éè±¸µØÖ·
------Êä³ö²ÎÊı	none
------·µ»ØÖµ		Ğ¡ÓÚ0:²Ù×÷Ê§°Ü   µÈÓÚ0:Ã»²Ù×÷    ´óÓÚ0:²Ù×÷³É¹¦
+-----å‡½æ•°åŠŸèƒ½	å‘é€åè®®åˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)	none
+-----ä¼ å…¥å‚æ•°	proto:æ¥å—åè®®ç»“æ„ä½“
+				buff_len::åè®®ç¼“å­˜å™¨å¤§å°
+				dev_addr:è®¾å¤‡åœ°å€
+-----è¾“å‡ºå‚æ•°	none
+-----è¿”å›å€¼		å°äº0:æ“ä½œå¤±è´¥   ç­‰äº0:æ²¡æ“ä½œ    å¤§äº0:æ“ä½œæˆåŠŸ
 ******************************************************************************************************************/
-s8 cBaiku_ProtoTransInit(BaikuProtoTx_t** proto, u16 buff_len, u8 dev_addr)
+s8 cBaiku_ProtoSendInit(BaikuProtoTx_t** proto, u16 buff_len, u8 dev_addr)
 {
 	s8 result = 1;
 	
@@ -104,7 +109,7 @@ s8 cBaiku_ProtoTransInit(BaikuProtoTx_t** proto, u16 buff_len, u8 dev_addr)
 	#if(boardUSE_OS)
 	taskENTER_CRITICAL();
 	#endif
-	// ¶¯Ì¬·ÖÅäÄÚ´æ
+	// åŠ¨æ€åˆ†é…å†…å­˜
 	size_t total_size = sizeof(BaikuProtoTx_t) + buff_len;
 	#if(boardUSE_OS)
     *proto = (BaikuProtoTx_t*)pvPortMalloc(total_size);
@@ -112,17 +117,14 @@ s8 cBaiku_ProtoTransInit(BaikuProtoTx_t** proto, u16 buff_len, u8 dev_addr)
     *proto = (BaikuProtoTx_t*)malloc(total_size);
 	#endif
 	
-	(*proto)->ucHead = protoHEAD_CODE;
-	(*proto)->ucAddr = dev_addr;
-	
 	if(*proto == NULL)
 	{
-		#if(boardUSE_OS)
-		vPortFree((*proto));
-		#else
-		free((*proto));
-		#endif
 		result =  -2;
+	}
+	else
+	{
+		(*proto)->ucHead = protoHEAD_CODE;
+		(*proto)->ucAddr = dev_addr;
 	}
 	#if(boardUSE_OS)
 	taskEXIT_CRITICAL();
@@ -132,9 +134,9 @@ s8 cBaiku_ProtoTransInit(BaikuProtoTx_t** proto, u16 buff_len, u8 dev_addr)
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ	¹¹ÔìĞ­Òé
------ËµÃ÷(±¸×¢)	none
------´«Èë²ÎÊı	FrameInfĞ­ÒéµÄ½á¹¹Ìå
+-----å‡½æ•°åŠŸèƒ½	æ„é€ åè®®
+-----è¯´æ˜(å¤‡æ³¨)	none
+-----ä¼ å…¥å‚æ•°	FrameInfåè®®çš„ç»“æ„ä½“
 				[0]:Header
 				[1]:Addr
 				[2]:Len = Cmd~CheckSum;
@@ -143,14 +145,14 @@ s8 cBaiku_ProtoTransInit(BaikuProtoTx_t** proto, u16 buff_len, u8 dev_addr)
 				[5]:data
 				[5+n]:payload data
 				[6+n]:CheckSum
------Êä³ö²ÎÊı	none
------·µ»ØÖµ		Ğ¡ÓÚ0:²Ù×÷Ê§°Ü   µÈÓÚ0:Ã»²Ù×÷    ´óÓÚ0:²Ù×÷³É¹¦
+-----è¾“å‡ºå‚æ•°	none
+-----è¿”å›å€¼		å°äº0:æ“ä½œå¤±è´¥   ç­‰äº0:æ²¡æ“ä½œ    å¤§äº0:æ“ä½œæˆåŠŸ
 ******************************************************************************************************************/
 s8 cBaiku_ProtoCreate(BaikuProtoTx_t* proto,u8 cmd, u8* data, u8 len)
 {
 	s8 result = 1;
 	
-	//×Ü³¤¶È²»¿ÉÒÔ³¬¹ı256(250+6)
+	//æ€»é•¿åº¦ä¸å¯ä»¥è¶…è¿‡256(250+6)
     if(len > 250)   
         return -1;
 	
@@ -162,19 +164,19 @@ s8 cBaiku_ProtoCreate(BaikuProtoTx_t* proto,u8 cmd, u8* data, u8 len)
 	#endif
 	if(result > 0)
 	{
-		//×é½¨Êı¾İÖ¡
+		//ç»„å»ºæ•°æ®å¸§
 		proto->ucaFrameData[0] = proto->ucHead;
 		proto->ucaFrameData[1] = proto->ucAddr;
 		proto->ucaFrameData[2] = len + 3;    
-		proto->ucaFrameData[3] = cmd;        //Ö¸ÁîºÅ,´ÓÕâ¸ö¿ªÊ¼Ğ£Ñé    
+		proto->ucaFrameData[3] = cmd;        //æŒ‡ä»¤å·,ä»è¿™ä¸ªå¼€å§‹æ ¡éªŒ    
 		proto->ucaFrameData[4] = 0;          //SN
 		
 		if(data != NULL && len != 0)
-			memcpy((u8*)&proto->ucaFrameData[5], data, len);//payloadÊı¾İ
+			memcpy((u8*)&proto->ucaFrameData[5], data, len);//payloadæ•°æ®
 
-		//×ÜµÄ³¤¶È
+		//æ€»çš„é•¿åº¦
 		proto->ucFrameLen = len + 6;
-		//»ñÈ¡Ğ£ÑéÂë
+		//è·å–æ ¡éªŒç 
 		proto->ucaFrameData[proto->ucFrameLen -1] = 
 		ucCheck_SumReflect((u8*)&proto->ucaFrameData[3],proto->ucaFrameData[2] - 1);
 	}
@@ -187,11 +189,11 @@ s8 cBaiku_ProtoCreate(BaikuProtoTx_t* proto,u8 cmd, u8* data, u8 len)
 
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ½âÎöĞ­Òé
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    FrameInfĞ­ÒéµÄ½á¹¹Ìå
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      Ğ¡ÓÚ0:²Ù×÷Ê§°Ü   µÈÓÚ0:Ã»²Ù×÷    ´óÓÚ0:²Ù×÷³É¹¦
+-----å‡½æ•°åŠŸèƒ½    è§£æåè®®
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    FrameInfåè®®çš„ç»“æ„ä½“
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      å°äº0:æ“ä½œå¤±è´¥   ç­‰äº0:æ²¡æ“ä½œ    å¤§äº0:æ“ä½œæˆåŠŸ
 ******************************************************************************************************************/
 s8 cBaiku_ProtoCheck(BaikuProtoRx_t* proto)
 {
@@ -206,16 +208,16 @@ s8 cBaiku_ProtoCheck(BaikuProtoRx_t* proto)
 	{
 		switch(proto->eStep)
 		{
-			case RS_HEAD:  //Ö¡Í·
+			case RS_HEAD:  //å¸§å¤´
 			{
 				lwrb_read(&proto->tRxBuff, temp, 2);
 				while(1)
 				{
-					//Æ¥¶Ô³É¹¦
-					if(temp[0] == proto->ucHead && (temp[1] == proto->ucAddr || temp[1] == printCONSOLE_MASTER_ADDR || temp[1] == printCONSOLE_SLAVE_ADDR))
+					//åŒ¹å¯¹æˆåŠŸ
+					if(temp[0] == proto->ucHead && (temp[1] == proto->ucAddr))
 					{
 						lwrb_read(&proto->tRxBuff, &temp[2], 1);
-						//³¤¶È´íÎó
+						//é•¿åº¦é”™è¯¯
 						if(temp[2] < 3)                                                    
 							return -1;
 												
@@ -225,34 +227,34 @@ s8 cBaiku_ProtoCheck(BaikuProtoRx_t* proto)
 					}
 					else 
 					{
-						//»º´æÇøÎª¿ÕÔòÍË³öÑ­»·
+						//ç¼“å­˜åŒºä¸ºç©ºåˆ™é€€å‡ºå¾ªç¯
 						if(lwrb_get_full(&proto->tRxBuff) == 0)
 							break;
 						
 						temp[0] = temp[1];
 						lwrb_read(&proto->tRxBuff, &temp[1], 1);
 						
-						//³¬Ê±ÍË³ö
+						//è¶…æ—¶é€€å‡º
 						delay_cnt--;
 						if(delay_cnt == 0)
 							return -3;
 					}
 				}
-				//Òıµ¼Âë¿ÉÄÜ¶ªÊ§
+				//å¼•å¯¼ç å¯èƒ½ä¸¢å¤±
 				if(proto->eStep == RS_HEAD)
 					return -4;
 			}
 
-			case RS_LEN: //³¤¶È
+			case RS_LEN: //é•¿åº¦
 			{
 				if(lwrb_get_full(&proto->tRxBuff) >= proto->ucWaitRecLen)
 				{
-					//È¡³ö³¤¶È
+					//å–å‡ºé•¿åº¦
 					proto->ucRemainLen = proto->ucWaitRecLen;
 					
-					//********************************************¿ªÊ¼ÀÛ¼ÓºÍĞ£Ñé**********************************************
+					//********************************************å¼€å§‹ç´¯åŠ å’Œæ ¡éªŒ**********************************************
 					if(c_baiku_proto_decrypt(proto) <= 0)
-						return -2;  //Ğ£Ñé³ö´í
+						return -2;  //æ ¡éªŒå‡ºé”™
 					
 					b_baiku_jump_step(proto, RS_END);
 				}
@@ -260,7 +262,7 @@ s8 cBaiku_ProtoCheck(BaikuProtoRx_t* proto)
 					break;
 			}
 			
-			case RS_END: //½áÊø
+			case RS_END: //ç»“æŸ
 			{
 				c_result = 1;
 				b_baiku_jump_step(proto, RS_HEAD);
@@ -277,13 +279,13 @@ s8 cBaiku_ProtoCheck(BaikuProtoRx_t* proto)
 
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ½âÎöĞ­Òé
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    FrameInfĞ­ÒéµÄ½á¹¹Ìå
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      Ğ¡ÓÚ0:²Ù×÷Ê§°Ü   µÈÓÚ0:Ã»²Ù×÷    ´óÓÚ0:²Ù×÷³É¹¦
+-----å‡½æ•°åŠŸèƒ½    è§£æåè®®
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    FrameInfåè®®çš„ç»“æ„ä½“
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      å°äº0:æ“ä½œå¤±è´¥   ç­‰äº0:æ²¡æ“ä½œ    å¤§äº0:æ“ä½œæˆåŠŸ
 ******************************************************************************************************************/
-s8 cBaiku_UpdataCheck(BaikuProtoRx_t* proto, u8* ucp_data, u16 len)
+s8 cBaiku_UpdateCheck(BaikuProtoRx_t* proto, u8* ucp_data, u16 len)
 {
 	s8 c_result = 0;
 	int i = 0;
@@ -296,16 +298,16 @@ s8 cBaiku_UpdataCheck(BaikuProtoRx_t* proto, u8* ucp_data, u16 len)
 	
 	for(; i <= len - 3; i++)
 	{
-		// ¼ì²éµ±Ç°ÔªËØ¼°ÆäºóÈı¸öÔªËØÊÇ·ñÓëÄ¿±êÊı×éÆ¥Åä
-		if(ucp_data[i] == proto->ucHead && 
-		  (ucp_data[i + 1] == proto->ucAddr || ucp_data[i + 1] == printCONSOLE_MASTER_ADDR) &&
-			ucp_data[i + 2] <= len)
+		// æ£€æŸ¥å½“å‰å…ƒç´ åŠå…¶åä¸‰ä¸ªå…ƒç´ æ˜¯å¦ä¸ç›®æ ‡æ•°ç»„åŒ¹é…
+		if(ucp_data[i] == proto->ucHead
+		  	&& (ucp_data[i + 1] == proto->ucAddr)
+			&& ucp_data[i + 2] <= len)
 		{
 			proto->ucHead = ucp_data [i];
 			proto->ucAddr = ucp_data [i + 1];
 			proto->ucRemainLen = ucp_data [i + 2];
 			
-			//Ê£ÓàµÄ³¤¶È²»¹»
+			//å‰©ä½™çš„é•¿åº¦ä¸å¤Ÿ
 			if(((len - i) - 3) < proto->ucRemainLen)
 				return -3;
 			
@@ -317,21 +319,21 @@ s8 cBaiku_UpdataCheck(BaikuProtoRx_t* proto, u8* ucp_data, u16 len)
 	if(c_result == 0)
 		return -4;
 
-	//ÀÛ¼ÓºÍ¼ÆËã  ´Ócmd¿ªÊ¼µ½payload  È¥³ıchecksum
+	//ç´¯åŠ å’Œè®¡ç®—  ä»cmdå¼€å§‹åˆ°payload  å»é™¤checksum
 	vu8 ChkSum = ucCheck_SumReflect(&ucp_data[i + 3], (proto->ucRemainLen - 1));
-	//ÀÛ¼ÓºÍĞ£Ñé
+	//ç´¯åŠ å’Œæ ¡éªŒ
 	if(ucp_data[i + proto->ucRemainLen + 2] != ChkSum)
 		return -5; 
 	
 	memcpy(proto->ucpRemainData, &ucp_data[i + 3], proto->ucRemainLen);
 
-	//È¡³öÖ¸Áîcmd
+	//å–å‡ºæŒ‡ä»¤cmd
 	proto->ucCmd = proto->ucpRemainData[0];          //CMD
-	//È¡³öÊı¾İÖ¡ĞòºÅ
+	//å–å‡ºæ•°æ®å¸§åºå·
 	proto->ucSN  = proto->ucpRemainData[1];          //SN
-	//È¡³öÓĞĞ§Êı¾İ³¤¶È
+	//å–å‡ºæœ‰æ•ˆæ•°æ®é•¿åº¦
 	proto->ucValidLen = proto->ucRemainLen - 3; 
-	//È¡³öÓĞĞ§Êı¾İ²¿·Ö
+	//å–å‡ºæœ‰æ•ˆæ•°æ®éƒ¨åˆ†
 	if(proto->ucValidLen)
 		proto->ucpValidData = (u8*)&proto->ucpRemainData[2]; 
 	else
@@ -341,11 +343,11 @@ s8 cBaiku_UpdataCheck(BaikuProtoRx_t* proto, u8* ucp_data, u16 len)
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ½âÎöĞ­Òé
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    FrameInfĞ­ÒéµÄ½á¹¹Ìå
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      Ğ¡ÓÚ0:²Ù×÷Ê§°Ü   µÈÓÚ0:Ã»²Ù×÷    ´óÓÚ0:²Ù×÷³É¹¦
+-----å‡½æ•°åŠŸèƒ½    è§£æåè®®
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    FrameInfåè®®çš„ç»“æ„ä½“
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      å°äº0:æ“ä½œå¤±è´¥   ç­‰äº0:æ²¡æ“ä½œ    å¤§äº0:æ“ä½œæˆåŠŸ
 ******************************************************************************************************************/
 s8 cBaiku_StepWaitOutTime(BaikuProtoRx_t* proto)
 {
@@ -358,11 +360,11 @@ s8 cBaiku_StepWaitOutTime(BaikuProtoRx_t* proto)
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ÖØÖÃ½ÓÊÜĞ­ÒéBUFF
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    FrameInfĞ­ÒéµÄ½á¹¹Ìå
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      Ğ¡ÓÚ0:²Ù×÷Ê§°Ü   µÈÓÚ0:Ã»²Ù×÷    ´óÓÚ0:²Ù×÷³É¹¦
+-----å‡½æ•°åŠŸèƒ½    é‡ç½®æ¥å—åè®®BUFF
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    FrameInfåè®®çš„ç»“æ„ä½“
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      å°äº0:æ“ä½œå¤±è´¥   ç­‰äº0:æ²¡æ“ä½œ    å¤§äº0:æ“ä½œæˆåŠŸ
 ******************************************************************************************************************/
 s8 cBaiku_ResetRxBuff(BaikuProtoRx_t* proto)
 {
@@ -377,11 +379,11 @@ s8 cBaiku_ResetRxBuff(BaikuProtoRx_t* proto)
 
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ÖØÖÃ·¢ËÍĞ­ÒéBUFF
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    FrameInfĞ­ÒéµÄ½á¹¹Ìå
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      Ğ¡ÓÚ0:²Ù×÷Ê§°Ü   µÈÓÚ0:Ã»²Ù×÷    ´óÓÚ0:²Ù×÷³É¹¦
+-----å‡½æ•°åŠŸèƒ½    é‡ç½®å‘é€åè®®BUFF
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    FrameInfåè®®çš„ç»“æ„ä½“
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      å°äº0:æ“ä½œå¤±è´¥   ç­‰äº0:æ²¡æ“ä½œ    å¤§äº0:æ“ä½œæˆåŠŸ
 ******************************************************************************************************************/
 s8 cProto_ResetTxBuff(BaikuProtoTx_t* proto)
 {
@@ -391,33 +393,33 @@ s8 cProto_ResetTxBuff(BaikuProtoTx_t* proto)
 
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ½âÎöĞ­Òé
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    FrameInfĞ­ÒéµÄ½á¹¹Ìå
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      Ğ¡ÓÚ0:²Ù×÷Ê§°Ü   µÈÓÚ0:Ã»²Ù×÷    ´óÓÚ0:²Ù×÷³É¹¦
+-----å‡½æ•°åŠŸèƒ½    è§£æåè®®
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    FrameInfåè®®çš„ç»“æ„ä½“
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      å°äº0:æ“ä½œå¤±è´¥   ç­‰äº0:æ²¡æ“ä½œ    å¤§äº0:æ“ä½œæˆåŠŸ
 ******************************************************************************************************************/
-bool b_baiku_jump_step(BaikuProtoRx_t* proto, BaikuRxStep_E step)
+static bool b_baiku_jump_step(BaikuProtoRx_t* proto, BaikuRxStep_E step)
 {
 	if(proto == NULL)
 		return false;
 	
 	switch(step)
 	{
-		case RS_HEAD:  //Ö¡Í·
+		case RS_HEAD:  //å¸§å¤´
 		{
 			proto->ucWaitRecLen = sizeof(proto->ucHead) + sizeof(proto->ucAddr);
 			proto->usRecOverTimeCnt = 0;
 		}
 		break;
 		
-		case RS_LEN:  //³¤¶È
+		case RS_LEN:  //é•¿åº¦
 		{
 			proto->usRecOverTimeCnt = (2000/proto->usTaskCycleTime);
 		}
 		break;
 		
-		case RS_END: //½áÊø
+		case RS_END: //ç»“æŸ
 		{
 			proto->usRecOverTimeCnt = (1000/proto->usTaskCycleTime);
 			proto->usLostOverTimeCnt = (10000/proto->usTaskCycleTime);
@@ -435,46 +437,46 @@ bool b_baiku_jump_step(BaikuProtoRx_t* proto, BaikuRxStep_E step)
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ½âÎöĞ­Òé
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    FrameInfĞ­ÒéµÄ½á¹¹Ìå
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      Ğ¡ÓÚ0:²Ù×÷Ê§°Ü   µÈÓÚ0:Ã»²Ù×÷    ´óÓÚ0:²Ù×÷³É¹¦
+-----å‡½æ•°åŠŸèƒ½    è§£æåè®®
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    FrameInfåè®®çš„ç»“æ„ä½“
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      å°äº0:æ“ä½œå¤±è´¥   ç­‰äº0:æ²¡æ“ä½œ    å¤§äº0:æ“ä½œæˆåŠŸ
 ******************************************************************************************************************/
-s8 c_baiku_proto_decrypt(BaikuProtoRx_t* proto)
+static s8 c_baiku_proto_decrypt(BaikuProtoRx_t* proto)
 {
 	s8 result = 1;
 	
-	//×î¶ÌµÄÖ¸ÁîÎªÃ÷ÎÄÎŞPayload Data£¬6×Ö½Ú
-	//Lenºó×î¶Ì³¤¶ÈÎª3
-    if(proto->ucRemainLen < 3)   
-        return -1;
-	
 	if(proto == NULL || proto->ucpRemainData == NULL)
 		return -2;
+
+	//æœ€çŸ­çš„æŒ‡ä»¤ä¸ºæ˜æ–‡æ— Payload Dataï¼Œ6å­—èŠ‚
+	//Lenåæœ€çŸ­é•¿åº¦ä¸º3
+    if(proto->ucRemainLen < 3)   
+        return -1;
 	
 	#if(boardUSE_OS)
     taskENTER_CRITICAL();
 	#endif
 	if(result > 0)
 	{
-		//È¡³öÊ£ÓàµÄÖ¡Êı¾İ   
+		//å–å‡ºå‰©ä½™çš„å¸§æ•°æ®   
 		lwrb_read(&proto->tRxBuff, proto->ucpRemainData, proto->ucRemainLen);
-		//ÀÛ¼ÓºÍ¼ÆËã  ´Ócmd¿ªÊ¼µ½payload  È¥³ıchecksum
+		//ç´¯åŠ å’Œè®¡ç®—  ä»cmdå¼€å§‹åˆ°payload  å»é™¤checksum
 		vu8 ChkSum = ucCheck_SumReflect(proto->ucpRemainData, (proto->ucRemainLen - 1));
-		//ÀÛ¼ÓºÍĞ£Ñé
+		//ç´¯åŠ å’Œæ ¡éªŒ
 		if(proto->ucpRemainData[proto->ucRemainLen - 1] != ChkSum)
 			result = -3;      
 		
 		if(result > 0)
 		{
-			//È¡³öÖ¸Áîcmd
+			//å–å‡ºæŒ‡ä»¤cmd
 			proto->ucCmd = proto->ucpRemainData[0];          //CMD
-			//È¡³öÊı¾İÖ¡ĞòºÅ
+			//å–å‡ºæ•°æ®å¸§åºå·
 			proto->ucSN  = proto->ucpRemainData[1];          //SN
-			//È¡³öÓĞĞ§Êı¾İ³¤¶È
+			//å–å‡ºæœ‰æ•ˆæ•°æ®é•¿åº¦
 			proto->ucValidLen = proto->ucRemainLen - 3; 
-			//È¡³öÓĞĞ§Êı¾İ²¿·Ö
+			//å–å‡ºæœ‰æ•ˆæ•°æ®éƒ¨åˆ†
 			if(proto->ucValidLen)
 				proto->ucpValidData = (u8*)&proto->ucpRemainData[2]; 
 			else

@@ -57,38 +57,38 @@ extern const char tDcacMemParamStr[];
 #endif  //boardDCAC_EN
 extern const char tSysMemParamStr[];
 
-///********************************´æÔÚBOOT£ºIAP_FLASH_INFO**********************************************
-//APP×´Ì¬
+///********************************å­˜åœ¨BOOTï¼šIAP_FLASH_INFO**********************************************
+//APPçŠ¶æ€
 typedef enum
 {
-	AS_NULL = 0,		//Î´Ñ¡Ôñ
-    AS_FINISH,			//¸ÕÉı¼¶Íê³É
-	AS_OK,				//µ±Ç°ÊÇÍêÕûµÄ
-	AS_ERASE,			//ÒÑ¾­²Á³ı
+	AS_NULL = 0,		//æœªé€‰æ‹©
+    AS_FINISH,			//åˆšå‡çº§å®Œæˆ
+	AS_OK,				//å½“å‰æ˜¯å®Œæ•´çš„
+	AS_ERASE,			//å·²ç»æ“¦é™¤
 }AppState_E;
 
-#pragma pack(1)  //Ò»¸ö×Ö½Ú¶ÔÆë
+#pragma pack(1)  //ä¸€ä¸ªå­—èŠ‚å¯¹é½
 typedef struct
 {
-	char        		saVersion[32];    // Èí¼ş°æ±¾
-    char        		saBuildDate[32];  // ³ÌĞò±àÒëÈÕÆÚ
-    char        		saBuildTime[32];  // ³ÌĞò±àÒëÊ±¼ä
+	char        		saVersion[32];    // è½¯ä»¶ç‰ˆæœ¬
+    char        		saBuildDate[32];  // ç¨‹åºç¼–è¯‘æ—¥æœŸ
+    char        		saBuildTime[32];  // ç¨‹åºç¼–è¯‘æ—¶é—´
 }VerInfo_T;
 #pragma pack()
 
-#pragma pack(4)  //Ò»¸ö×Ö½Ú¶ÔÆë
+#pragma pack(4)  //ä¸€ä¸ªå­—èŠ‚å¯¹é½
 typedef struct
 {
-	vu32        		ulCmd;             	// 0xAAAA_AAAAĞèÒªÉı¼¶,ÆäËû²»ĞèÒªÉı¼¶
-	AppState_E			eAppState;			// APP×´Ì¬
-	vu8					ucAppFaultCnt;		// APPÆô¶¯Ê§°Ü¼ÆÊı 
+	vu32        		ulCmd;             	// 0xAAAA_AAAAéœ€è¦å‡çº§,å…¶ä»–ä¸éœ€è¦å‡çº§
+	AppState_E			eAppState;			// APPçŠ¶æ€
+	vu8					ucAppFaultCnt;		// APPå¯åŠ¨å¤±è´¥è®¡æ•° 
 }BootParam_T;
 #pragma pack()
 
-#pragma pack(1)  //Ò»¸ö×Ö½Ú¶ÔÆë
+#pragma pack(1)  //ä¸€ä¸ªå­—èŠ‚å¯¹é½
 typedef struct
 {
-	uint16_t         	usInitFinish;     	// APP²ÎÊı³õÊ¼»¯Íê³É±êÖ¾
+	uint16_t         	usInitFinish;     	// APPå‚æ•°åˆå§‹åŒ–å®Œæˆæ ‡å¿—
 	uint16_t         	usUniqueID[6];    	// ID
 }AppParam_T;
 #pragma pack()
@@ -138,10 +138,10 @@ void vApp_JumpToBoot(uint32_t cmd);
 s8 cApp_BootInfoInit(void);
 s8 cApp_AppInfoInit(void);
 s8 cApp_MemParamInit(const char* id_str);
-s16 cApp_UpdataMemParam(const char* id_str);
+s16 cApp_UpdateMemParam(const char* id_str);
 s16 cApp_GetMemParam(const char* id_str);
 u16 usApp_GetMemParamSize(void);
-s16 cApp_BootUpdataMemParam(const char* id_str);
+s16 cApp_BootUpdateMemParam(const char* id_str);
 s16 cApp_BootGetMemParam(const char* id_str);
 void vApp_Test(void);
 #endif  

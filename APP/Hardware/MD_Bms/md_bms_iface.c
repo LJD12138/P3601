@@ -22,9 +22,9 @@
 #endif  //boardCONSOLE_485_IFACE_EN
 
 
-//****************************************************²ÎÊı³õÊ¼»¯**************************************************//
+//****************************************************å‚æ•°åˆå§‹åŒ–**************************************************//
 #define    		bmsRX_DMA_BUFF_SIZE   					256
-#define    		bmsTX_DMA_BUFF_SIZE        				256      //DMAÊı×é´óĞ¡
+#define    		bmsTX_DMA_BUFF_SIZE        				256      //DMAæ•°ç»„å¤§å°
 
 //0:MPPT 1:BMS  
 __IO bool bBmsUseFlag = true;
@@ -33,21 +33,21 @@ static vu16  	S_DataSendSize = 0;
 static vu16  	S_DataSendCnt = 0;
 
 #if(boardBMS_IFACE_DMA_EN)
-static __ALIGNED(4) u8   ucaBmsRxDmaBuffData[bmsRX_DMA_BUFF_SIZE];   //ÓÃÓÚ°ÑÊı¾İ×°ÔØµ½DMA·¢ËÍ 
+static __ALIGNED(4) u8   ucaBmsRxDmaBuffData[bmsRX_DMA_BUFF_SIZE];   //ç”¨äºæŠŠæ•°æ®è£…è½½åˆ°DMAå‘é€ 
 #endif
-static __ALIGNED(4) u8   ucaBmsTxDmaBuffData[bmsTX_DMA_BUFF_SIZE];   //È¡³ö½ÓÊÕ»º´æÆ÷ÖĞµÄÊı¾İ,ÓÃÓÚDMA·¢ËÍ
+static __ALIGNED(4) u8   ucaBmsTxDmaBuffData[bmsTX_DMA_BUFF_SIZE];   //å–å‡ºæ¥æ”¶ç¼“å­˜å™¨ä¸­çš„æ•°æ®,ç”¨äºDMAå‘é€
 
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    Ïà¹ØIO³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    ç›¸å…³IOåˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
-static void v_bms_io_init(void)//IOÉèÖÃ
+static void v_bms_io_init(void)//IOè®¾ç½®
 {
-	/*Ê¹ÄÜ¸´ÓÃÊ±ÖÓ*/
+	/*ä½¿èƒ½å¤ç”¨æ—¶é’Ÿ*/
 	rcu_periph_clock_enable(RCU_AF); 
 	
     /* enable COM GPIO clock */
@@ -61,25 +61,28 @@ static void v_bms_io_init(void)//IOÉèÖÃ
     gpio_init(bmsUSART_GPIO_RX_GPIO, GPIO_MODE_IPU, GPIO_OSPEED_50MHZ,bmsUSART_GPIO_RX_PIN);	
 	
 	#if(boardBMS_485_IFACE_EN)
-    //-------BMS 458 ·¢ÉäÊ¹ÄÜ --------------------------------------------------------
+    //-------BMS 458 å‘å°„ä½¿èƒ½ --------------------------------------------------------
 	rcu_periph_clock_enable(bmsGPIO_485_TX_EN_RCU);
 	gpio_init(bmsGPIO_485_TX_EN_GPIO, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, bmsGPIO_485_TX_EN_PIN);
-	bmsGPIO_485_TX_EN_OFF();  //Ä¬ÈÏ½ÓÊÕ
+	bmsGPIO_485_TX_EN_OFF();  //é»˜è®¤æ¥æ”¶
 	#endif
 }
 
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ´®¿ÚÅäÖÃ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    ä¸²å£é…ç½®
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
 static void v_bms_usart_init(void)
 {
     /* enable USART clock */
     rcu_periph_clock_enable(bmsUSART_RCU);
+
+	/* USART interrupt configuration */
+    nvic_irq_enable(bmsUSART_IRQ, 2, 0);
 
     /* USART configure */
     usart_deinit(bmsUSART);
@@ -94,36 +97,30 @@ static void v_bms_usart_init(void)
     usart_transmit_config(bmsUSART, USART_TRANSMIT_ENABLE);
 	
 	#if(!boardBMS_IFACE_DMA_EN)
-	/* USART interrupt configuration */
-    nvic_irq_enable(bmsUSART_IRQ, 2, 0);
-	
     usart_interrupt_flag_clear(bmsUSART, USART_INT_FLAG_RBNE);
-    usart_interrupt_enable(bmsUSART, USART_INT_RBNE);   /* ½ÓÊÕÖĞ¶Ï */
+    usart_interrupt_enable(bmsUSART, USART_INT_RBNE);   /* æ¥æ”¶ä¸­æ–­ */
     
     usart_interrupt_flag_clear(bmsUSART, USART_INT_FLAG_TBE);
     usart_interrupt_disable(bmsUSART, USART_INT_TBE); 
 	#endif
 
     usart_enable(bmsUSART);
-	
-	
 }
 
 
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    DMA³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    DMAåˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 #if(boardBMS_IFACE_DMA_EN)
 static void v_bms_dma_init(void)
 {
 	/* USART interrupt configuration */
 	nvic_irq_enable(bmsUSART_DMA_TX_IRQ, 2, 0);
-	nvic_irq_enable(bmsUSART_IRQ, 2, 0);
 	
 	dma_parameter_struct dma_init_struct;
 	
@@ -135,15 +132,15 @@ static void v_bms_dma_init(void)
 	/* initialize DMA parameters */
     dma_struct_para_init(&dma_init_struct);
 	
-    dma_init_struct.direction    = DMA_MEMORY_TO_PERIPHERAL;            /* ÍâÉèµ½ÄÚ´æ */              
-    dma_init_struct.memory_addr  = (uint32_t)ucaBmsTxDmaBuffData;       /* ÉèÖÃÄÚ´æ½ÓÊÕ»ùµØÖ· */
-    dma_init_struct.memory_inc   = DMA_MEMORY_INCREASE_ENABLE;          /* ÄÚ´æµØÖ·µİÔö */
-	dma_init_struct.memory_width = DMA_MEMORY_WIDTH_8BIT;               /* 8Î»ÄÚ´æÊı¾İ */
-    dma_init_struct.number       = 0;  									/* BuffÊı×éµÄ´óĞ¡ */
-    dma_init_struct.periph_addr  = (uint32_t)(&USART_DATA(bmsUSART));  	/* ÍâÉè»ùµØÖ·,USARTÊı¾İ¼Ä´æÆ÷µØÖ· */
-    dma_init_struct.periph_inc   = DMA_PERIPH_INCREASE_DISABLE;         /* ÍâÉèµØÖ·²»µİÔö */
-	dma_init_struct.periph_width = DMA_PERIPHERAL_WIDTH_8BIT;           /* 8Î»ÍâÉèÊı¾İ */
-    dma_init_struct.priority     = DMA_PRIORITY_ULTRA_HIGH;             /* ×î¸ßDMAÍ¨µÀÓÅÏÈ¼¶ */
+    dma_init_struct.direction    = DMA_MEMORY_TO_PERIPHERAL;            /* å¤–è®¾åˆ°å†…å­˜ */              
+    dma_init_struct.memory_addr  = (uint32_t)ucaBmsTxDmaBuffData;       /* è®¾ç½®å†…å­˜æ¥æ”¶åŸºåœ°å€ */
+    dma_init_struct.memory_inc   = DMA_MEMORY_INCREASE_ENABLE;          /* å†…å­˜åœ°å€é€’å¢ */
+	dma_init_struct.memory_width = DMA_MEMORY_WIDTH_8BIT;               /* 8ä½å†…å­˜æ•°æ® */
+    dma_init_struct.number       = 0;  									/* Buffæ•°ç»„çš„å¤§å° */
+    dma_init_struct.periph_addr  = (uint32_t)(&USART_DATA(bmsUSART));  	/* å¤–è®¾åŸºåœ°å€,USARTæ•°æ®å¯„å­˜å™¨åœ°å€ */
+    dma_init_struct.periph_inc   = DMA_PERIPH_INCREASE_DISABLE;         /* å¤–è®¾åœ°å€ä¸é€’å¢ */
+	dma_init_struct.periph_width = DMA_PERIPHERAL_WIDTH_8BIT;           /* 8ä½å¤–è®¾æ•°æ® */
+    dma_init_struct.priority     = DMA_PRIORITY_ULTRA_HIGH;             /* æœ€é«˜DMAé€šé“ä¼˜å…ˆçº§ */
     dma_init(bmsUSART_DMA, bmsUSART_DMA_TX_CH, &dma_init_struct);
     
     
@@ -156,10 +153,10 @@ static void v_bms_dma_init(void)
     dma_init(bmsUSART_DMA, bmsUSART_DMA_RX_CH, &dma_init_struct);
 	
 	
-	dma_circulation_disable(bmsUSART_DMA, bmsUSART_DMA_TX_CH);			/* ¹Ø±ÕDMA_TXÑ­»·Ä£Ê½ */
-	dma_memory_to_memory_disable(bmsUSART_DMA, bmsUSART_DMA_TX_CH);		/* DMAÄÚ´æµ½ÄÚ´æÄ£Ê½²»¿ªÆô */
-	dma_circulation_disable(bmsUSART_DMA, bmsUSART_DMA_RX_CH);			/* ¹Ø±ÕDMA_RXÑ­»·Ä£Ê½ */
-    dma_memory_to_memory_disable(bmsUSART_DMA, bmsUSART_DMA_RX_CH);		/* DMAÄÚ´æµ½ÄÚ´æÄ£Ê½²»¿ªÆô */
+	dma_circulation_disable(bmsUSART_DMA, bmsUSART_DMA_TX_CH);			/* å…³é—­DMA_TXå¾ªç¯æ¨¡å¼ */
+	dma_memory_to_memory_disable(bmsUSART_DMA, bmsUSART_DMA_TX_CH);		/* DMAå†…å­˜åˆ°å†…å­˜æ¨¡å¼ä¸å¼€å¯ */
+	dma_circulation_disable(bmsUSART_DMA, bmsUSART_DMA_RX_CH);			/* å…³é—­DMA_RXå¾ªç¯æ¨¡å¼ */
+    dma_memory_to_memory_disable(bmsUSART_DMA, bmsUSART_DMA_RX_CH);		/* DMAå†…å­˜åˆ°å†…å­˜æ¨¡å¼ä¸å¼€å¯ */
 	
 	/* enable USART DMA for reception */
     usart_dma_receive_config(bmsUSART, USART_RECEIVE_DMA_ENABLE);
@@ -175,36 +172,34 @@ static void v_bms_dma_init(void)
     /* enable DMA0 channel3 */
     dma_channel_disable(bmsUSART_DMA, bmsUSART_DMA_TX_CH);
     
-	//´®¿Ú¿ÕÏĞÖĞ¶Ï
+	//ä¸²å£ç©ºé—²ä¸­æ–­
     usart_interrupt_flag_clear(bmsUSART, USART_INT_FLAG_IDLE);
     usart_interrupt_enable(bmsUSART, USART_INT_IDLE); 
 }
 #endif
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ´®¿Ú³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    ä¸²å£åˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
 void vBms_IfaceInit(void)
 {
     v_bms_io_init();
-	
     v_bms_usart_init();
-	
 	#if(boardBMS_IFACE_DMA_EN)
 	v_bms_dma_init();
 	#endif
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ´®¿ÚÖØÖÃ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    ä¸²å£é‡ç½®
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
 void vBms_IfaceDeInit(void)
 {
@@ -220,46 +215,46 @@ void vBms_IfaceDeInit(void)
 
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ´®¿Ú·¢Éäº¯Êı
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    addr:Òª·¢ËÍÊı¾İµÄµØÖ·
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      true:³É¹¦    false:Ê§°Ü
+-----å‡½æ•°åŠŸèƒ½    ä¸²å£å‘å°„å‡½æ•°
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    addr:è¦å‘é€æ•°æ®çš„åœ°å€
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      true:æˆåŠŸ    false:å¤±è´¥
 ******************************************************************************************************************/
-bool bBms_DataSendStart(u8* data,u16 len)
+bool bBms_DataSendStart(u8* data, u16 len)
 {
-	#if(boardBMS_485_IFACE_EN)
-	vBms_485TransEnable(true);
-	#endif
-	
 	if(data == NULL || len == 0)
 		return false;
 	
 	if(len > bmsTX_DMA_BUFF_SIZE)
 		len = bmsTX_DMA_BUFF_SIZE;
+
+	#if(boardBMS_485_IFACE_EN)
+	vBms_485TransEnable(true);
+	#endif
 	
 	memcpy(ucaBmsTxDmaBuffData, data, len);
 	
 	#if(boardBMS_IFACE_DMA_EN)
-	//Çå³ıÈ«²¿·¢ËÍÍê³É±êÖ¾Î»
+	//æ¸…é™¤å…¨éƒ¨å‘é€å®Œæˆæ ‡å¿—ä½
 	dma_flag_clear(bmsUSART_DMA, bmsUSART_DMA_TX_CH, DMA_FLAG_FTF); 
-	//×°ÔØÊı¾İ
+	//è£…è½½æ•°æ®
 	dma_memory_address_config(bmsUSART_DMA, bmsUSART_DMA_TX_CH,(uint32_t)ucaBmsTxDmaBuffData);
-	//×°ÔØ³¤¶È
+	//è£…è½½é•¿åº¦
 	dma_transfer_number_config(bmsUSART_DMA,bmsUSART_DMA_TX_CH,len);
-	//¿ªÊ¼DMA·¢ËÍ
+	//å¼€å§‹DMAå‘é€
 	dma_channel_enable(bmsUSART_DMA, bmsUSART_DMA_TX_CH);
 	return true;
 	
 	#else
 	
-    if(S_DataSendCnt) //·¢ËÍÖĞ
+    if(S_DataSendCnt) //å‘é€ä¸­
         return false; 
     
-    S_DataSendSize = length;
+    S_DataSendSize = len;
     S_DataSendCnt = 0; 
 	usart_interrupt_flag_clear(bmsUSART, USART_INT_FLAG_TBE);
-	//¿ÕÏĞ¾Í²úÉúÖĞ¶Ï
+	//ç©ºé—²å°±äº§ç”Ÿä¸­æ–­
 	usart_interrupt_enable(bmsUSART, USART_INT_TBE);           
     return true;
 	
@@ -267,20 +262,20 @@ bool bBms_DataSendStart(u8* data,u16 len)
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    485·¢ËÍÊ¹ÄÜ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    en true:¿ªÆô    false:¹Ø±Õ
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    485å‘é€ä½¿èƒ½
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    en true:å¼€å¯    false:å…³é—­
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
 #if(boardBMS_485_IFACE_EN)
 void vBms_485TransEnable(bool en)
 {
 	if(en == true)
-		bmsGPIO_485_TX_EN_ON();  //ÇĞ»»Îª·¢ËÍÄ£Ê½
+		bmsGPIO_485_TX_EN_ON();  //åˆ‡æ¢ä¸ºå‘é€æ¨¡å¼
 	else
 	{
-		bmsGPIO_485_TX_EN_OFF();  //ÇĞ»»Îª½ÓÊÕÄ£Ê½
+		bmsGPIO_485_TX_EN_OFF();  //åˆ‡æ¢ä¸ºæ¥æ”¶æ¨¡å¼
 		#if(!boardUSE_OS)
 		bSysTick_BmsSendFinish = false;
 		#endif  //boardUSE_OS
@@ -292,23 +287,23 @@ void vBms_485TransEnable(bool en)
 
 #if(boardBMS_IFACE_DMA_EN)
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    DMA·¢ËÍÍê³ÉÖĞ¶Ï
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    DMAå‘é€å®Œæˆä¸­æ–­
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 void bmsUSART_DMA_TX_IRQ_HANDLER(void)
 {
     if(dma_interrupt_flag_get(bmsUSART_DMA, bmsUSART_DMA_TX_CH, DMA_INT_FLAG_FTF)) 
 	{
         dma_interrupt_flag_clear(bmsUSART_DMA, bmsUSART_DMA_TX_CH, DMA_INT_FLAG_G);
-		//¹Ø±ÕDMA·¢ËÍ
+		//å…³é—­DMAå‘é€
 	    dma_channel_disable(bmsUSART_DMA, bmsUSART_DMA_TX_CH);
-		//·¢ËÍÍê³É
+		//å‘é€å®Œæˆ
 		S_DataSendSize = 0;
 		
-		//ÑÓÊ±¹Ø±Õ
+		//å»¶æ—¶å…³é—­
 		#if(boardBMS_485_IFACE_EN)
 		#if(boardUSE_OS)
 		xTimerResetFromISR(tBmsRxEnTimer,0);
@@ -321,35 +316,35 @@ void bmsUSART_DMA_TX_IRQ_HANDLER(void)
 
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ´®¿Ú½ÓÊÕÍê³ÉÖĞ¶Ï
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    ä¸²å£æ¥æ”¶å®Œæˆä¸­æ–­
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 static u8 uc_read_buff_len=0;
 void bmsUSART_IRQ_HANDLER(void)
 {
     if(RESET != usart_interrupt_flag_get(bmsUSART, USART_INT_FLAG_IDLE)) 
 	{
-		//Çå³ıÖĞ¶Ï
+		//æ¸…é™¤ä¸­æ–­
         usart_interrupt_flag_clear(bmsUSART, USART_INT_FLAG_IDLE);
-		//Çå³ı¿ÕÏĞ±êÖ¾Î»
+		//æ¸…é™¤ç©ºé—²æ ‡å¿—ä½
 		usart_data_receive(bmsUSART);
-		//¹Ø±ÕDMA´«Êä
+		//å…³é—­DMAä¼ è¾“
 		dma_channel_disable(bmsUSART_DMA, bmsUSART_DMA_RX_CH); 
 		
-		//»ñÈ¡½ÓÊÕµ½µÄÊı¾İ³¤¶È£¬µ¥Î»£º×Ö½Ú
+		//è·å–æ¥æ”¶åˆ°çš„æ•°æ®é•¿åº¦ï¼Œå•ä½ï¼šå­—èŠ‚
 		uc_read_buff_len = bmsRX_DMA_BUFF_SIZE - dma_transfer_number_get(bmsUSART_DMA,bmsUSART_DMA_RX_CH);
 
-		//×ª´æÊı¾İµ½´ı´¦ÀíÊı¾İ»º³åÇø
+		//è½¬å­˜æ•°æ®åˆ°å¾…å¤„ç†æ•°æ®ç¼“å†²åŒº
 		//BMS
 		if(bBmsUseFlag == true)
 		{
 			if(uc_read_buff_len && tpBmsProtoRx != NULL)
 				lwrb_write(&tpBmsProtoRx->tRxBuff, ucaBmsRxDmaBuffData, uc_read_buff_len);
 
-			//Í¨Öª½ÓÊÕÈÎÎñ
+			//é€šçŸ¥æ¥æ”¶ä»»åŠ¡
 			#if(boardUSE_OS)
 			vTaskNotifyGiveFromISR(tBmsRecTaskHandle,NULL);
 			#endif  //boardUSE_OS
@@ -360,38 +355,40 @@ void bmsUSART_IRQ_HANDLER(void)
 		// 	if(uc_read_buff_len && tpMpptProtoRx != NULL)
 		// 		lwrb_write(&tpMpptProtoRx->tRxBuff, ucaBmsRxDmaBuffData, uc_read_buff_len);
 
-		// 	//Í¨Öª½ÓÊÕÈÎÎñ
+		// 	//é€šçŸ¥æ¥æ”¶ä»»åŠ¡
 		// 	#if(boardUSE_OS)
 		// 	vTaskNotifyGiveFromISR(tMpptRecTaskHandle,NULL);
 		// 	#endif  //boardUSE_OS
 		// }
 
-		//ÖØĞÂÉèÖÃDMA´«Êä
-		//×°ÔØ³¤¶È
+		//é‡æ–°è®¾ç½®DMAä¼ è¾“
+		//è£…è½½é•¿åº¦
 		dma_transfer_number_config(bmsUSART_DMA,bmsUSART_DMA_RX_CH,bmsRX_DMA_BUFF_SIZE);
-		//¿ªÆôDMA´«Êä
+		//å¼€å¯DMAä¼ è¾“
 		dma_channel_enable(bmsUSART_DMA, bmsUSART_DMA_RX_CH);    
     }
 }
 #else
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ´®¿ÚÖĞ¶Ïº¯Êı
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    ä¸²å£ä¸­æ–­å‡½æ•°
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
 void bmsUSART_IRQ_HANDLER(void)
 {
 
     if(RESET != usart_interrupt_flag_get(bmsUSART, USART_INT_FLAG_RBNE))
     {
-		if(tpBmsProtoRx != NULL)
-			lwrb_write(&tpBmsProtoRx->tRxBuff, USART_DATA(bmsUSART), 1);  
+		if(tpBmsProtoRx != NULL) {
+			u8 ucData = (u8)USART_DATA(bmsUSART);
+			lwrb_write(&tpBmsProtoRx->tRxBuff, &ucData, 1);
+		}
 
-        usart_interrupt_flag_clear(bmsUSART, USART_INT_FLAG_RBNE);//Çå³ı´®¿Ú½ÓÊÕÖĞ¶Ï 
+        usart_interrupt_flag_clear(bmsUSART, USART_INT_FLAG_RBNE);//æ¸…é™¤ä¸²å£æ¥æ”¶ä¸­æ–­ 
 
-		//Í¨Öª½ÓÊÕÈÎÎñ
+		//é€šçŸ¥æ¥æ”¶ä»»åŠ¡
 		#if(boardUSE_OS)
         vTaskNotifyGiveFromISR(tBmsRecTaskHandle,NULL);
 		#endif  //boardUSE_OS
@@ -412,7 +409,7 @@ void bmsUSART_IRQ_HANDLER(void)
             S_DataSendCnt = 0;
             S_DataSendSize = 0;
 			
-			//ÑÓÊ±¹Ø±Õ
+			//å»¶æ—¶å…³é—­
 			#if(boardBMS_485_IFACE_EN)
 			#if(boardUSE_OS)
 			xTimerResetFromISR(tBmsRxEnTimer,0);

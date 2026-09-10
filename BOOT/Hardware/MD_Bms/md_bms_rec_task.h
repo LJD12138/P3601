@@ -11,22 +11,22 @@
 #include "task.h"
 #endif  //boardUSE_OS
 
-/****************************************************ºê¶¨Òå**************************************************/
+/****************************************************å®å®šä¹‰**************************************************/
 #define     	bmsDEV_NUM								6
 
 #if(boardUSE_OS)
 extern TaskHandle_t tBmsRecTaskHandle;
 #endif  //boardUSE_OS
 
-//*********************************ÈÎÎñ²ÎÊı**********************************
+//*********************************ä»»åŠ¡å‚æ•°**********************************
 
 #pragma pack(2)
 typedef struct
 {						
-	vu16				bPermChg:1;			//³äµçĞí¿É   0:²»Ğí¿É³äµç  ·Ç0:Ğí¿É³äµç
-	vu16				bImpermDisChg:1;	//·ÅµçĞí¿É   0:Ğí¿É·Åµç    ·Ç0:²»Ğí¿É·Åµç
-	vu16 				bTemp:6;			//Ô¤Áô
-	vu16				ucSysState:8;		//0:¶ªÊ§ 1:³õÊ¼»¯ 2:¹Ø±ÕÖĞ 3:¹Ø±Õ×´Ì¬ 4:´íÎó×´Ì¬ 5:Æô¶¯ÖĞ 6:¹¤×÷ÖĞ
+	vu16				bPermChg:1;			//å……ç”µè®¸å¯   0:ä¸è®¸å¯å……ç”µ  é0:è®¸å¯å……ç”µ
+	vu16				bImpermDisChg:1;	//æ”¾ç”µè®¸å¯   0:è®¸å¯æ”¾ç”µ    é0:ä¸è®¸å¯æ”¾ç”µ
+	vu16 				bTemp:6;			//é¢„ç•™
+	vu16				ucSysState:8;		//0:ä¸¢å¤± 1:åˆå§‹åŒ– 2:å…³é—­ä¸­ 3:å…³é—­çŠ¶æ€ 4:é”™è¯¯çŠ¶æ€ 5:å¯åŠ¨ä¸­ 6:å·¥ä½œä¸­
 }State_T;
 #pragma pack()
 
@@ -35,25 +35,43 @@ typedef union
 {
 	struct 
 	{
-		vu16			bCellOV:1;			//µ¥Ìå¹ıÑ¹
-		vu16			bCellUV:1;			//µ¥ÌåÇ·Ñ¹
-		vu16			bEnvOT:1;			//»·¾³¹ıÎÂ
-		vu16			bEnvUT:1;			//»·¾³µÍÎÂ
-		vu16			bCOT:1;				//³äµç¹ıÎÂ
-		vu16			bCUT:1;				//³äµçµÍÎÂ
-		vu16			bDCOT:1;			//·Åµç¹ıÎÂ
-		vu16			bDCUT:1;			//·ÅµçµÍÎÂ
+		vu32			bCellOV:1;			//å•ä½“è¿‡å‹
+		vu32			bCellUV:1;			//å•ä½“æ¬ å‹
+		vu32			bEnvOT:1;			//ç¯å¢ƒè¿‡æ¸©
+		vu32			bEnvUT:1;			//ç¯å¢ƒä½æ¸©
+		vu32			bCOT:1;				//å……ç”µè¿‡æ¸©
+		vu32			bCUT:1;				//å……ç”µä½æ¸©
+		vu32			bDCOT:1;			//æ”¾ç”µè¿‡æ¸©
+		vu32			bDCUT:1;			//æ”¾ç”µä½æ¸©
 
-		vu16			bCOC:1;				//³äµç¹ıÁ÷
-		vu16			bDCOC:1;			//·Åµç¹ıÁ÷
-		vu16			bSC:1;				//¶ÌÂ·±£»¤
-		vu16			bBatFull:1;			//³äÂú×´Ì¬
-		vu16			bAfeLost:1;			//AFE¶ªÊ§
-		vu16			bCurrErr:1;			//µçÁ÷Òì³£
-		vu16			bPerchgFault:1;		//Ô¤´æÒì³£
-		vu16			bLowVoltOL:1;		//µÍµçÑ¹¹ıÔØ±¨¾¯
+		vu32			bCOC:1;				//å……ç”µè¿‡æµ
+		vu32			bDCOC:1;			//æ”¾ç”µè¿‡æµ
+		vu32			bSC:1;				//çŸ­è·¯ä¿æŠ¤
+		vu32			bBatFull:1;			//å……æ»¡çŠ¶æ€
+		vu32			bAfeLost:1;			//AFEä¸¢å¤±
+		vu32			bCurrErr:1;			//ç”µæµå¼‚å¸¸
+		vu32			bPrechgFault:1;		//é¢„å……å¼‚å¸¸
+		vu32			bLowVoltOL:1;		//ä½ç”µå‹è¿‡è½½æŠ¥è­¦
+
+		vu32 			bParaLost :1;		////å¹¶æœºä¸¢å¤±
+		vu32 			bConsoleLost :1;	//é€šä¿¡ä¸¢å¤±
+		vu32 			bDisChgMosErr :1;	//æ”¾ç”µMOSé”™è¯¯
+		vu32 			bChgMosErr :1;		//å……ç”µMOSé”™è¯¯
+		vu32 			bMosErr1 :1;		//MOSæ•…éšœ1
+		vu32 			bMosErr2 :1;		//MOSæ•…éšœ2
+		vu32 			bMosErr3 :1;		//MOSæ•…éšœ3
+		vu32 			bAfeErr :1;			//AFEæ•…éšœ
+		
+		vu32 			bReserved1 :1;    	//é¢„ç•™1
+		vu32 			bVoltLow :1;		//ç”µå‹è¿‡ä½
+		vu32 			bNtcLost :1;		//NTCä¸¢å¤±
+		vu32 			bCloseFault :1;		//å…³æœºæ•…éšœ
+		vu32 			bBootFault :1;		//å¯åŠ¨æ•…éšœ
+		vu32 			bBmsErr :1;			//BMSé”™è¯¯
+		vu32 			bUnbalanced :1;		//ä¸å¹³è¡¡
+		vu32 			bBalanceWireLost :1;//å¹³è¡¡çº¿ä¸¢å¤±
 	}tCode;
-	vu16   usCode;
+	vu32   ulCode;
 }ErrCode_U;
 #pragma pack()
 
@@ -63,44 +81,41 @@ typedef struct
 	vu16				usSOC;				//1%
 	vu16				usVolt;				//0.01V
 	vs16				sCurr;				//0.01A
-	vu16				usCalcCapAH;		//¹ÀËãÈİÁ¿ 0.1AH
-	vu16				usCycleCnt;    		//Ñ­»·´ÎÊı
-	vs16				sMaxTemp;			//Ö÷»ú×î¸ßÎÂ¶È 1ÉãÊÏ¶È
-	vs16				sMinTemp;			//Ö÷»ú×îµÍÎÂ¶È 1ÉãÊÏ¶È
-	vs16             	sBoardTempMax;      //°åÔØ×î¸ßÎÂ (Ö÷¿Ø)
-	ErrCode_U           uErrCode;			//´íÎó´úÂë
+	vu16				usCalcCapAH;		//ä¼°ç®—å®¹é‡ 0.1AH
+	vu16				usCycleCnt;    		//å¾ªç¯æ¬¡æ•°
+	vs16				sMaxTemp;			//ä¸»æœºæœ€é«˜æ¸©åº¦ 1æ‘„æ°åº¦
+	vs16				sMinTemp;			//ä¸»æœºæœ€ä½æ¸©åº¦ 1æ‘„æ°åº¦
+	vs16             	sBoardTempMax;      //æ¿è½½æœ€é«˜æ¸© (ä¸»æ§)
+	ErrCode_U           uErrCode;			//é”™è¯¯ä»£ç 
 }DevInfo_T;
 #pragma pack()
 
 #pragma pack(1)
 typedef struct
 {
-	vu8					ucOnlineNum;   		//ÔÚÏßÉè±¸Êı   ×î´ó6Ì¨Âë
-	vu8					ucMasterNum;		//Ñ¡ÖĞµÄÊıÁ¿
+	vu8					ucOnlineNum;   		//åœ¨çº¿è®¾å¤‡æ•°   æœ€å¤§6å°ç 
+	vu8					ucMasterNum;		//é€‰ä¸­çš„æ•°é‡
 }DevNum_T;
 #pragma pack()
 
-#pragma pack (1)   //Ç¿ÖÆ½øĞĞ1×Ö½Ú¶ÔÆë
+//*********************************ä»»åŠ¡å¯¹è±¡**********************************
+#pragma pack (1)   //å¼ºåˆ¶è¿›è¡Œ1å­—èŠ‚å¯¹é½
 typedef struct
 {
-	vu16				usSOC;				//×ÜµÄSOC      1%
-	s16					sTotalCurr;			//×ÜµÄµçÁ÷     0.01A
-	vu16				usChgFullTime;		//×ÜµÄ³äÂúÊ±¼ä 1min
-	vu16				usDisChgEmptyTime;	//×ÜµÄ·Å¿ÕÊ±¼ä 1min
-	vu16				usPermMaxChgPwr;	//Ğí¿ÉµÄ×î´ó³äµç¹¦ÂÊ W
-	DevNum_T			tDevNum;   		//µç³Ø°üÊıÁ¿   ×î´ó6Ì¨
-	State_T				tState;				//Ö÷»úÏµÍ³×´Ì¬
-	DevInfo_T           tDevInfo[bmsDEV_NUM];//´íÎó´úÂë     tDevInfo[0]ÎªÖ÷»ú
-}BmsParam_T;  
-#pragma pack()   //È¡Ïû½øĞĞ1×Ö½Ú¶ÔÆë
-
-//*********************************ÈÎÎñ¶ÔÏó**********************************
-typedef struct
-{
-	vu16				usErrCode;
-	BmsParam_T     		tParam;
-}BmsRx_T;              
+	vu16				usSOC;				//æ€»çš„SOC      1%
+	s16					sTotalCurr;			//æ€»çš„ç”µæµ     0.01A
+	vu16				usChgFullTime;		//æ€»çš„å……æ»¡æ—¶é—´ 1min
+	vu16				usDisChgEmptyTime;	//æ€»çš„æ”¾ç©ºæ—¶é—´ 1min
+	vu16				usPermMaxChgPwr;	//è®¸å¯çš„æœ€å¤§å……ç”µåŠŸç‡ W
+	vu16				usPermMaxDisChgPwr;	//è®¸å¯çš„æœ€å¤§æ”¾ç”µåŠŸç‡ W
+	DevNum_T			tDevNum;   			//ç”µæ± åŒ…æ•°é‡   æœ€å¤§6å°
+	State_T				tState;				//ä¸»æœºç³»ç»ŸçŠ¶æ€
+	DevInfo_T           tDevInfo[bmsDEV_NUM];//é”™è¯¯ä»£ç      tDevInfo[0]ä¸ºä¸»æœº
+}BmsRx_T;
+#pragma pack()   //å–æ¶ˆè¿›è¡Œ1å­—èŠ‚å¯¹é½         
 extern	BmsRx_T   		tBmsRx;
+
+extern vu32 ulBmsRxErrCode;
 
 bool bBms_RecTaskInit(void);
 void vBms_RecTickTimer(void);

@@ -76,6 +76,11 @@ virtualFolder:
         - path: Middlewares/Protocol/Baiku/baiku_proto.c
         - path: Middlewares/Protocol/Baiku/baiku_proto.h
       folders: []
+    - name: MW-MultiFuncKey
+      files:
+        - path: Middlewares/MultiFuncKey/mf_key.c
+        - path: Middlewares/MultiFuncKey/mf_key.h
+      folders: []
     - name: ComFunc
       files:
         - path: ComFunc/check.c
@@ -108,18 +113,19 @@ virtualFolder:
         - path: Application/Sys/sys_queue_task_dispaly.c
         - path: Application/Sys/sys_queue_task_enter_app.c
         - path: Application/Sys/sys_queue_task_low_power.c
-        - path: Application/Sys/sys_queue_task_updata.c
         - path: Application/Sys/sys_queue_task_err.c
         - path: Application/Sys/sys_queue_task_reset.c
+        - path: Application/Sys/sys_queue_task_update.c
+        - path: Application/Sys/sys_queue_task_update.h
       folders: []
-    - name: HW-Updata
+    - name: HW-Update
       files:
-        - path: Hardware/Updata/baiku_proto.c
-        - path: Hardware/Updata/baiku_proto.h
-        - path: Hardware/Updata/updata_main.c
-        - path: Hardware/Updata/updata_main.h
-        - path: Hardware/Updata/xmodem_proto.c
-        - path: Hardware/Updata/xmodem_proto.h
+        - path: Hardware/Update/update_main.c
+        - path: Hardware/Update/update_main.h
+        - path: Hardware/Update/baiku_proto.c
+        - path: Hardware/Update/baiku_proto.h
+        - path: Hardware/Update/xmodem_proto.c
+        - path: Hardware/Update/xmodem_proto.h
       folders: []
     - name: HW-Print
       files:
@@ -146,6 +152,8 @@ virtualFolder:
       files:
         - path: Hardware/Key/key_func.c
         - path: Hardware/Key/key_func.h
+        - path: Hardware/Key/key_iface.c
+        - path: Hardware/Key/key_iface.h
         - path: Hardware/Key/key_task.c
         - path: Hardware/Key/key_task.h
       folders: []
@@ -178,6 +186,7 @@ virtualFolder:
         - path: Hardware/MD_Bms/md_bms_prot_frame.h
         - path: Hardware/MD_Bms/md_bms_iface.c
         - path: Hardware/MD_Bms/md_bms_iface.h
+        - path: Hardware/MD_Bms/md_bms_queue_task_update.c
       folders: []
     - name: HW-MD_Display
       files:
@@ -209,6 +218,7 @@ targets:
         - Middlewares/LightweightRingBuffer/src
         - Middlewares/EasyFlash/inc
         - Middlewares/Protocol
+        - Middlewares/MultiFuncKey
         - Hardware
         - .cmsis/include
         - RTE/_BOOT
@@ -240,8 +250,8 @@ targets:
           asm-compiler: {}
           beforeBuildTasks: []
           c/cpp-compiler:
-            CXX_FLAGS: --diag_suppress=1 --diag_suppress=1295
-            C_FLAGS: --diag_suppress=1 --diag_suppress=1295
+            CXX_FLAGS: --diag_suppress=1 --diag_suppress=1295 --no_multibyte_chars
+            C_FLAGS: --diag_suppress=1 --diag_suppress=1295 --no_multibyte_chars
             c99-mode: true
             one-elf-section-per-function: true
             optimization: level-0

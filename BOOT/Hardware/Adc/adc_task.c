@@ -1,6 +1,6 @@
 /*****************************************************************************************************************
 *                                                                                                                *
- *                                         ADCÈÎÎñ****                                                          *
+ *                                         ADCä»»åŠ¡****                                                          *
 *                                                                                                                *
 ******************************************************************************************************************/
 #include "board_config.h"
@@ -21,48 +21,48 @@
 #endif  //boardUSE_OS
 
 
-//****************************************************ÈÎÎñ³õÊ¼»¯**************************************************//
+//****************************************************ä»»åŠ¡åˆå§‹åŒ–**************************************************//
 #if(boardUSE_OS)
-#define       	ADC_TASK_PRIO                  			2         // ÈÎÎñÓÅÏÈ¼¶ 
-#define       	ADC_TASK_STK_SIZE              			256       // ÈÎÎñ¶ÑÕ»  Êµ¼Ê×Ö½ÚÊı *4
+#define       	ADC_TASK_PRIO                  			2         // ä»»åŠ¡ä¼˜å…ˆçº§ 
+#define       	ADC_TASK_STK_SIZE              			256       // ä»»åŠ¡å †æ ˆ  å®é™…å­—èŠ‚æ•° *4
 TaskHandle_t    tAdcTaskHandler = NULL; 
 void           	vAdc_Task(void *pvParameters);
 #endif  //boardUSE_OS
 
 
-//****************************************************²ÎÊı³õÊ¼»¯**************************************************//
+//****************************************************å‚æ•°åˆå§‹åŒ–**************************************************//
 
-////ÏµÍ³ÊäÈëµçÑ¹ÂË²¨Æ÷
+////ç³»ç»Ÿè¾“å…¥ç”µå‹æ»¤æ³¢å™¨
 //#define 		adcSYS_IN_VOLT_FILTER_BUFF_SIZE     	6 
 //static s32 	usa_acd_sys_input_volt_buff[adcSYS_IN_VOLT_FILTER_BUFF_SIZE];
 //FilterHandler_T	tAdc_SysInVoltFilterMadAvg = {usa_acd_sys_input_volt_buff, adcSYS_IN_VOLT_FILTER_BUFF_SIZE, 0, 0, 0, 0, 0};
 
-////DCÎÂ¶ÈÂË²¨Æ÷
+////DCæ¸©åº¦æ»¤æ³¢å™¨
 //#define 		adcDC_TEMP_FILTER_BUFF_SIZE     		6 
 //static s32 	usa_acd_dc_temp_buff[adcDC_TEMP_FILTER_BUFF_SIZE];
 //FilterHandler_T tAdc_DcTempFilterMadAvg = {usa_acd_dc_temp_buff, adcDC_TEMP_FILTER_BUFF_SIZE, 0, 0, 0, 0, 0};
 
-////DCµçÁ÷ÂË²¨Æ÷
+////DCç”µæµæ»¤æ³¢å™¨
 //#define 		adcDC_CURR_FILTER_BUFF_SIZE     		12 
 //static s32 	usa_adc_dc_curr_buff[adcDC_CURR_FILTER_BUFF_SIZE];
 //FilterHandler_T tAdc_DcCurrFilterMadAvg = {usa_adc_dc_curr_buff, adcDC_CURR_FILTER_BUFF_SIZE, 0, 0, 0, 0, 0};
 
-////DCµçÑ¹ÂË²¨Æ÷
+////DCç”µå‹æ»¤æ³¢å™¨
 //#define 		adcDC_VOLT_FILTER_BUFF_SIZE     		6 
 //static s32 	usa_adc_dc_volt_buff[adcDC_VOLT_FILTER_BUFF_SIZE];
 //FilterHandler_T tAdc_DcVoltFilterMadAvg = {usa_adc_dc_volt_buff, adcDC_VOLT_FILTER_BUFF_SIZE, 0, 0, 0, 0, 0};
 
-////USBÎÂ¶ÈÂË²¨Æ÷
+////USBæ¸©åº¦æ»¤æ³¢å™¨
 //#define 		adcUSB_TEMP_FILTER_BUFF_SIZE     		6 
 //static s32 	usa_acd_usb_temp_buff[adcUSB_TEMP_FILTER_BUFF_SIZE];
 //FilterHandler_T tAdc_UsbTempFilterMadAvg = {usa_acd_usb_temp_buff, adcUSB_TEMP_FILTER_BUFF_SIZE, 0, 0, 0, 0, 0};
 
-////USBµçÁ÷ÂË²¨Æ÷
+////USBç”µæµæ»¤æ³¢å™¨
 //#define 		adcUSB_CURR_FILTER_BUFF_SIZE     		12 
 //static s32 	usa_adc_usb_curr_buff[adcUSB_CURR_FILTER_BUFF_SIZE];
 //FilterHandler_T tAdc_UsbCurrFilterMadAvg = {usa_adc_usb_curr_buff, adcUSB_CURR_FILTER_BUFF_SIZE, 0, 0, 0, 0, 0};
 
-////USBµçÑ¹ÂË²¨Æ÷
+////USBç”µå‹æ»¤æ³¢å™¨
 //#define 		adcUSB_VOLT_FILTER_BUFF_SIZE     		6 
 //static s32 	usa_adc_usb_volt_buff[adcUSB_VOLT_FILTER_BUFF_SIZE];
 //FilterHandler_T tAdc_UsbVoltFilterMadAvg = {usa_adc_usb_volt_buff, adcUSB_VOLT_FILTER_BUFF_SIZE, 0, 0, 0, 0, 0};
@@ -71,17 +71,17 @@ void           	vAdc_Task(void *pvParameters);
 //AdcSamp_T 	tAdcSamp;
 
 
-//****************************************************º¯Êı¶¨Òå*****************************************************//
+//****************************************************å‡½æ•°å®šä¹‰*****************************************************//
 //static void v_power_select(bool en);
 static void v_adc_param_init(void);
 
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ADCÈÎÎñ³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    ADCä»»åŠ¡åˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 void vAdc_TaskInit(void)
 {
@@ -89,30 +89,30 @@ void vAdc_TaskInit(void)
 	vAdc_IoEnterLowPower();
 	#endif
 	
-	vAdc_Init(); //AD³õÊ¼»¯
+	vAdc_Init(); //ADåˆå§‹åŒ–
 	
 	v_adc_param_init();
 	
 	#if(boardUSE_OS)
-    xTaskCreate((TaskFunction_t )vAdc_Task,				// ÈÎÎñº¯Êı (1)
-                (const char* )"AdcTask",				// ÈÎÎñÃû³Æ
-                (uint16_t ) ADC_TASK_STK_SIZE,			// ÈÎÎñ¶ÑÕ»´óĞ¡
-                (void* )NULL,							// ´«µİ¸øÈÎÎñº¯ÊıµÄ²ÎÊı
-                (UBaseType_t ) ADC_TASK_PRIO,			// ÈÎÎñÓÅÏÈ¼¶
-                (TaskHandle_t*)&tAdcTaskHandler);		// ÈÎÎñ¾ä±ú
+    xTaskCreate((TaskFunction_t )vAdc_Task,				// ä»»åŠ¡å‡½æ•° (1)
+                (const char* )"AdcTask",				// ä»»åŠ¡åç§°
+                (uint16_t ) ADC_TASK_STK_SIZE,			// ä»»åŠ¡å †æ ˆå¤§å°
+                (void* )NULL,							// ä¼ é€’ç»™ä»»åŠ¡å‡½æ•°çš„å‚æ•°
+                (UBaseType_t ) ADC_TASK_PRIO,			// ä»»åŠ¡ä¼˜å…ˆçº§
+                (TaskHandle_t*)&tAdcTaskHandler);		// ä»»åŠ¡å¥æŸ„
 	#endif  //boardUSE_OS
 }
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ADC²ÎÊı³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    ADCå‚æ•°åˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 static void v_adc_param_init(void)
 {
-//	v_power_select(true);	//¿ªÆôÎÂ¶È²ÉÑùµçÔ´
+//	v_power_select(true);	//å¼€å¯æ¸©åº¦é‡‡æ ·ç”µæº
 //	memset((u8*)&usa_acd_sys_input_volt_buff, 0, sizeof(usa_acd_sys_input_volt_buff));
 //	
 //	memset((u8*)&usa_acd_dc_temp_buff, 0, sizeof(usa_acd_dc_temp_buff));
@@ -129,11 +129,11 @@ static void v_adc_param_init(void)
 }
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ADCÑ­»·ÈÎÎñ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    ADCå¾ªç¯ä»»åŠ¡
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 void vAdc_Task(void *pvParameters)
 {
@@ -155,69 +155,69 @@ void vAdc_Task(void *pvParameters)
     {
 //		v_power_select(true);
 		
-        //***********************************ÂË²¨************************************************************************
-		//Ã»ÓĞÂú×ãÒ»´ÎÂË²¨Êı¾İ,Êä³öµÈÓÚÊäÈë
+        //***********************************æ»¤æ³¢************************************************************************
+		//æ²¡æœ‰æ»¡è¶³ä¸€æ¬¡æ»¤æ³¢æ•°æ®,è¾“å‡ºç­‰äºè¾“å…¥
 		
-		//ÏµÍ³ÊäÈëµçÑ¹
+		//ç³»ç»Ÿè¾“å…¥ç”µå‹
 //		temp = usAdc_GetChannelValue(adcSYS_IN_VOLT);
 //		us_filter_sys_input_volt_ad = lFilter_MadianAverage(&tAdc_SysInVoltFilterMadAvg, &temp);
 //		
-//		//DC ÎÂ¶È
+//		//DC æ¸©åº¦
 //		temp = usAdc_GetChannelValue(adcDC_TEMP);
 //		us_filter_dc_temp_ad = lFilter_MadianAverage(&tAdc_DcTempFilterMadAvg, &temp);   
 //		
-//		//DC µçÁ÷
+//		//DC ç”µæµ
 //		temp = usAdc_GetChannelValue(adcDC_CURR);
 //		if(tDc.eDevState != DS_WORK)
 //			temp = 0;
 //		us_filter_dc_curr_ad = lFilter_MadianAverage(&tAdc_DcCurrFilterMadAvg, &temp);
 //		
-//		//DC µçÑ¹
+//		//DC ç”µå‹
 //		temp = usAdc_GetChannelValue(adcDC_VOLT);
 //		us_filter_dc_volt_ad = lFilter_MadianAverage(&tAdc_DcVoltFilterMadAvg, &temp);
 //		
-//		//USB ÎÂ¶È
+//		//USB æ¸©åº¦
 //		temp = usAdc_GetChannelValue(adcUSB_TEMP);
 //		us_filter_usb_temp_ad = lFilter_MadianAverage(&tAdc_UsbTempFilterMadAvg, &temp);   
 //		
-//		//USB µçÁ÷
+//		//USB ç”µæµ
 //		temp = usAdc_GetChannelValue(adcUSB_CURR);
 //		if(tUsb.eDevState != DS_WORK)
 //			temp = 0;
 //		us_filter_usb_curr_ad = lFilter_MadianAverage(&tAdc_UsbCurrFilterMadAvg, &temp);
 //		
-//		//USB µçÑ¹
+//		//USB ç”µå‹
 //		temp = usAdc_GetChannelValue(adcUSB_VOLT);
 //		us_filter_usb_volt_ad = lFilter_MadianAverage(&tAdc_UsbVoltFilterMadAvg, &temp);
 //		
 //		
-//        //*************************************¼ÆËã******************************************************************        
+//        //*************************************è®¡ç®—******************************************************************        
 //		
-//		//ÏµÍ³ÊäÈëµçÑ¹
+//		//ç³»ç»Ÿè¾“å…¥ç”µå‹
 //		tAdcSamp.usSysInVolt = us_filter_sys_input_volt_ad * adcVBMS_RES_RATIO;
 //		tDc.usInVolt = tAdcSamp.usSysInVolt;
 
-//		//DCÎÂ¶È
+//		//DCæ¸©åº¦
 //		tAdcSamp.sDcTemp = LIMIT((307 - (37 * log((float)us_filter_dc_temp_ad))), -128, 127);
 //		tDc.sMaxTemp = tAdcSamp.sDcTemp;
 //		
-//		//DCµçÑ¹
+//		//DCç”µå‹
 //		tAdcSamp.usDcOutVolt = us_filter_dc_volt_ad * adcDC_VOLT_RES_RATIO;
 //		tDc.usOutVolt = tAdcSamp.usDcOutVolt;
 //		
-//		//DCµçÁ÷
+//		//DCç”µæµ
 //		tAdcSamp.fDcOutCurr = us_filter_dc_curr_ad * 0.0034f;
 //		tDc.usOutCurr = tAdcSamp.fDcOutCurr * 10;//0.1A
 //		
-//		//USBÎÂ¶È
+//		//USBæ¸©åº¦
 //		tAdcSamp.sUsbTemp = LIMIT((307 - (37 * log((float)us_filter_usb_temp_ad))), -128, 127); 
 //		tUsb.sMaxTemp = tAdcSamp.sUsbTemp;
 //		
-//		//USBµçÁ÷
+//		//USBç”µæµ
 //		tAdcSamp.fUsbInCurr = us_filter_usb_curr_ad * 0.0034f;
 //		tUsb.usInCurr = tAdcSamp.fUsbInCurr * 10;//0.1A
 //		
-//		//USBµçÑ¹
+//		//USBç”µå‹
 //		tAdcSamp.usUsbInVolt = us_filter_usb_volt_ad * adcUSB_VOLT_RES_RATIO;
 //		tUsb.usInVolt = tAdcSamp.usUsbInVolt;//0.1V
 //		
@@ -227,17 +227,17 @@ void vAdc_Task(void *pvParameters)
 //			if(uc_delay_cnt >= 100)
 //			{
 //				uc_delay_cnt = 0;
-//				sMyPrint("µç³ØµçÑ¹ = %.2fV\r\n",tAdcSamp.usSysInVolt / 10.0f);
-//				sMyPrint("DCÎÂ¶È = %d ÉãÊÏ¶È\r\n",tAdcSamp.sDcTemp);
-//				sMyPrint("DCÊä³öµçÁ÷ = %0.2fA\r\n",tAdcSamp.fDcOutCurr);
-//				sMyPrint("DCÊä³öµçÑ¹ = %.2fV\r\n",tAdcSamp.usDcOutVolt / 10.0f);
-//				sMyPrint("USBÎÂ¶È = %d ÉãÊÏ¶È\r\n",tAdcSamp.sUsbTemp);
-//                sMyPrint("USBÊä³öµçÁ÷ = %0.2fA\r\n",tAdcSamp.fUsbInCurr);
-//				sMyPrint("USBÊä³öµçÑ¹ = %.2fV\r\n",tAdcSamp.usUsbInVolt / 10.0f);
+//				sMyPrint("ç”µæ± ç”µå‹ = %.2fV\r\n",tAdcSamp.usSysInVolt / 10.0f);
+//				sMyPrint("DCæ¸©åº¦ = %d æ‘„æ°åº¦\r\n",tAdcSamp.sDcTemp);
+//				sMyPrint("DCè¾“å‡ºç”µæµ = %0.2fA\r\n",tAdcSamp.fDcOutCurr);
+//				sMyPrint("DCè¾“å‡ºç”µå‹ = %.2fV\r\n",tAdcSamp.usDcOutVolt / 10.0f);
+//				sMyPrint("USBæ¸©åº¦ = %d æ‘„æ°åº¦\r\n",tAdcSamp.sUsbTemp);
+//                sMyPrint("USBè¾“å‡ºç”µæµ = %0.2fA\r\n",tAdcSamp.fUsbInCurr);
+//				sMyPrint("USBè¾“å‡ºç”µå‹ = %.2fV\r\n",tAdcSamp.usUsbInVolt / 10.0f);
 //			}
 //		}	
 //		
-//		//***********************************µÈ´ıADC²É¼¯ÎÈ¶¨*************************************************************
+//		//***********************************ç­‰å¾…ADCé‡‡é›†ç¨³å®š*************************************************************
 //		if(uc_init_adc_cnt < 0xff)
 //			uc_init_adc_cnt++;
 //		
@@ -254,17 +254,17 @@ void vAdc_Task(void *pvParameters)
 }
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ADCÑ­»·ÈÎÎñ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    channel             Í¨µÀÊı
+-----å‡½æ•°åŠŸèƒ½    ADCå¾ªç¯ä»»åŠ¡
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    channel             é€šé“æ•°
 		#define     adcSYS_IN_VOLT    	 0
 		#define     adcDC_TEMP           1
 		#define     adcDC_CURR           2
 		#define     adcDC_VOLT           3
 		#define     adcUSB_TEMP          4
 		#define     adcUSB_CURR          5
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      Ñ¡ÔñÍ¨µÀµÄ16Î»ADÊı¾İ
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      é€‰æ‹©é€šé“çš„16ä½ADæ•°æ®
 ************************************************************************************************************************/
 u16 usAdc_GetChannelValue(u8 channel)	
 {
@@ -275,15 +275,15 @@ u16 usAdc_GetChannelValue(u8 channel)
 
 #if(boardLOW_POWER)
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ½øÈëµÍ¹¦ºÄ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      true:Ö´ĞĞ³É¹¦   false:Ö´ĞĞÊ§°Ü
+-----å‡½æ•°åŠŸèƒ½    è¿›å…¥ä½åŠŸè€—
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      true:æ‰§è¡ŒæˆåŠŸ   false:æ‰§è¡Œå¤±è´¥
 *****************************************************************************************************************/
 bool bAdc_EnterLowPower(void)
 {
-	vTaskSuspend(ADC_Task_Handler);  //ÏÈ¹ÒÆğÈÎÎñ
+	vTaskSuspend(ADC_Task_Handler);  //å…ˆæŒ‚èµ·ä»»åŠ¡
 	vAdc_IoEnterLowPower();
 	v_power_select(false); 
 	return true;
@@ -291,16 +291,16 @@ bool bAdc_EnterLowPower(void)
 
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ÍË³öµÍ¹¦ºÄ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      true:Ö´ĞĞ³É¹¦   false:Ö´ĞĞÊ§°Ü
+-----å‡½æ•°åŠŸèƒ½    é€€å‡ºä½åŠŸè€—
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      true:æ‰§è¡ŒæˆåŠŸ   false:æ‰§è¡Œå¤±è´¥
 *****************************************************************************************************************/
 bool bAdc_ExitLowPower(void)
 {
 	vAdc_Init();
-	vTaskResume(ADC_Task_Handler);  //³õÊ¼»¯ÍâÉèºóÔÙ»Ö¸´ÈÎÎñ
+	vTaskResume(ADC_Task_Handler);  //åˆå§‹åŒ–å¤–è®¾åå†æ¢å¤ä»»åŠ¡
 	return true;
 }
 #endif  //boardLOW_POWER

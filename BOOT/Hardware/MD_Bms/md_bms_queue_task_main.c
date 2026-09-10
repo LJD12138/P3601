@@ -1,6 +1,6 @@
 /*****************************************************************************************************************
 *                                                                                                                *
- *                                         ÏµÍ³µÄ¶ÓÁĞº¯Êı                                                  		*
+ *                                         ç³»ç»Ÿçš„é˜Ÿåˆ—å‡½æ•°                                                  		*
 *                                                                                                                *
 ******************************************************************************************************************/
 #include "MD_Bms/md_bms_queue_task.h"
@@ -9,14 +9,14 @@
 #include "MD_Bms/md_bms_task.h"
 #include "MD_Bms/md_bms_prot_frame.h"
 #include "Print/print_task.h"
-#include "Updata/updata_main.h"
+#include "Update/update_main.h"
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ÈÎÎñº¯Êı:Ö÷ÈÎÎñ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    ä»»åŠ¡å‡½æ•°:ä¸»ä»»åŠ¡
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
 void v_bms_queue_task_main(Task_T *tp_task)
 {	
@@ -25,30 +25,30 @@ void v_bms_queue_task_main(Task_T *tp_task)
 		case 0:
 		{	
 			tp_task->usStepWaitCnt++;
-			if(tp_task->usStepWaitCnt >= (1000/bmsTASK_CYCLE_TIME))
+			if(tp_task->usStepWaitCnt >= (1000 / bmsTASK_CYCLE_TIME))
 				cQueue_GotoStep(tp_task, STEP_NEXT);
 		}
 		break;
 		
 		case 1:
 		{	
-			c_bms_cs_send_updata();
+			c_bms_cs_get_param(0);
 			cQueue_GotoStep(tp_task, STEP_END);
 		}
 		break;
 		
 		default:
-			cQueue_GotoStep(tp_task, STEP_END);  //½áÊø
+			cQueue_GotoStep(tp_task, STEP_END);  //ç»“æŸ
 			break;
 	}
 	
 	tp_task->usTaskWaitCnt++;
-	if(tp_task->usTaskWaitCnt > (3000/bmsTASK_CYCLE_TIME))  //µÈ´ı³¬Ê±
+	if(tp_task->usTaskWaitCnt > (3000 / bmsTASK_CYCLE_TIME))  //ç­‰å¾…è¶…æ—¶
 	{
 		if(uPrint.tFlag.bBmsTask)
-			sMyPrintWarn("bBmsTask:»ñÈ¡Êı¾İÈÎÎñµÈ´ı³¬Ê±,ÍË³ö");
+			sMyPrintWarn("bBmsTask:è·å–æ•°æ®ä»»åŠ¡ç­‰å¾…è¶…æ—¶,é€€å‡º");
 		
-		cQueue_GotoStep(tp_task, STEP_END);  //½áÊø
+		cQueue_GotoStep(tp_task, STEP_END);  //ç»“æŸ
 	}
 }
 

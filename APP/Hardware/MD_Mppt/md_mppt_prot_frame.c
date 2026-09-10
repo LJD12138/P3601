@@ -19,25 +19,25 @@
 #define       	mpptTX_PROTO_BUFF_LEN                   128
 #define       	mpptRX_PROTO_BUFF_LEN                   256
 
-//MPPT�豸��ַ
+//MPPT设备地址
 #define       	mpptDEV_ADRR                          	0x01
-#define  		mpptWAIT_NOTIFY_OUTTIME              	1000     //����֪ͨ��ʱʱ�� MS
+#define  		mpptWAIT_NOTIFY_OUTTIME              	1500     //任务通知超时时间 MS
 
-//****************************************************������ʼ��**************************************************//
-__ALIGNED(4) 	ModbusProtoTx_t *tpMpptProtoTx = NULL;	//����Э��
-__ALIGNED(4) 	ModbusProtoRx_t *tpMpptProtoRx = NULL;	//����Э��
+//****************************************************参数初始化**************************************************//
+__ALIGNED(4) 	ModbusProtoTx_t *tpMpptProtoTx = NULL;	//发送协议
+__ALIGNED(4) 	ModbusProtoRx_t *tpMpptProtoRx = NULL;	//接受协议
 
-//****************************************************��������****************************************************//
+//****************************************************函数声明****************************************************//
 static s8 c_mppt_data_trans(u8 cmd, u16 reg_addr, u8* data, u8 len);
 
 
 
 /***********************************************************************************************************************
------��������    ͨѶЭ���ʼ��
------˵��(��ע)  none
------�������    none
------�������    none
------����ֵ      none
+-----函数功能    通讯协议初始化
+-----说明(备注)  none
+-----传入参数    none
+-----输出参数    none
+-----返回值      none
 ************************************************************************************************************************/
 bool bMppt_SendProtInit(void)
 {
@@ -47,7 +47,7 @@ bool bMppt_SendProtInit(void)
 	if(c_result <= 0)
 	{
 		if(uPrint.tFlag.bMpptTask || uPrint.tFlag.bImportant)
-			log_e("bMpptTask:tpMpptProtoTxЭ������ʼ��ʧ��,����%d",c_result);
+			log_e("bMpptTask:tpMpptProtoTx协议对象初始化失败,代码%d",c_result);
 		
 		return false;
 	}
@@ -57,14 +57,14 @@ bool bMppt_SendProtInit(void)
 
 bool bMppt_RecProtInit(void)
 {
-	s8 c_result = cModbus_RecProtoInit(&tpMpptProtoRx, 	//Э��ָ��
-								mpptRX_PROTO_BUFF_LEN,	//Э�黺������С
-								mpptDEV_ADRR,			//Э���豸ID
-								boardREPET_TIMER_CYCLE_TMIE);			//����������ʱ��
+	s8 c_result = cModbus_RecProtoInit(&tpMpptProtoRx, 	//协议指针
+								mpptRX_PROTO_BUFF_LEN,	//协议缓存器大小
+								mpptDEV_ADRR,			//协议设备ID
+								boardREPET_TIMER_CYCLE_TMIE);			//计数器采样时间
 	if(c_result <= 0)
 	{
 		if(uPrint.tFlag.bMpptRecTask || uPrint.tFlag.bImportant)
-			log_e("bMpptRecTask:tpMpptProtoRxЭ������ʼ��ʧ��,����%d",c_result);
+			log_e("bMpptRecTask:tpMpptProtoRx协议对象初始化失败,代码%d",c_result);
 		return false;
 	}
 	
@@ -72,11 +72,11 @@ bool bMppt_RecProtInit(void)
 }
 
 /*****************************************************************************************************************
------��������    ָ��:��ȡ����
------˵��(��ע)  none
------�������    none
------�������    none
------����ֵ      none
+-----函数功能    指令:获取参数
+-----说明(备注)  none
+-----传入参数    none
+-----输出参数    none
+-----返回值      none
 ******************************************************************************************************************/
 s8 c_mppt_cs_get_param(void)
 {
@@ -89,11 +89,11 @@ s8 c_mppt_cs_get_param(void)
 }
 
 /*****************************************************************************************************************
------��������    ָ��:���ó�繦��
------˵��(��ע)  none
------�������    pwr:����ֵ
------�������    none
------����ֵ      none
+-----函数功能    指令:设置充电功率
+-----说明(备注)  none
+-----传入参数    pwr:功率值
+-----输出参数    none
+-----返回值      none
 ******************************************************************************************************************/
 s8 c_mppt_cs_set_pwr(u16 pwr)
 {
@@ -104,21 +104,21 @@ s8 c_mppt_cs_set_pwr(u16 pwr)
 }
 
 /***********************************************************************************************************************
------��������	MPPT���ݴ��䣨ModbusЭ��֡��������յȴ���
------˵��(��ע)	�ú���ͨ��ModbusЭ����MPPT�豸����������ȴ��豸�ظ���
-				ʹ��DCAC�Ĵ��ڷ������ݣ�ͨ������������������Դ��
-				ʹ������֪ͨ����ʵ�ַ�������յ�ͬ����
------�������	cmd:Modbus�����루��modbusREAD_MULTI_REG��modbusWRITE_SINGLE_REG�ȣ�
-				reg_addr:�Ĵ�����ַ
-				data:ָ�����ݵ�ָ�루д����ʱΪҪд������ݣ�������ʱΪNULL��
-				len:���ݳ��ȣ���16λ�Ĵ���Ϊ��λ��
------�������	none
------����ֵ		-99:��ȡ��������ʱ�����ڲ���ϵͳ�����£�
-				-1:д���Len������󳤶�
-				-2:�ȴ��ظ���ʱ
-				-3:���ݷ��ʹ���
-				0:�޲�����Э�����δ��ʼ���򻥳���δ������
-				1:�����ɹ�
+-----函数功能	MPPT数据传输（Modbus协议帧发送与接收等待）
+-----说明(备注)	该函数通过Modbus协议向MPPT设备发送命令，并等待设备回复。
+				使用DCAC的串口发送数据，通过互斥量共享串口资源。
+				使用任务通知机制实现发送与接收的同步。
+-----传入参数	cmd:Modbus命令码（如modbusREAD_MULTI_REG、modbusWRITE_SINGLE_REG等）
+				reg_addr:寄存器地址
+				data:指向数据的指针（写操作时为要写入的数据，读操作时为NULL）
+				len:数据长度（以16位寄存器为单位）
+-----输出参数	none
+-----返回值		-99:获取互斥锁超时（仅在操作系统环境下）
+				-1:写入的Len超出最大长度
+				-2:等待回复超时
+				-3:数据发送错误
+				0:无操作（协议对象未初始化或互斥锁未创建）
+				1:操作成功
 ************************************************************************************************************************/
 static s8 c_mppt_data_trans(u8 cmd, u16 reg_addr, u8* data, u8 len)
 {
@@ -129,13 +129,13 @@ static s8 c_mppt_data_trans(u8 cmd, u16 reg_addr, u8* data, u8 len)
 	
 	
 	#if(boardUSE_OS)
-	// ��黥�����Ƿ��Ѵ���������ȡ����������������Դ�����ȴ�1�룩
+	// 检查互斥锁是否已创建，并获取互斥锁保护共享资源（最多等待1秒）
 	if(dcacSemaphoreMutex == NULL)
 		return 0;
 	if(xSemaphoreTake(dcacSemaphoreMutex, pdMS_TO_TICKS(1000)) == pdFAIL)
 		return -99;
 
-	// �������֪ͨ��������ʷ֪ͨ���ű���ͨ��
+	// 清除任务通知，避免历史通知干扰本次通信
 	while(ulTaskNotifyTake(pdTRUE, 0) > 0)
 	{
 	}
@@ -148,15 +148,15 @@ static s8 c_mppt_data_trans(u8 cmd, u16 reg_addr, u8* data, u8 len)
 		//MPPT
 		bDcacUseFlag = false;
 
-		// ͨ��DCAC���ڷ���MPPT����
+		// 通过DCAC串口发送MPPT数据
 		if(bDcac_DataSendStart(tpMpptProtoTx->ucaFrameData, tpMpptProtoTx->ucFrameLen) == true)
 		{
-			// �ȴ���������֪ͨ����ʱ1�룩����ʾ�յ�MPPT�豸�Ļظ�
+			// 等待接收任务通知（超时1秒），表示收到MPPT设备的回复
 			#if(boardUSE_OS)
 			if(ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(mpptWAIT_NOTIFY_OUTTIME)) <= 0)
 			{
-				if(uPrint.tFlag.bMpptTask || uPrint.tFlag.bImportant)
-					log_w("bMpptTask:����0x%x,�Ĵ���%d�ȴ��ظ���ʱ", cmd, reg_addr);
+				if((uPrint.tFlag.bMpptTask || uPrint.tFlag.bImportant) && tMppt.eDevState != DS_LOST)
+					log_w("bMpptTask:命令0x%x,寄存器%d等待回复超时", cmd, reg_addr);
 				
 				result = -2;
 			}
@@ -169,7 +169,7 @@ static s8 c_mppt_data_trans(u8 cmd, u16 reg_addr, u8* data, u8 len)
 	
 	cModbus_ResetTx(tpMpptProtoTx, mpptTX_PROTO_BUFF_LEN);
 	
-	vTaskDelay(5);
+	vTaskDelay(7);
 	
 	#if(boardUSE_OS)
 	if(dcacSemaphoreMutex != NULL)

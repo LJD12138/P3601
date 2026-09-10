@@ -1,6 +1,6 @@
 /*****************************************************************************************************************
 *                                                                                                                *
- *                                         Ö¸Ê¾µÆ´¦ÀíÈÎÎñ                                                          *
+ *                                         æŒ‡ç¤ºç¯å¤„ç†ä»»åŠ¡                                                          *
 *                                                                                                                *
 ******************************************************************************************************************/
 #include "Led/led_task.h"
@@ -8,57 +8,57 @@
 #if(boardLED_EN)
 #include "Led/led_iface.h"
 #include "Sys/sys_task.h"
-#include "Updata/updata_main.h"
+#include "Update/update_main.h"
 
 #if(boardUSE_OS)
 #include "freertos.h"
 #include "task.h"
 #endif  //boardUSE_OS
 
-#define     	ledTASK_CYCLE_TIME                		10  //ÈÎÎñÊ±¼ä
+#define     	ledTASK_CYCLE_TIME                		10  //ä»»åŠ¡æ—¶é—´
 
-//****************************************************ÈÎÎñ³õÊ¼»¯**************************************************//
+//****************************************************ä»»åŠ¡åˆå§‹åŒ–**************************************************//
 #if(boardUSE_OS)
-#define        	LED_TASK_PRIO                 			1     //ÈÎÎñÓÅÏÈ¼¶ 
-#define        	LED_TASK_STK_SIZE              			64   //ÈÎÎñ¶ÑÕ»  Êµ¼Ê×Ö½ÚÊı *4
-#define        	LED_TASK_CYCLE_TIME            			1000   //ÈÎÎñ¸üĞÂÊ±¼ä
+#define        	LED_TASK_PRIO                 			1     //ä»»åŠ¡ä¼˜å…ˆçº§ 
+#define        	LED_TASK_STK_SIZE              			64   //ä»»åŠ¡å †æ ˆ  å®é™…å­—èŠ‚æ•° *4
+#define        	LED_TASK_CYCLE_TIME            			1000   //ä»»åŠ¡æ›´æ–°æ—¶é—´
 TaskHandle_t    tLedTaskHandler = NULL; 
 void           	vLed_Task(void *pvParameters);
 #endif  //boardUSE_OS
 
 
-//****************************************************º¯ÊıÉùÃ÷****************************************************//
+//****************************************************å‡½æ•°å£°æ˜****************************************************//
 static void v_led_breathing(void);
 
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    °´¼üÈÎÎñ³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    æŒ‰é”®ä»»åŠ¡åˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 void vLed_TaskInit(void)
 {
 	vLed_IfaceInit();
 	
 	#if(boardUSE_OS)
-	xTaskCreate((TaskFunction_t )vLed_Task,				//ÈÎÎñº¯Êı
-                (const char* )"LedTask",              	//ÈÎÎñÃû³Æ
-                (uint16_t ) LED_TASK_STK_SIZE,          //ÈÎÎñ¶ÑÕ»´óĞ¡
-                (void* )NULL,							//´«µİ¸øÈÎÎñº¯ÊıµÄ²ÎÊı
-                (UBaseType_t ) LED_TASK_PRIO,           //ÈÎÎñÓÅÏÈ¼¶
-                (TaskHandle_t*)&tLedTaskHandler);      	//ÈÎÎñ¾ä±ú
+	xTaskCreate((TaskFunction_t )vLed_Task,				//ä»»åŠ¡å‡½æ•°
+                (const char* )"LedTask",              	//ä»»åŠ¡åç§°
+                (uint16_t ) LED_TASK_STK_SIZE,          //ä»»åŠ¡å †æ ˆå¤§å°
+                (void* )NULL,							//ä¼ é€’ç»™ä»»åŠ¡å‡½æ•°çš„å‚æ•°
+                (UBaseType_t ) LED_TASK_PRIO,           //ä»»åŠ¡ä¼˜å…ˆçº§
+                (TaskHandle_t*)&tLedTaskHandler);      	//ä»»åŠ¡å¥æŸ„
 	#endif  //boardUSE_OS
 }
 
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    °´¼üÑ­»·ÈÎÎñ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    æŒ‰é”®å¾ªç¯ä»»åŠ¡
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 void vLed_Task(void *pvParameters)
 {
@@ -85,7 +85,7 @@ void vLed_Task(void *pvParameters)
 		case STI_RESET:
 		{
 		   l_delay_cnt++;
-			if(l_delay_cnt < (200/ledTASK_CYCLE_TIME))//ÉÁË¸
+			if(l_delay_cnt < (200/ledTASK_CYCLE_TIME))//é—ªçƒ
 			{
 				ledPWR_SW_ON();
 			}
@@ -99,11 +99,11 @@ void vLed_Task(void *pvParameters)
 			}
 		}break;
 		
-		#if(boardUPDATA)
-		case STI_UPDATA:
+		#if(boardUPDATE)
+		case STI_UPDATE:
 		{
 			l_delay_cnt++;
-			if(l_delay_cnt > 0)//¿ìÉÁ
+			if(l_delay_cnt > 0)//å¿«é—ª
 			{
 				l_delay_cnt = 0;
 				v_led_breathing();
@@ -115,7 +115,7 @@ void vLed_Task(void *pvParameters)
 		case STI_DISPLAY:
 		{
 			l_delay_cnt++;
-			if(l_delay_cnt > (200/ledTASK_CYCLE_TIME))//ÂıÉÁ
+			if(l_delay_cnt > (200/ledTASK_CYCLE_TIME))//æ…¢é—ª
 			{
 				l_delay_cnt = 0;
 				v_led_breathing();
@@ -139,60 +139,60 @@ void vLed_Task(void *pvParameters)
 
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    µçÔ´Ö¸Ê¾µÆºôÎü
------ËµÃ÷(±¸×¢)  IOÄ£ÄâPWM  2mSµ÷ÓÃ
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    ç”µæºæŒ‡ç¤ºç¯å‘¼å¸
+-----è¯´æ˜(å¤‡æ³¨)  IOæ¨¡æ‹ŸPWM  2mSè°ƒç”¨
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 //static void v_led_breathing(void)
 //{
 //	static int pwmCounter = 0;
 //    static int directionChangeCounter = 0;
 //	
-//	static int brightness = 0; // µ±Ç°ÁÁ¶È¼¶±ğ
-//	static bool increase = true; // ±ê¼ÇÊÇÔö¼Ó»¹ÊÇ¼õÉÙÁÁ¶È
+//	static int brightness = 0; // å½“å‰äº®åº¦çº§åˆ«
+//	static bool increase = true; // æ ‡è®°æ˜¯å¢åŠ è¿˜æ˜¯å‡å°‘äº®åº¦
 
-//    // Ã¿2msÖ´ĞĞÒ»´Î
+//    // æ¯2msæ‰§è¡Œä¸€æ¬¡
 //    pwmCounter++;
 //    directionChangeCounter++;
 
 //    if (pwmCounter < brightness) {
-//        // ÉèÖÃIO¿ÚÎª¸ßµçÆ½
+//        // è®¾ç½®IOå£ä¸ºé«˜ç”µå¹³
 //        ledPWR_SW_ON();
 //    } else {
-//        // ÉèÖÃIO¿ÚÎªµÍµçÆ½
+//        // è®¾ç½®IOå£ä¸ºä½ç”µå¹³
 //        ledPWR_SW_OFF();
 //    }
 
-//    if (pwmCounter >= 10) { // ¼ÙÉè×î´óÁÁ¶È¼¶±ğÎª100
+//    if (pwmCounter >= 10) { // å‡è®¾æœ€å¤§äº®åº¦çº§åˆ«ä¸º100
 //        pwmCounter = 0;
 //    }
 
-//    if (directionChangeCounter >= 30) { // ¿ØÖÆÁÁ¶È±ä»¯ËÙ¶È
+//    if (directionChangeCounter >= 30) { // æ§åˆ¶äº®åº¦å˜åŒ–é€Ÿåº¦
 //        directionChangeCounter = 0;
 //        if (increase) {
 //            if (brightness < 10) {
-//                brightness++; // Ôö¼ÓÁÁ¶È
+//                brightness++; // å¢åŠ äº®åº¦
 //            } else {
-//                increase = false; // ¿ªÊ¼¼õÉÙÁÁ¶È
+//                increase = false; // å¼€å§‹å‡å°‘äº®åº¦
 //            }
 //        } else {
 //            if (brightness > 0) {
-//                brightness--; // ¼õÉÙÁÁ¶È
+//                brightness--; // å‡å°‘äº®åº¦
 //            } else {
-//                increase = true; // ÔÙ´Î¿ªÊ¼Ôö¼ÓÁÁ¶È
+//                increase = true; // å†æ¬¡å¼€å§‹å¢åŠ äº®åº¦
 //            }
 //        }
 //    }
 //}
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    µçÔ´Ö¸Ê¾µÆºôÎü
------ËµÃ÷(±¸×¢)  50mSµ÷ÓÃ
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    ç”µæºæŒ‡ç¤ºç¯å‘¼å¸
+-----è¯´æ˜(å¤‡æ³¨)  50mSè°ƒç”¨
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 static void v_led_breathing(void)
 {

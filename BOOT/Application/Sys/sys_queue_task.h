@@ -10,12 +10,12 @@
 #include "task.h"
 #endif
 
-#define     	sysTASK_CYCLE_TIME                		10  //任务时间
+#define     	sysTASK_CYCLE_TIME                		10  //浠诲姟鏃堕棿
 
 bool bSys_QueueInit(void);
 s8 cSys_JumpToApp(void);
 
-//队列任务
+//闃熷垪浠诲姟
 void v_sys_queue_task_init(Task_T *tp_task);
 void v_sys_queue_task_enter_app(Task_T *tp_task);
 void v_sys_queue_task_err(Task_T *tp_task);
@@ -25,8 +25,8 @@ void v_sys_queue_task_reset(Task_T *tp_task);
 void v_sys_queue_task_disp(Task_T *tp_task);
 #endif
 
-#if(boardUPDATA)
-void v_sys_queue_task_updata(Task_T *tp_task);
+#if(boardUPDATE)
+void v_sys_queue_task_update(Task_T *tp_task);
 #endif
 
 #if(boardLOW_POWER)

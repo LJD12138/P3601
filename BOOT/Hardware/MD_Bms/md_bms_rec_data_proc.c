@@ -1,26 +1,24 @@
 #include "MD_Bms/md_bms_rec_data_proc.h"
 
 #if(boardBMS_EN)
-#include "MD_Bms/md_bms_rec_task.h"
-#include "MD_Bms/md_bms_task.h"
 #include "Print/print_task.h"
 #include "Baiku/baiku_proto.h"
 
-//****************************************************º¯ÊýÉùÃ÷****************************************************//
+//****************************************************å‡½æ•°å£°æ˜Ž****************************************************//
 
 
 /***********************************************************************************************************************
------º¯Êý¹¦ÄÜ    ´¦Àí½ÓÊÕµ½µÄÊý¾Ý
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    none
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      0:Ã»ÓÐ´íÎó  ÆäËûÓÐ´íÎó
+-----å‡½æ•°åŠŸèƒ½    å¤„ç†æŽ¥æ”¶åˆ°çš„æ•°æ®
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      0:æ²¡æœ‰é”™è¯¯  å…¶ä»–æœ‰é”™è¯¯
 ************************************************************************************************************************/
 s8 c_bms_rec_proc_data(BaikuProtoRx_t* proto)
 {
 	if(uPrint.tFlag.bBmsRecTask)
 	{
-		sMyPrint("bBmsRecTask:Ö¸Áî:0x%x, Êý¾Ý:",proto->ucCmd);
+		sMyPrint("bBmsRecTask:æŒ‡ä»¤:0x%x, æ•°æ®:",proto->ucCmd);
 		for(int i = 0; i < proto->ucValidLen; i++)
 			sMyPrint("%x ",proto->ucpValidData[i]);
 		sMyPrint("\r\n");
@@ -28,12 +26,6 @@ s8 c_bms_rec_proc_data(BaikuProtoRx_t* proto)
 	
 	switch (proto->ucCmd)
     {
-		case 0:
-		{
-
-		}
-		break;
-		
 		default:
 			return -99;
 	}

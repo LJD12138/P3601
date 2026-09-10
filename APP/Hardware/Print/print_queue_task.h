@@ -13,15 +13,16 @@
 
 bool bPrint_QueueInit(void);
 
-//¶ÓÁÐº¯Êý
+//é˜Ÿåˆ—å‡½æ•°
 void v_print_queue_task_main(Task_T *tp_task);
 void v_print_queue_task_reply_app_info(Task_T *tp_task);
 void v_print_queue_task_reply_cali(Task_T *tp_task);
 
-#if(boardUPDATA)
-void v_print_queue_task_updata(Task_T *tp_task);
-#endif  //boardUPDATA
+#if(boardUPDATE)
+void v_print_queue_task_update(Task_T *tp_task);
+#endif  //boardUPDATE
 
 #endif  //boardPRINT_IFACE
 
 #endif  //MD_PRINT_QUEUE_FUNC_H_
+

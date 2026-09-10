@@ -1,31 +1,34 @@
 /*****************************************************************************************************************
 *                                                                                                                *
- *                                         Èí¼þ¶¨Ê±Æ÷                                                           *
+ *                                         è½¯ä»¶å®šæ—¶å™¨                                                           *
 *                                                                                                                *
 ******************************************************************************************************************/
 #include "timer_task.h"
-#include "gpio_init.h"
 #include "board_config.h"
 
 #include "Sys/sys_task.h"
-//#include "eng_mode.h"
 
 #if(boardCONSOLE_EN)
 #include "MD_Console/md_console_rec_task.h"
 #endif
 
+#if(boardWDGT_EN)
+#include "fwdgt.h"
+#endif  //boardWDGT_EN
+
+
 /***********************************************************************************************************************
------º¯Êý¹¦ÄÜ    ¶¨Ê±Æ÷º¯Êý
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    xTimer:µ÷ÓÃº¯ÊýµÄ¾ä±ú
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    å®šæ—¶å™¨å‡½æ•°
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    xTimer:è°ƒç”¨å‡½æ•°çš„å¥æŸ„
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      none
 ************************************************************************************************************************/
 static vu8 timer_cnt = 0;
 void vTimer_Task(void)
 {
 	timer_cnt++;
-	if(timer_cnt >= (1000/boardREPET_TIMER_CYCLE_TMIE)) //1S¼ÆÊ± 
+	if(timer_cnt >= (1000/boardREPET_TIMER_CYCLE_TMIE)) //1Sè®¡æ—¶ 
 	{
 		timer_cnt = 0;
 		vSys_TickTimer();
@@ -49,17 +52,16 @@ void vTimer_Task(void)
 }
 
 #if(boardLOW_POWER)
-//½øÈëµÍ¹¦ºÄ
+//è¿›å…¥ä½ŽåŠŸè€—
 void vCount_EnterLowPower(void)
 {
-	xTimerDelete(tSignalTimer,100);
-	xTimerDelete(tRepetTimer,100);
+	timer_cnt = 0;
 }
 
-//ÍË³öµÍ¹¦ºÄ
+//é€€å‡ºä½ŽåŠŸè€—
 void vCount_ExitLowPower(void)
 {
-	vTimer_TaskInit();
+	timer_cnt = 0;
 }
 #endif
 

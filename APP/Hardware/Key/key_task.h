@@ -1,93 +1,40 @@
+/*******************************************************************************************************************************
+ * Project : APP
+ * Module  : G:\1-Baiku_Projects\24-P36\1.software\P3601\APP\Hardware\Key
+ * File    : key_task.h
+ * Date    : 2026-09-10
+ * Author  : LJD(291483914@qq.com)
+ * Desc    : ÊåâÈîÆ‰ªªÂä°Â§¥Êñá‰ª∂ÂèäÂØπÂ§ñ‰∏öÂä°Êé•Âè£ÂÆö‰πâ
+ * -------------------------------------------------------
+ * todo    :
+ * 1. none
+ * -------------------------------------------------------
+ * Copyright (c) 2026 -inc
+ *******************************************************************************************************************************/
+
 #ifndef KEY_TASK_H_
 #define KEY_TASK_H_
 
-#include "board_config.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* ==========================================includes====================================*/
+#include "Key/key_iface.h"
 
 #if(boardKEY_EN)
-#include "Adc/adc_task.h"
-//#define		//4Tab									//10Tab
-#define     	keyTASK_CYCLE_TIME                		10  //∞¥º¸»ŒŒÒ∏¸–¬ ±º‰
-#define     	keyNUM                            		3   //∞¥º¸µƒ ˝¡ø
-#define     	keyGROUP_NUM                      		10  //◊È∫œ∞¥º¸÷÷¿‡   
-#define     	keySHORT_PRESS_TIME               		2   //∂Ã∞¥∞¥º¸µƒ◊Ó–° ±º‰*10ms
-#define     	keyLONG_PRESS_TIME                		90 //≥§∞¥∞¥º¸µƒ◊Ó–° ±º‰*10ms
-#define     	keySUPER_LONG_PRESS_TIME           		250	//≥¨≥§∞¥∞¥º¸µƒ◊Ó–° ±º‰*10ms
-#define     	keyNUPRESS_MAX_TIME               		35  //◊È∫œ∞¥º¸◊Ó¥Ûµƒµ»¥˝ ±º‰*10ms
-#define     	keyADD_SPACE_TIME                 		20  //≥§∞¥¿€º”º‰∏Ù
 
+/* ==========================================macros======================================*/
+#define     keyTASK_CYCLE_TIME                10   //ÊåâÈîÆ‰ªªÂä°Êõ¥Êñ∞Êó∂Èó¥ (ms)
+#define     keyGROUP_NUM                       10   //ÁªÑÂêàÊåâÈîÆÁßçÁ±ª/ÊúÄÂ§ß‰∫ã‰ª∂ÁºìÂÜ≤Ê∑±Â∫¶
+#define     keySHORT_PRESS_TIME                2    //Áü≠ÊåâÊåâÈîÆÁöÑÊúÄÂ∞èÊó∂Èó¥ * 10ms = 20ms
+#define     keyLONG_PRESS_TIME                90   //ÈïøÊåâÊåâÈîÆÁöÑÊúÄÂ∞èÊó∂Èó¥ * 10ms = 900ms
+#define     keySUPER_LONG_PRESS_TIME          250  //Ë∂ÖÈïøÊåâÊåâÈîÆÁöÑÊúÄÂ∞èÊó∂Èó¥ * 10ms = 2500ms
+#define     keyNUPRESS_MAX_TIME               35   //ÁªÑÂêàÊåâÈîÆÊúÄÂ§ßÁöÑÁ≠âÂæÖÊó∂Èó¥ * 10ms = 350ms
+#define     keyADD_SPACE_TIME                  20   //ÈïøÊåâÁ¥ØÂä†Èó¥Èöî * 10ms = 200ms
 
-#define     	keyGPIO_POWER_RCU       				RCU_GPIOC
-#define     	keyGPIO_POWER_PORT      				GPIOC
-#define     	keyGPIO_POWER_PIN       				GPIO_PIN_9
-
-#define     	keyGPIO_AC_RCU          				RCU_GPIOB
-#define     	keyGPIO_AC_PORT         				GPIOB
-#define     	keyGPIO_AC_PIN          				GPIO_PIN_12
-
-// #define     	keyGPIO_LIGHT_RCU       				RCU_GPIOB 
-// #define     	keyGPIO_LIGHT_PORT      				GPIOB
-// #define     	keyGPIO_LIGHT_PIN       				GPIO_PIN_8
-
-// #define     	keyGPIO_USB_RCU        					RCU_GPIOB
-// #define     	keyGPIO_USB_PORT        				GPIOB
-// #define     	keyGPIO_USB_PIN        					GPIO_PIN_14
-
-#define     	keyGPIO_DC_RCU          				RCU_GPIOB
-#define     	keyGPIO_DC_PORT         				GPIOB
-#define     	keyGPIO_DC_PIN          				GPIO_PIN_1
-
-//#define     	keyGPIO_WP_RCU          				RCU_GPIOA
-//#define    	keyGPIO_WP_GPIO         				GPIOA
-//#define     	keyGPIO_WP_PIN          				GPIO_PIN_0
-
-
-__STATIC_INLINE bool bKey_PowerIsPress(void)          
-{    
-   if((GPIO_ISTAT(keyGPIO_POWER_PORT)&(keyGPIO_POWER_PIN)) == 0)//∂¡»°∞¥º¸
-       return false;
-   else
-       return true;
-}
-// __STATIC_INLINE bool bKey_PowerIsPress(void)          
-// {    
-//     if(usAdc_GetChannelValue(adcKEY_POWER) > 200)//∂¡»°∞¥º¸
-//         return true;
-//     else
-//         return false;
-// }
-
-__STATIC_INLINE bool bKey_AcIsPress(void)
-{
-    if((GPIO_ISTAT(keyGPIO_AC_PORT)&(keyGPIO_AC_PIN)) == 0)//∂¡»°∞¥º¸
-        return true;
-    else
-        return false;
-}
-
-__STATIC_INLINE bool bKey_LightIsPress(void)
-{
-    // if((GPIO_ISTAT(keyGPIO_LIGHT_PORT)&(keyGPIO_LIGHT_PIN)) == 0)//∂¡»°∞¥º¸
-    //     return true;
-    // else
-        return false;
-}
-
-__STATIC_INLINE bool bKey_UsbIsPress(void)
-{
-    // if((GPIO_ISTAT(keyGPIO_USB_PORT)&(keyGPIO_USB_PIN)) == 0)//∂¡»°∞¥º¸
-    //     return true;
-    // else
-        return false;
-}
-
-__STATIC_INLINE bool bKey_DcIsPress(void)
-{
-    if((GPIO_ISTAT(keyGPIO_DC_PORT)&(keyGPIO_DC_PIN)) == 0)//∂¡»°∞¥º¸
-        return true;
-    else
-        return false;
-}
-
+/* ==========================================types=======================================*/
+/* Ëß¶Âèë‰∫ã‰ª∂Êûö‰∏æ */
 typedef enum
 {
 	KTE_FUN_NULL = 0,
@@ -106,22 +53,17 @@ typedef enum
 	KTE_DC_LONG,
 	KTE_DC_SHORT,
 	KTE_DC_SUPER_LONG,
-}KeyTriEvent_e;  //¥•∑¢ ¬º˛ 
+} KeyTriEvent_E;
 
+typedef KeyTriEvent_E KeyTriEvent_e;
 
-
-typedef struct
-{
-    bool    			(*IsPress)(void);        
-    vs16    			sOnPressCnt;	  	//∞¥º¸∞¥œ¬º∆ ±  0:±Ì æ∞¥º¸√ª¥•∑¢   -1:±Ì æ∞¥º¸π¶ƒ‹“—æ≠±ªº«¬º
-	bool        		bEnMulitFunKey;     // πƒ‹∂‡π¶ƒ‹∞¥º¸
-	bool        		bEnLongPressAdd;    // πƒ‹≥§∞¥¿€º”      
-}KeyHandler_t;
-
-
+/* ==========================================extern======================================*/
 void vKey_TaskInit(void);
 void vKey_PowerIsTri(void);
 void vKey_ParamInit(void);
+bool bKey_IsAnyPress(void);
+bool bKey_IsFactoryModePress(void);
+bool bKey_IsEngModePress(void);
 
 #if(!boardUSE_OS)
 void vKey_Task(void *pvParameters);
@@ -134,6 +76,8 @@ void vKey_ExitLowPower(void);
 
 #endif  //boardKEY_EN
 
+#ifdef __cplusplus
+}
+#endif
+
 #endif  //KEY_TASK_H_
-
-

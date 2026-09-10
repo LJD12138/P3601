@@ -8,15 +8,15 @@
 
 #include "function.h"
 
-//****************************************************²ÎÊý³õÊ¼»¯**************************************************//   
+//****************************************************å‚æ•°åˆå§‹åŒ–**************************************************//   
 
 
 /***********************************************************************************************************************
------º¯Êý¹¦ÄÜ    ´¦Àí½ÓÊÕµ½µÄÊý¾Ý
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    none
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      0:Ã»ÓÐ´íÎó  ÆäËûÓÐ´íÎó
+-----å‡½æ•°åŠŸèƒ½    å¤„ç†æŽ¥æ”¶åˆ°çš„æ•°æ®
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      0:æ²¡æœ‰é”™è¯¯  å…¶ä»–æœ‰é”™è¯¯
 ************************************************************************************************************************/
 s8 c_mppt_rec_proc_data(ModbusProtoRx_t* proto_rx, ModbusProtoTx_t* proto_tx)
 {
@@ -31,7 +31,7 @@ s8 c_mppt_rec_proc_data(ModbusProtoRx_t* proto_rx, ModbusProtoTx_t* proto_tx)
 	
 	if(uPrint.tFlag.bMpptRecTask)
 	{
-		sMyPrint("\r\n bMpptRecTask:½ÓÊÕµØÖ·%d:", proto_tx->usRegAddr);
+		sMyPrint("bMpptRecTask:æŽ¥æ”¶åœ°å€%d:", proto_tx->usRegAddr);
 		for(int i = 0; i < proto_rx->ucValidLen; i++)
 			sMyPrint("%x ",proto_rx->ucpValidData[i]);
 		sMyPrint("\r\n");
@@ -66,18 +66,19 @@ s8 c_mppt_rec_proc_data(ModbusProtoRx_t* proto_rx, ModbusProtoTx_t* proto_tx)
 			if(tpMpptTask->tReplyBuff.buff == NULL)
 				return -11;
 			
-			#pragma pack (1)   //Ç¿ÖÆ½øÐÐ1×Ö½Ú¶ÔÆë
+			#pragma pack (1)   //å¼ºåˆ¶è¿›è¡Œ1å­—èŠ‚å¯¹é½
 			struct
 			{
 //				u8 uc_obj;
 				u16 us_in_pwr;
 			}t_mppt_chg;
-			#pragma pack() //È¡ÏûÒ»¸ö×Ö½Ú¶ÔÆë
+			#pragma pack() //å–æ¶ˆä¸€ä¸ªå­—èŠ‚å¯¹é½
 			
 			t_mppt_chg.us_in_pwr = (proto_rx->ucpValidData[0] << 8) | proto_rx->ucpValidData[1];
 
-			lwrb_reset(&tpMpptTask->tReplyBuff);
-			lwrb_write(&tpMpptTask->tReplyBuff, (u8*)&t_mppt_chg, sizeof(t_mppt_chg));
+			// lwrb_reset(&tpMpptTask->tReplyBuff);
+			// lwrb_write(&tpMpptTask->tReplyBuff, (u8*)&t_mppt_chg, sizeof(t_mppt_chg));
+			tMpptRx.usMaxInPwr = t_mppt_chg.us_in_pwr * 10;
 		}
 		break;
 		
@@ -91,7 +92,7 @@ s8 c_mppt_rec_proc_data(ModbusProtoRx_t* proto_rx, ModbusProtoTx_t* proto_tx)
 			if(proto_rx->ucpValidData == NULL)
 				return -21;
 			
-			//×°ÔØ²ÎÊý
+			//è£…è½½å‚æ•°
 			bFunc_SwapU16Array((u8*)&t_param, proto_rx->ucpValidData, proto_rx->ucCharLen/2);
 			
 			if(t_param.usInState != 0)
@@ -105,6 +106,11 @@ s8 c_mppt_rec_proc_data(ModbusProtoRx_t* proto_rx, ModbusProtoTx_t* proto_tx)
 			tMpptRx.usInVolt = t_param.usInVolt;
 			tMpptRx.usInCurr = t_param.usInCurr * 10;
 			tMpptRx.usInPwr = t_param.usInPwr * 10;
+
+			if(tMppt.eDevState ==DS_WORK)
+				tMpptRx.sMaxTemp = sMpptMaxTemp;
+			else
+				tMpptRx.sMaxTemp = 25;
 		}
 		break;
 		

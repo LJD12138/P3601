@@ -1,6 +1,6 @@
 /*****************************************************************************************************************
 *                                                                                                                *
- *                                         DispÏÔÊ¾ÈÎÎñ                                                          *
+ *                                         Dispæ˜¾ç¤ºä»»åŠ¡                                                          *
 *                                                                                                                *
 ******************************************************************************************************************/
 #include "MD_Display/md_display_task.h"
@@ -51,29 +51,29 @@
 #if(boardDCAC_EN)
 #include "MD_Dcac/md_dcac_task.h"
 #include "MD_Dcac/md_dcac_rec_task.h"
-#endif  //DCACÊ¹ÄÜ
+#endif  //DCACä½¿èƒ½
 
-#if(boardUPDATA)
-#include "Sys/sys_queue_task_updata.h"
-#endif  //boardUPDATA
+#if(boardUPDATE)
+#include "Sys/sys_queue_task_update.h"
+#endif  //boardUPDATE
 
 #if(boardHEAT_MANAGE_EN)
 #include "MD_HeatManage/md_hm_task.h"
 #endif  //boardHEAT_MANAGE_EN
 
 
-//****************************************************ÈÎÎñ²ÎÊı³õÊ¼»¯**********************************************//
+//****************************************************ä»»åŠ¡å‚æ•°åˆå§‹åŒ–**********************************************//
 #if(boardUSE_OS)
-#define			dispTASK_PRIO                   2       //ÈÎÎñÓÅÏÈ¼¶ 
-#define			dispTASK_STK_SIZE               256     //ÈÎÎñ¶ÑÕ»  Êµ¼Ê×Ö½ÚÊı *4
+#define			dispTASK_PRIO                   2       //ä»»åŠ¡ä¼˜å…ˆçº§ 
+#define			dispTASK_STK_SIZE               256     //ä»»åŠ¡å †æ ˆ  å®é™…å­—èŠ‚æ•° *4
 TaskHandle_t	tDispTaskHandler = NULL; 
 void vDisp_Task(void *pvParameters);
 #endif  //boardUSE_OS
 
-//****************************************************²ÎÊı³õÊ¼»¯**************************************************//
+//****************************************************å‚æ•°åˆå§‹åŒ–**************************************************//
 Disp_T   tDisp; 
 
-//****************************************************¾Ö²¿º¯Êı¶¨Òå************************************************//
+//****************************************************å±€éƒ¨å‡½æ•°å®šä¹‰************************************************//
 static void v_disp_init(void);
 static void v_disp_closing(void);
 static void v_disp_shut_down(void);
@@ -81,28 +81,28 @@ static void v_disp_booting(void);
 static void v_disp_work(void);
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ²ÎÊı³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    å‚æ•°åˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 static void v_disp_param_init(void)
 {
 	memset(&tDisp, 0, sizeof(tDisp));
 	
-	Display_ClearData();   //BuffÇåÁã,±ÜÃâ²ĞÁô
+	Display_ClearData();   //Buffæ¸…é›¶,é¿å…æ®‹ç•™
 	
 	tDisp.usAutoOffTime = boardDISP_OFF_TIME;
-	tDisp.bSleepShow =true;//´ı»úÇ¿ÖÆ´ò¿ªÁÁÆÁ
+	tDisp.bSleepShow =true;//å¾…æœºå¼ºåˆ¶æ‰“å¼€äº®å±
 }
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    DispÏÔÊ¾ÈÎÎñ³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    Dispæ˜¾ç¤ºä»»åŠ¡åˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 bool bDisp_TaskInit(void)
 {
@@ -111,23 +111,23 @@ bool bDisp_TaskInit(void)
 	HT1621_IfaceInit();
 	
 	#if(boardUSE_OS)
-	xTaskCreate((TaskFunction_t )vDisp_Task,			//ÈÎÎñº¯Êı
-                (const char* )"DispTask",				//ÈÎÎñÃû³Æ
-                (u16 ) dispTASK_STK_SIZE,				//ÈÎÎñ¶ÑÕ»´óĞ¡
-                (void* )NULL,							//´«µİ¸øÈÎÎñº¯ÊıµÄ²ÎÊı
-                (UBaseType_t ) dispTASK_PRIO,           //ÈÎÎñÓÅÏÈ¼¶
-                (TaskHandle_t*)&tDispTaskHandler);      //ÈÎÎñ¾ä±ú
+	xTaskCreate((TaskFunction_t )vDisp_Task,			//ä»»åŠ¡å‡½æ•°
+                (const char* )"DispTask",				//ä»»åŠ¡åç§°
+                (u16 ) dispTASK_STK_SIZE,				//ä»»åŠ¡å †æ ˆå¤§å°
+                (void* )NULL,							//ä¼ é€’ç»™ä»»åŠ¡å‡½æ•°çš„å‚æ•°
+                (UBaseType_t ) dispTASK_PRIO,           //ä»»åŠ¡ä¼˜å…ˆçº§
+                (TaskHandle_t*)&tDispTaskHandler);      //ä»»åŠ¡å¥æŸ„
 	#endif  //boardUSE_OS
 	
 	return true;
 }
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    tDispÏÔÊ¾ÈÎÎñ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    tDispæ˜¾ç¤ºä»»åŠ¡
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 void vDisp_Task(void *pvParameters)
 {
@@ -146,7 +146,7 @@ void vDisp_Task(void *pvParameters)
 		
 		switch(tSysInfo.eDevState)
 		{
-			//--------------------------³õÊ¼»¯----------------------------------
+			//--------------------------åˆå§‹åŒ–----------------------------------
 			case DS_INIT:
 			{	
 				if(flag ==false)
@@ -157,7 +157,7 @@ void vDisp_Task(void *pvParameters)
 			}
 			break;
 			
-			//---------------------------¹Ø±ÕÖĞ---------------------------------
+			//---------------------------å…³é—­ä¸­---------------------------------
 			case DS_CLOSING:
 			{
 //				if(flag ==false)
@@ -168,22 +168,22 @@ void vDisp_Task(void *pvParameters)
 			}
 			break;
 			
-			//---------------------------¹Ø±Õ----------------------------------
+			//---------------------------å…³é—­----------------------------------
 			case DS_SHUT_DOWN:
 			{
-				if(bKey_PowerIsPress() == false)
+				if(bKey_IsPressById(keyPOWER) == false)
 					v_disp_shut_down();
 			}
 			break;
-			//----------------------------×°ÔØÖĞ---------------------------------
+			//----------------------------è£…è½½ä¸­---------------------------------
 			case DS_BOOTING:
 			{
 				v_disp_booting();
 			}
 			break;
 			
-			//----------------------------¹¤×÷ÖĞ---------------------------------
-			//---------------------------´íÎó------------------------------------
+			//----------------------------å·¥ä½œä¸­---------------------------------
+			//---------------------------é”™è¯¯------------------------------------
 			case DS_ERR: 
 			case DS_WORK:
 			{
@@ -195,25 +195,25 @@ void vDisp_Task(void *pvParameters)
 			}
 			break;
 			
-			//----------------------------Éı¼¶Ä£Ê½---------------------------------
-			case DS_UPDATA_MODE:
+			//----------------------------å‡çº§æ¨¡å¼---------------------------------
+			case DS_UPDATE_MODE:
 			{
-				#if(boardUPDATA)
+				#if(boardUPDATE)
 				bDisp_Switch(ST_ON, true);
 				
-				Display_IconUpdata();
+				Display_IconUpdate();
 				
 				Display_ShowErrCode(tBootMemParam.tParam.eAppState);
-				Display_UpdataState(2, tUpdata.eProtoType, 0);
-				Display_UpdataProgress(tUpdata.usRecFrameCnt, tUpdata.usTotalFrmValue);
-				Display_UpdataTime(tUpdata.usRecOverTimeCnt/10);
-				Display_RefreshData();            //·¢ËÍÊı¾İ    
-				#endif  //boardUPDATA     
+					Display_UpdateState(tUpdate.eObj, tUpdate.eProtoType, 0);
+				Display_UpdateProgress(tUpdate.usRecFrameCnt, tUpdate.usTotalFrmValue);
+					Display_UpdateTime(tUpdate.usLostOverTimeCnt/10);
+				Display_RefreshData();            //å‘é€æ•°æ®    
+				#endif  //boardUPDATE     
 			}
 			break;
 			
 			#if(boardENG_MODE_EN)
-			//----------------------------¹¤³ÌÄ£Ê½---------------------------------
+			//----------------------------å·¥ç¨‹æ¨¡å¼---------------------------------
 			case DS_ENG_MODE:
 			{
 				bDisp_Switch(ST_ON, true);
@@ -225,63 +225,63 @@ void vDisp_Task(void *pvParameters)
 			#endif	
 				
 			default:
-				vTaskDelay(boardDISP_REFRESH_TMIE);
+				vTaskDelay(boardDISP_REFRESH_TIME);
 				break;
 		}
 		
 		#if(boardUSE_OS)
-		vTaskDelay(boardDISP_REFRESH_TMIE);
+		vTaskDelay(boardDISP_REFRESH_TIME);
 		#endif  //boardUSE_OS
 	}
 }
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ³õÊ¼»¯ÏÔÊ¾
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    åˆå§‹åŒ–æ˜¾ç¤º
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 __STATIC_INLINE void v_disp_init(void)
 {
 	bDisp_Switch(ST_OFF, false);
-	Display_RefreshData();      //·¢ËÍÊı¾İ
+	Display_RefreshData();      //å‘é€æ•°æ®
 }
 
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ¹Ø±ÕÖĞÏÔÊ¾
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    å…³é—­ä¸­æ˜¾ç¤º
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 __STATIC_INLINE void v_disp_closing(void)
 {
 	bDisp_Switch(ST_ON, false);
 	Display_ShowOFF();
-	Display_RefreshData();      //·¢ËÍÊı¾İ
+	Display_RefreshData();      //å‘é€æ•°æ®
 }
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ¹Ø±ÕÏÔÊ¾
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    å…³é—­æ˜¾ç¤º
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 __STATIC_INLINE void v_disp_shut_down(void)
 {
 	bDisp_Switch(ST_OFF, false);
-	Display_RefreshData();            //·¢ËÍÊı¾İ
+	Display_RefreshData();            //å‘é€æ•°æ®
 }
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ¿ªÆôÏÔÊ¾
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    å¼€å¯æ˜¾ç¤º
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 __STATIC_INLINE void v_disp_booting(void)
 {
@@ -291,175 +291,175 @@ __STATIC_INLINE void v_disp_booting(void)
 	
 	Display_InPwr(tAppMemParam.tDCAC.usInPwrRating);
 	Display_OutPwr(tAppMemParam.tDCAC.usOutPwrRating);
-	Display_TimRoll(1);//TIMÊ±¼ä¹ö¶¯
+	Display_TimRoll(1);//TIMæ—¶é—´æ»šåŠ¨
 	
 	DisplayNum2(0,10);//TIM --
 	DisplayNum2(1,10);//TIM --
 	Y_Display(11);//M
 	
 
-	Display_BAT(0,false,0);//BATµÈ¼¶½çÃæ	
+	Display_BAT(0,false,0);//BATç­‰çº§ç•Œé¢	
     T_Display(j);
 	
-	DisplayNum1(10,10);          //SOC½çÃæ--
-	DisplayNum1(11,10);	         //SOC½çÃæ--
+	DisplayNum1(10,10);          //SOCç•Œé¢--
+	DisplayNum1(11,10);	         //SOCç•Œé¢--
 	
 
     j++;if(j>10)j=1;
-	Display_RefreshData();            //·¢ËÍÊı¾İ
+	Display_RefreshData();            //å‘é€æ•°æ®
 }
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    LCD¹¤×÷ÏÔÊ¾º¯Êı
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    LCDå·¥ä½œæ˜¾ç¤ºå‡½æ•°
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 __STATIC_INLINE void v_disp_work(void)
 {
 	vu8 uc_soc = 0;
 	vu16 us_err_code = 0;
-	static bool b_dis_twintle_flag;   //ÏÔÊ¾ÉÁË¸±ê¼Ç
+	static bool b_dis_twintle_flag;   //æ˜¾ç¤ºé—ªçƒæ ‡è®°
 
 	#if(boardBMS_EN)
 	uc_soc = ucBms_GetSoc();
 	#endif  //boardBMS_EN
 	
-	//Ï¢ÆÁ
+	//æ¯å±
 	if(tDisp.bLight == false) 
 		return;
 	
-	//ÉÁË¸
+	//é—ªçƒ
 	if(b_dis_twintle_flag)
 		b_dis_twintle_flag = false;
 	else 
 		b_dis_twintle_flag = true;
 				
 	
-	Display_ClearData();   //BuffÇåÁã,±ÜÃâ²ĞÁô
+	Display_ClearData();   //Buffæ¸…é›¶,é¿å…æ®‹ç•™
 	
-	//------------------------------------Êı¾İÏÔÊ¾-----------------------------------------
-	//Ê±¼ä
-	if(bSys_IsChgState() == true)
+	//------------------------------------æ•°æ®æ˜¾ç¤º-----------------------------------------
+	//æ—¶é—´
+	if(cSys_IsChgState() == 2)
 	{
 		if(uc_soc <= 90)
 		{
-			Display_BatChgRoll(uc_soc);//BAT³äµç¹ö¶¯µÈ¼¶½çÃæ
+			Display_BatChgRoll(uc_soc);//BATå……ç”µæ»šåŠ¨ç­‰çº§ç•Œé¢
 			Display_BAT(0, false, uc_soc);
 		}
 		else
-			Display_BAT(bSys_IsChgState(), false, uc_soc);
+			Display_BAT(cSys_IsChgState(), false, uc_soc);
 	}
 	else
-		Display_BAT(bSys_IsChgState(), true, uc_soc);
+		Display_BAT(cSys_IsChgState(), true, uc_soc);
 
 	//SOC
 	Display_Soc(uc_soc);
 	
-	//¹¦ÂÊ
+	//åŠŸç‡
 	Display_OutPwr(tSysInfo.usOutPwr);
 	Display_InPwr(tSysInfo.usInPwr);
 	
-	//´íÎó´úÂë
+	//é”™è¯¯ä»£ç 
 	us_err_code = usDisp_ErrCodeDisplay();
-	if(us_err_code > 0 && us_err_code < 100)
+	if(us_err_code > 0 && us_err_code < 1000)
 	{
 		Display_ShowErrCode(us_err_code);
 		Display_IconSysErr();
 	}
 	else
 	{
-		//Ê±¼ä
+		//æ—¶é—´
 		#if(boardBMS_EN)
-		if(bSys_IsChgState() == true)
+		if(cSys_IsChgState() > 0)
 		{
 			if(tSysInfo.usOutPwr)
 			{
 				Display_Time(0,TIM_MAX);//99+
 				if(uc_soc != 100)
-					Display_TimRoll(1);//³¤Ê±¼ä¹ö¶¯
+					Display_TimRoll(1);//é•¿æ—¶é—´æ»šåŠ¨
 				else 
-					Display_ShowChgFullTime();//³äÂúÏÔÊ¾
+					Display_ShowChgFullTime();//å……æ»¡æ˜¾ç¤º
 			}
 			else 
 			{
 				if(uc_soc != 100)
 				{
-					//Ä¬ÈÏ<100,Ê±¼ä¶¼Ò»Ö±ÏÔÊ¾1·ÖÖÓ
-					if(tBmsRx.tParam.usChgFullTime==0)
-					   Display_Time(0,1);//³äÂúÊ±¼ä
+					//é»˜è®¤<100,æ—¶é—´éƒ½ä¸€ç›´æ˜¾ç¤º1åˆ†é’Ÿ
+					if(tBmsRx.usChgFullTime==0)
+					   Display_Time(0,1);//å……æ»¡æ—¶é—´
 					else
-						Display_Time(0,tBmsRx.tParam.usChgFullTime);//³äÂúÊ±¼ä
+						Display_Time(0,tBmsRx.usChgFullTime);//å……æ»¡æ—¶é—´
 
-					Display_TimRoll(1);//Ê±¼ä¹ö¶¯
+					Display_TimRoll(1);//æ—¶é—´æ»šåŠ¨
 				}
 				else 
 				{
 					Display_Time(9,0);//99+
-					Display_ShowChgFullTime();//³äÂúÏÔÊ¾
+					Display_ShowChgFullTime();//å……æ»¡æ˜¾ç¤º
 				}
 			}
 		}
 		else
 		{
 			if(tSysInfo.usOutPwr == 0 && uc_soc!= 0)
-				Display_Time(9,TIM_MAX);//Ê£ÓàÊ±¼ä>99H+
+				Display_Time(9,TIM_MAX);//å‰©ä½™æ—¶é—´>99H+
 			else
-				Display_Time(9,tBmsRx.tParam.usDisChgEmptyTime);//Ê£ÓàÊ±¼ä
+				Display_Time(9,tBmsRx.usDisChgEmptyTime);//å‰©ä½™æ—¶é—´
 		}
 		#endif  //boardBMS_EN
 	}
 		
-	//------------------------------------´íÎóÏÔÊ¾-----------------------------------------
-	//Êä³ö¹ıÎÂ±êÊ¶
+	//------------------------------------é”™è¯¯æ˜¾ç¤º-----------------------------------------
+	//è¾“å‡ºè¿‡æ¸©æ ‡è¯†
 	if(tSysInfo.uErrCode.tCode.bOT && b_dis_twintle_flag)
 	{
 		Display_IconOT();
 		Display_IconOutOT();
 	}
 	
-	//Êä³öµÍÎÂ±êÊ¶
+	//è¾“å‡ºä½æ¸©æ ‡è¯†
 	if(tSysInfo.uErrCode.tCode.bUT && b_dis_twintle_flag)
 		Display_IconUT();
 	
-	//¹ıÔØ
+	//è¿‡è½½
 	if(tSysInfo.uErrCode.tCode.bOL == 1)
 		Display_IconOL();
 
-	//µç³Ø´æÔÚ¹ÊÕÏ
+	//ç”µæ± å­˜åœ¨æ•…éšœ
 	#if(boardBMS_EN)
-	if(tBms.uErrCode.ulCode)
+	if(tBms.uErrCode.ullCode)
 		Display_IconBatErr();
 	#endif  //boardBMS_EN
 
-	//µç³Ø´æÔÚ²»Ğí¿É
+	//ç”µæ± å­˜åœ¨ä¸è®¸å¯
 	#if(boardBMS_EN)
 	if(tBms.uPerm.tPerm.bDisChgPerm == 0 || 
 		tBms.uPerm.tPerm.bChgPerm == 0)
 		Display_IconBatLock();
 	#endif  //boardBMS_EN
 	
-	//------------------------------------Éè±¸×´Ì¬ÏÔÊ¾-----------------------------------------
-	// ·äÃùÆ÷
+	//------------------------------------è®¾å¤‡çŠ¶æ€æ˜¾ç¤º-----------------------------------------
+	// èœ‚é¸£å™¨
 	#if(boardBUZ_EN)
 	// if(tAppMemParam.tSYS.bBuzSwitchOff == 0)
 	// 	Display_IconBuz();
 	#endif  //boardBUZ_EN
 	
-	//É¢ÈÈ¿ªÆô
+	//æ•£çƒ­å¼€å¯
 	// #if(boardHEAT_MANAGE_EN)
 	// if(eFan_GetWorkMode() > FWM_OFF)
 	// 	Display_IconFan();
 	// #endif  //boardHEAT_MANAGE_EN
 	
-	//ÕÕÃ÷×´Ì¬ÏÔÊ¾
+	//ç…§æ˜çŠ¶æ€æ˜¾ç¤º
 	#if(boardLIGHT_EN)
 	if(tLight.eDevState == DS_WORK)
 		Display_IconLight();
 	#endif  //boardLIGHT_EN
 	
-	//USB×´Ì¬ÏÔÊ¾
+	//USBçŠ¶æ€æ˜¾ç¤º
 	#if(boardUSB_EN)
 	if(tUsb.eDevState >= DS_BOOTING)
 		Display_IconUsbOut();
@@ -467,7 +467,7 @@ __STATIC_INLINE void v_disp_work(void)
 		Display_IconUsbOut();
 	#endif  //boardUSB_EN
 	
-	//DC×´Ì¬ÏÔÊ¾
+	//DCçŠ¶æ€æ˜¾ç¤º
 	#if(boardDC_EN)
 	if(tDc.eDevState >= DS_BOOTING)
 		Display_IconDcOut();
@@ -475,7 +475,7 @@ __STATIC_INLINE void v_disp_work(void)
 		Display_IconDcOut();
 	#endif  //boardDC_EN
 	
-	//ACÊä³ö×´Ì¬ÏÔÊ¾
+	//ACè¾“å‡ºçŠ¶æ€æ˜¾ç¤º
 	#if(boardDCAC_EN)
 	if(tDcac.eDisChgState >= IOS_STARTING)
 		Display_IconAcOut();
@@ -483,9 +483,9 @@ __STATIC_INLINE void v_disp_work(void)
 		Display_IconAcOut();
 	#endif  //boardDCAC_EN
 		
-	//ACÊäÈë×´Ì¬ÏÔÊ¾
+	//ACè¾“å…¥çŠ¶æ€æ˜¾ç¤º
 	#if(boardDCAC_EN)
-	if(tDcac.eChgState >= IOS_STARTING) //³£ÁÁ
+	if(tDcac.eChgState >= IOS_STARTING) //å¸¸äº®
 		Display_IconAcIn();
 	else if(tDcac.eChgState == IOS_PROTE && 
 		    tDcac.eChgState == IOS_ERR   &&
@@ -495,7 +495,7 @@ __STATIC_INLINE void v_disp_work(void)
 	}
 	#endif  //boardDCAC_EN
 
-	//MPPTÊäÈë×´Ì¬ÏÔÊ¾
+	//MPPTè¾“å…¥çŠ¶æ€æ˜¾ç¤º
 	#if(boardMPPT_EN)
 	if(tMppt.eDevState >= DS_BOOTING)
 		Display_IconDcIn();
@@ -505,7 +505,7 @@ __STATIC_INLINE void v_disp_work(void)
 	}
 	#endif  //boardMPPT_EN
 	
-	//²¢Íø
+	//å¹¶ç½‘
 	#if(boardDCAC_PARA_IN && boardDCAC_EN)
 	if(tDcac.eParanInState >= IOS_STARTING)
 	{
@@ -515,10 +515,10 @@ __STATIC_INLINE void v_disp_work(void)
 	}
 	#endif  //boardDCAC_PARA_IN
 
-	//¹Ì¶¨ÏÔÊ¾ÄÚÈİ
+	//å›ºå®šæ˜¾ç¤ºå†…å®¹
 	Display_ForeverShow();
 	
-	// //²âÊÔÄ£Ê½
+	// //æµ‹è¯•æ¨¡å¼
 	// if(G_TestMode == true)
 	// 	Display_Eco();
 
@@ -527,15 +527,15 @@ __STATIC_INLINE void v_disp_work(void)
 
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ÏÔÊ¾¿ª¹Ø
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    type:ÀàĞÍ   fore_en:Ç¿ÖÆ´ò¿ª
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    æ˜¾ç¤ºå¼€å…³
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    type:ç±»å‹   fore_en:å¼ºåˆ¶æ‰“å¼€
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 bool bDisp_Switch(SwitchType_E type, bool fore_en)
 {
-	Display_ClearData();   //BuffÇåÁã,±ÜÃâ²ĞÁô
+	Display_ClearData();   //Buffæ¸…é›¶,é¿å…æ®‹ç•™
 	
 	switch(type)
 	{
@@ -553,11 +553,11 @@ bool bDisp_Switch(SwitchType_E type, bool fore_en)
 				dispLIGHT_POWER_ON();
 				tDisp.bLight = true;
 				
-				//¹Ø±ÕÏ¢ÆÁ
+				//å…³é—­æ¯å±
 				if(fore_en == true)
 					tDisp.usAutoOffTime = 0;
 				
-				//¸üĞÂÏÔÊ¾Ê±¼ä
+				//æ›´æ–°æ˜¾ç¤ºæ—¶é—´
 				if(tDisp.usAutoOffTime)
 					tDisp.usAutoOffCnt =  tDisp.usAutoOffTime;
 			}
@@ -566,7 +566,7 @@ bool bDisp_Switch(SwitchType_E type, bool fore_en)
 				LoopOff:
 				dispLIGHT_POWER_OFF();
 				v_disp_param_init();
-				Display_RefreshData(); //·¢ËÍÊı¾İ
+				Display_RefreshData(); //å‘é€æ•°æ®
 				tDisp.bLight = false;
 			}
 		}
@@ -577,23 +577,23 @@ bool bDisp_Switch(SwitchType_E type, bool fore_en)
 }
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ±³¹â×Ô¶¯¹Ø±Õ¼ÆÊ±
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    èƒŒå…‰è‡ªåŠ¨å…³é—­è®¡æ—¶
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 void vDisp_TickTimer(void) 
 {
-	//·Ç¹¤×÷×´Ì¬ÏÂÍË³ö
+	//éå·¥ä½œçŠ¶æ€ä¸‹é€€å‡º
 	if(tSysInfo.eDevState != DS_WORK) 
 		return;
 	
-	//·ÇÁÁÆÁÄ»×´Ì¬
+	//éäº®å±å¹•çŠ¶æ€
 	if(tDisp.bLight == false)   
 		return;
 	
-	//-----×Ô¶¯¹Ø±Õ±³¹â--------------------------------------   
+	//-----è‡ªåŠ¨å…³é—­èƒŒå…‰--------------------------------------   
 	if(tDisp.usAutoOffTime)
 	{
 		if(tDisp.usAutoOffCnt)
@@ -603,18 +603,18 @@ void vDisp_TickTimer(void)
 			{
 				v_disp_shut_down();
 				if(uPrint.tFlag.bDispTask|| uPrint.tFlag.bImportant)
-					sMyPrint("Lcd_Task:µ¹¼ÆÊ±½áÊø,½øÈëÏ¢ÆÁ Ê±¼ä = %dS\r\n",tDisp.usAutoOffTime);
+					sMyPrint("Lcd_Task:å€’è®¡æ—¶ç»“æŸ,è¿›å…¥æ¯å± æ—¶é—´ = %dS\r\n",tDisp.usAutoOffTime);
 			}
 		}
 	}
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ³õÊ¼»¯²ÎÊı
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    p_disp_mem : disp¼ÇÒä²ÎÊı½á¹¹Ìå
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      true:ÉèÖÃ³É¹¦  ·´Ö®Ê§°Ü
+-----å‡½æ•°åŠŸèƒ½    åˆå§‹åŒ–å‚æ•°
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    p_disp_mem : dispè®°å¿†å‚æ•°ç»“æ„ä½“
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      true:è®¾ç½®æˆåŠŸ  åä¹‹å¤±è´¥
 *****************************************************************************************************************/
 bool bDisp_MemParamInit(DispMemParam_T* p_disp_mem)
 {
@@ -626,40 +626,40 @@ bool bDisp_MemParamInit(DispMemParam_T* p_disp_mem)
 
 #if(boardLOW_POWER)
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ¼ì²éÏµÍ³µÄÊäÈëµçÔ´:Íâ½Óµç³Ø
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    æ£€æŸ¥ç³»ç»Ÿçš„è¾“å…¥ç”µæº:å¤–æ¥ç”µæ± 
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 *****************************************************************************************************************/
 void v_dis_power_select( void )
 {
 	if(tDisp.bLight)
 	{
-		/*************************************µçÔ´ÓĞÊäÈë*********************************************************/
+		/*************************************ç”µæºæœ‰è¾“å…¥*********************************************************/
 		if( tAdcSamp.usBMS_Vin >= boardBMS_MIN_VOLT )   
 		{
-			Disp_EN_OFF();          //¹Ø±ÕÏÔÊ¾ÆÁµÄµç³Ø¹©µç
+			Disp_EN_OFF();          //å…³é—­æ˜¾ç¤ºå±çš„ç”µæ± ä¾›ç”µ
 		}
-		/*************************************Ã»ÓĞµçÔ´ÊäÈë*******************************************************/
+		/*************************************æ²¡æœ‰ç”µæºè¾“å…¥*******************************************************/
 		else
 		{
-			Disp_EN_ON();          //´ò¿ªÏÔÊ¾ÆÁµÄµç³Ø¹©µç
+			Disp_EN_ON();          //æ‰“å¼€æ˜¾ç¤ºå±çš„ç”µæ± ä¾›ç”µ
 		}	
 	}
 	else 
 	{
-		Disp_EN_OFF();          //¹Ø±ÕÏÔÊ¾ÆÁµÄµç³Ø¹©µç
+		Disp_EN_OFF();          //å…³é—­æ˜¾ç¤ºå±çš„ç”µæ± ä¾›ç”µ
 	}
 }
 
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ½øÈëµÍ¹¦ºÄ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    è¿›å…¥ä½åŠŸè€—
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 *****************************************************************************************************************/
 void vLcd_EnterLowPower(void)
 {
@@ -670,11 +670,11 @@ void vLcd_EnterLowPower(void)
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ÍË³öµÍ¹¦ºÄ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    é€€å‡ºä½åŠŸè€—
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 *****************************************************************************************************************/
 void vLcd_ExitLowPower(void)
 {

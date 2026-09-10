@@ -1,6 +1,6 @@
 /*****************************************************************************************************************
 *                                                                                                                *
- *                                         ÏµÍ³µÄ¶ÓÁÐº¯Êý                                                  		*
+ *                                         ç³»ç»Ÿçš„é˜Ÿåˆ—å‡½æ•°                                                  		*
 *                                                                                                                *
 ******************************************************************************************************************/
 #include "MD_Mppt/md_mppt_queue_task.h"
@@ -18,34 +18,34 @@
 #define       	mpptTASK_GET_PARAM_CYCLE_TIME               		1000
 
 
-//****************************************************º¯ÊýÉùÃ÷****************************************************//
+//****************************************************å‡½æ•°å£°æ˜Ž****************************************************//
 static void v_check_chg_perm(void);
 static void v_proc_rec_param(void);
 static void v_set_total_chg_pwr(void);
 
 
 /*****************************************************************************************************************
------º¯Êý¹¦ÄÜ    ÈÎÎñº¯Êý:³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    none
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    ä»»åŠ¡å‡½æ•°:åˆå§‹åŒ–
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      none
 ******************************************************************************************************************/
 void v_mppt_queue_task_main(Task_T *tp_task)
 {
 	s8 result = 0;
 	
-	//*****************************************·Ç¹¤×÷×´Ì¬ÏÂ,¼ì²éµç³Ø°üÊÇ·ñ¿ªÆôÖÐ**************************************
+	//*****************************************éžå·¥ä½œçŠ¶æ€ä¸‹,æ£€æŸ¥ç”µæ± åŒ…æ˜¯å¦å¼€å¯ä¸­**************************************
 	if((tSysInfo.uPerm.tPerm.bChgPerm == false || tMppt.bChgPerm == false) &&
 		tMpptRx.usInPwr != 0)
 	{
 		cMppt_SetChgPwr(0);
 	}
 	
-	//¶ÓÁÐÀïÃæÓÐÈÎÎñ
+	//é˜Ÿåˆ—é‡Œé¢æœ‰ä»»åŠ¡
 	if(lwrb_get_full(&tp_task->tQueueBuff))  
 	{
-		cQueue_GotoStep( tp_task, STEP_END );  //½áÊø
+		cQueue_GotoStep( tp_task, STEP_END );  //ç»“æŸ
 		return;
 	}
 	
@@ -54,12 +54,11 @@ void v_mppt_queue_task_main(Task_T *tp_task)
         case 0:
         {
 			result = c_mppt_cs_get_param();
-			//·¢ËÍ³É¹¦
+			//å‘é€æˆåŠŸ
 			if(result > 0)
 				cQueue_GotoStep(tp_task, STEP_NEXT);
-			else
-				break;
         }
+		break;
 		
 		case 1:
         {
@@ -69,12 +68,12 @@ void v_mppt_queue_task_main(Task_T *tp_task)
 			
 			v_set_total_chg_pwr();
 			
-			cQueue_GotoStep(tp_task, 0);  //½áÊø
+			cQueue_GotoStep(tp_task, 0);
         }
 		break;
 			
 		default:
-			cQueue_GotoStep(tp_task, STEP_END);  //½áÊø
+			cQueue_GotoStep(tp_task, STEP_END);  //ç»“æŸ
 			break;
     }
 	
@@ -84,17 +83,17 @@ void v_mppt_queue_task_main(Task_T *tp_task)
 }
 
 /*****************************************************************************************************************
------º¯Êý¹¦ÄÜ    »ñÈ¡²ÎÊý´¦Àí
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    none
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    èŽ·å–å‚æ•°å¤„ç†
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      none
 ******************************************************************************************************************/
 __STATIC_INLINE void v_proc_rec_param(void)
 {
 	tMppt.usInPwr = tMpptRx.usInPwr / 10;
 	
-	//ÊäÈë¹ýÑ¹
+	//è¾“å…¥è¿‡åŽ‹
 	if(tMpptRx.uErrCode.tCode.bInOV)
 	{
 		if(tMppt.uErrCode.tCode.bMpptInOV== false)
@@ -106,7 +105,7 @@ __STATIC_INLINE void v_proc_rec_param(void)
 			bMppt_SetErrCode(MEC_MPPT_IN_OV, false);
 	}
 
-	// //ÊäÈëÇ·Ñ¹
+	// //è¾“å…¥æ¬ åŽ‹
 	// if(tMpptRx.uErrCode.tCode.bInUV)
 	// {
 	// 	if(tMppt.uErrCode.tCode.bMpptInUV == false)
@@ -118,7 +117,7 @@ __STATIC_INLINE void v_proc_rec_param(void)
 	// 		bMppt_SetErrCode(MEC_MPPT_IN_UV, false);
 	// }
 
-	//ÊäÈë¹ýÁ÷
+	//è¾“å…¥è¿‡æµ
 	if(tMpptRx.uErrCode.tCode.bInOC)
 	{
 		if(tMppt.uErrCode.tCode.bMpptInOC == false)
@@ -130,7 +129,7 @@ __STATIC_INLINE void v_proc_rec_param(void)
 			bMppt_SetErrCode(MEC_MPPT_IN_OC, false);
 	}
 
-	// //ÊäÈë¶ÌÂ·
+	// //è¾“å…¥çŸ­è·¯
 	// if(tMpptRx.uErrCode.tCode.bInSC)
 	// {
 	// 	if(tMppt.uErrCode.tCode.bMpptInSC == false)
@@ -142,7 +141,7 @@ __STATIC_INLINE void v_proc_rec_param(void)
 	// 		bMppt_SetErrCode(MEC_MPPT_IN_SC, false);
 	// }
 
-	// //Êä³ö¹ýÑ¹
+	// //è¾“å‡ºè¿‡åŽ‹
 	// if(tMpptRx.uErrCode.tCode.bOutOV)
 	// {
 	// 	if(tMppt.uErrCode.tCode.bMpptOutOV == false)
@@ -154,7 +153,7 @@ __STATIC_INLINE void v_proc_rec_param(void)
 	// 		bMppt_SetErrCode(MEC_MPPT_OUT_OV, false);
 	// }
 
-	// //Êä³öÇ·Ñ¹
+	// //è¾“å‡ºæ¬ åŽ‹
 	// if(tMpptRx.uErrCode.tCode.bOutUV)
 	// {
 	// 	if(tMppt.uErrCode.tCode.bMpptOutUV == false)
@@ -166,7 +165,7 @@ __STATIC_INLINE void v_proc_rec_param(void)
 	// 		bMppt_SetErrCode(MEC_MPPT_OUT_UV, false);
 	// }
 
-	// //Êä³ö¹ýÁ÷
+	// //è¾“å‡ºè¿‡æµ
 	// if(tMpptRx.uErrCode.tCode.bOutOC)
 	// {
 	// 	if(tMppt.uErrCode.tCode.bMpptOutOC == false)
@@ -178,7 +177,7 @@ __STATIC_INLINE void v_proc_rec_param(void)
 	// 		bMppt_SetErrCode(MEC_MPPT_OUT_OC, false);
 	// }
 
-	// //Êä³ö¶ÌÂ·
+	// //è¾“å‡ºçŸ­è·¯
 	// if(tMpptRx.uErrCode.tCode.bOutSC)
 	// {
 	// 	if(tMppt.uErrCode.tCode.bMpptOutSC == false)
@@ -190,7 +189,7 @@ __STATIC_INLINE void v_proc_rec_param(void)
 	// 		bMppt_SetErrCode(MEC_MPPT_OUT_SC, false);
 	// }
 
-	// //¹ýÎÂ
+	//è¿‡æ¸©
 	// if(tMpptRx.uErrCode.tCode.bOT)
 	// {
 	// 	if(tMppt.uErrCode.tCode.bMpptOT == false)
@@ -202,7 +201,7 @@ __STATIC_INLINE void v_proc_rec_param(void)
 	// 		bMppt_SetErrCode(MEC_MPPT_OT, false);
 	// }
 
-	// //¹ýÔØ
+	//è¿‡è½½
 	// if(tMpptRx.uErrCode.tCode.bOL)
 	// {
 	// 	if(tMppt.uErrCode.tCode.bMpptOL == false)
@@ -216,11 +215,11 @@ __STATIC_INLINE void v_proc_rec_param(void)
 }
 
 /*****************************************************************************************************************
------º¯Êý¹¦ÄÜ    ¼ì²é³ä·ÅµçÐí¿É
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    none
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    æ£€æŸ¥å……æ”¾ç”µè®¸å¯
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      none
 ******************************************************************************************************************/
 __STATIC_INLINE void v_check_chg_perm(void)
 {
@@ -233,6 +232,7 @@ __STATIC_INLINE void v_check_chg_perm(void)
 		tMppt.uErrCode.tCode.bMpptOT		== 1	||
 		tMppt.uErrCode.tCode.bMpptOL		== 1	||
 		tMppt.uErrCode.tCode.bSysOL			== 1	||
+		tMppt.uErrCode.tCode.bMpptInUP		== 1	||
 		tSysInfo.uPerm.tPerm.bChgPerm == false)
 	{
 		if(tMppt.bChgPerm == true)
@@ -250,11 +250,11 @@ __STATIC_INLINE void v_check_chg_perm(void)
 }
 
 /*****************************************************************************************************************
------º¯Êý¹¦ÄÜ    ³äµç¿ØÖÆ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    none
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    å……ç”µæŽ§åˆ¶
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      none
 ******************************************************************************************************************/
 __STATIC_INLINE void v_set_total_chg_pwr(void)
 {
@@ -270,9 +270,8 @@ __STATIC_INLINE void v_set_total_chg_pwr(void)
 	
 	us_chg_pwr = tSysInfo.tSetChgPwr.usMPPT;
 	
-	if((abs((tMpptRx.usMaxInPwr / 10) - us_chg_pwr) > 100) 
-		|| (us_chg_pwr && tMpptRx.usInCurr == 0) 
-		|| (us_chg_pwr == 0 && tMpptRx.usInCurr))
+	if(abs((tMpptRx.usMaxInPwr / 10) - us_chg_pwr) > 100 ||
+		(abs((tMpptRx.usInPwr / 10) - us_chg_pwr) > 100 && tMpptRx.usInPwr < 100))
 		us_chg_pwr_err++;
 	else 
 		us_chg_pwr_err = 0;
@@ -280,11 +279,14 @@ __STATIC_INLINE void v_set_total_chg_pwr(void)
 	if(us_last_chg_pwr == us_chg_pwr && us_chg_pwr_err < (5000 / mpptTASK_GET_PARAM_CYCLE_TIME))
 		return;
 
-	if(cQueue_AddQueueTask(tpMpptTask, MTI_SET_CHG_PWR, us_chg_pwr, false) > 0)
+	if(c_mppt_cs_set_pwr(us_chg_pwr) > 0)
+	// if(cQueue_AddQueueTask(tpMpptTask, MTI_SET_CHG_PWR, us_chg_pwr, false) > 0)
 	{
 		us_last_chg_pwr = us_chg_pwr;
 		us_chg_pwr_err = 0;
-		// sMyPrint("ÉèÖÃMPPT³äµç¹¦ÂÊ %d",us_chg_pwr);
+
+		if(uPrint.tFlag.bMpptTask)
+			sMyPrint("è®¾ç½®MPPTå……ç”µåŠŸçŽ‡ %d \r\n",us_chg_pwr);
 	}
 		
 }

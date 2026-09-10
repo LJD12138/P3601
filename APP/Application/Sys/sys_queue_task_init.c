@@ -1,6 +1,6 @@
 /*****************************************************************************************************************
 *                                                                                                                *
- *                                         ÏµÍ³µÄ¶ÓÁĞº¯Êı                                                  		*
+ *                                         ç³»ç»Ÿçš„é˜Ÿåˆ—å‡½æ•°                                                  		*
 *                                                                                                                *
 ******************************************************************************************************************/
 #include "Sys/sys_queue_task.h"
@@ -15,17 +15,21 @@
 #include "Buz/buz_task.h"
 #endif
 
+#if(boardADC_EN)
+#include "Adc/adc_task.h"
+#endif  //boardADC_EN
+
 #include "gpio_init.h"
 #include "app_info.h"
 
-#define     	sysTASK_INIT_CYCLE_TIME					100 //ÈÎÎñÊ±¼ä
+#define     	sysTASK_INIT_CYCLE_TIME					100 //ä»»åŠ¡æ—¶é—´
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ÏµÍ³³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    ç³»ç»Ÿåˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/  
 void v_sys_queue_task_init(Task_T *tp_task)
 {
@@ -34,14 +38,14 @@ void v_sys_queue_task_init(Task_T *tp_task)
 	static vu8 uc_tri_init_cnt = 0;
 	static vu8 uc_tri_type = 0;
 	
-	//¼ÇÂ¼³¤°´Ê±¼ä
+	//è®°å½•é•¿æŒ‰æ—¶é—´
 	#if(boardKEY_EN)
-	if(bKey_PowerIsPress() == true)
+	if(bKey_IsPressById(keyPOWER) == true)
 	{
 		if(uc_tri_init_cnt < 0xff)
 			uc_tri_init_cnt++;
 	}
-	else 
+	else
 		uc_tri_init_cnt = 0;
 	#endif
 	
@@ -55,7 +59,7 @@ void v_sys_queue_task_init(Task_T *tp_task)
 			if(c_ret > 0)
 			{
 				if((uPrint.tFlag.bSysTask || uPrint.tFlag.bImportant) && b_ret == false)
-					log_w("bSysTask:Boot¼ÇÒäÏûÏ¢»ñÈ¡´íÎóÇå³ı");
+					log_w("bSysTask:Bootè®°å¿†æ¶ˆæ¯è·å–é”™è¯¯æ¸…é™¤");
 				
 				b_ret = true;
 				
@@ -65,7 +69,7 @@ void v_sys_queue_task_init(Task_T *tp_task)
 			{
 				if((uPrint.tFlag.bSysTask || uPrint.tFlag.bImportant) && b_ret == true)
 				{
-					log_w("bSysTask:Boot¼ÇÒäÏûÏ¢³õÊ¼»¯Ê§°Ü ´úÂë%d",c_ret);
+					log_w("bSysTask:Bootè®°å¿†æ¶ˆæ¯åˆå§‹åŒ–å¤±è´¥ ä»£ç %d",c_ret);
 					b_ret = false;
 				}
 				
@@ -82,7 +86,7 @@ void v_sys_queue_task_init(Task_T *tp_task)
 			if(c_ret > 0)
 			{
 				if((uPrint.tFlag.bSysTask || uPrint.tFlag.bImportant) && b_ret == false)
-					log_w("bSysTask:App¼ÇÒäÏûÏ¢»ñÈ¡´íÎóÇå³ı");
+					log_w("bSysTask:Appè®°å¿†æ¶ˆæ¯è·å–é”™è¯¯æ¸…é™¤");
 				
 				b_ret = true;
 				tSysInfo.uInit.tFinish.bIF_AppInfo = true;
@@ -93,7 +97,7 @@ void v_sys_queue_task_init(Task_T *tp_task)
 			{
 				if((uPrint.tFlag.bSysTask || uPrint.tFlag.bImportant) && b_ret == true)
 				{
-					log_w("bSysTask:App¼ÇÒäÏûÏ¢³õÊ¼»¯Ê§°Ü ´úÂë%d",c_ret);
+					log_w("bSysTask:Appè®°å¿†æ¶ˆæ¯åˆå§‹åŒ–å¤±è´¥ ä»£ç %d",c_ret);
 					b_ret = false;
 				}
 		
@@ -132,7 +136,7 @@ void v_sys_queue_task_init(Task_T *tp_task)
 			}
 			
 			#if(boardKEY_EN)
-			else if(bKey_PowerIsPress() == true)
+			else if(bKey_IsPressById(keyPOWER) == true)
 				cQueue_GotoStep(tp_task, STEP_NEXT);
 			#endif  //boardKEY_EN
 
@@ -143,7 +147,7 @@ void v_sys_queue_task_init(Task_T *tp_task)
 					#endif  //boardBMS_EN
 				)
 			{
-				//³äµç¼¤»î
+				//å……ç”µæ¿€æ´»
 				tp_task->usStepWaitCnt++;
 				if(tp_task->usStepWaitCnt > (5000 / sysTASK_INIT_CYCLE_TIME))
 				{
@@ -166,11 +170,7 @@ void v_sys_queue_task_init(Task_T *tp_task)
 		{
 			if(
 				#if(boardKEY_EN)
-				bKey_AcIsPress() == false &&  //¹¤³§Ä£Ê½
-				bKey_PowerIsPress() == true &&
-				bKey_UsbIsPress() == false &&
-				bKey_DcIsPress() == true &&
-				bKey_LightIsPress() == false
+				bKey_IsFactoryModePress() == true  //å·¥å‚æ¨¡å¼
 				#else
 				false
 				#endif  //boardKEY_EN
@@ -181,23 +181,19 @@ void v_sys_queue_task_init(Task_T *tp_task)
 					uc_tri_type = 2;
 					tp_task->usStepWaitCnt = 0;
 				}
-				
+
 				tp_task->usStepWaitCnt++;
 			}
 
-			#if(boardKEY_EN)  //¹¤³ÌÄ£Ê½
-			else if(bKey_AcIsPress() == false &&
-				bKey_PowerIsPress() == true &&
-				bKey_UsbIsPress() == false &&
-				bKey_DcIsPress() == true &&
-				bKey_LightIsPress() == false)
+			#if(boardKEY_EN)  //å·¥ç¨‹æ¨¡å¼
+			else if(bKey_IsEngModePress() == true)
 			{
 				if(uc_tri_type != 1)
 				{
 					uc_tri_type = 1;
 					tp_task->usStepWaitCnt = 0;
 				}
-				
+
 				tp_task->usStepWaitCnt++;
 			}
 			#endif  //boardKEY_EN
@@ -210,9 +206,9 @@ void v_sys_queue_task_init(Task_T *tp_task)
 				#endif  //boardBMS_EN
 				)
 			{
-				if(uc_tri_init_cnt && bKey_PowerIsPress() == true)
+				if(uc_tri_init_cnt > 1 && bKey_IsPressById(keyPOWER) == true)
 					cSys_Switch(SO_KEY, ST_ON, false);
-					
+				
 				uc_tri_type = 0;
 				tp_task->usStepWaitCnt = 0;
 				cQueue_GotoStep(tp_task, STEP_NEXT);
@@ -225,13 +221,13 @@ void v_sys_queue_task_init(Task_T *tp_task)
 				
 			if(tp_task->usStepWaitCnt > (3000 / sysTASK_INIT_CYCLE_TIME))
 			{
-				if(uc_tri_type == 2)  //¹¤³§Ä£Ê½
+				if(uc_tri_type == 2)  //å·¥å‚æ¨¡å¼
 				{
 					G_TestMode = true;
 					cSys_Switch(SO_KEY, ST_ON, false);
 					cQueue_GotoStep(tp_task, STEP_NEXT);
 				}
-				#if(boardENG_MODE_EN)  //¹¤³ÌÄ£Ê½
+				#if(boardENG_MODE_EN)  //å·¥ç¨‹æ¨¡å¼
 				else if(uc_tri_type == 1)
 				{
 					#if(boardBUZ_EN)
@@ -255,7 +251,7 @@ void v_sys_queue_task_init(Task_T *tp_task)
 			tSysInfo.uInit.tFinish.bIF_SysTask = 1;
 			tSysInfo.uInit.tFinish.bIF_SysInit = 1;
 
-			//Ã»ÓĞÈÎÎñ¾Íµ÷¶È¹Ø±ÕÈÎÎñ
+			//æ²¡æœ‰ä»»åŠ¡å°±è°ƒåº¦å…³é—­ä»»åŠ¡
 			if(tSysInfo.eDevState != DS_BOOTING)
 				bSys_SetDevState(DS_SHUT_DOWN,false);
 			
@@ -267,11 +263,12 @@ void v_sys_queue_task_init(Task_T *tp_task)
 			break;
     }
 	
-	//³õÊ¼»¯µÈ´ı5S,³¬Ê±ÍË³ö
+	//åˆå§‹åŒ–ç­‰å¾…10S,è¶…æ—¶å¼ºåˆ¶å…³æœºé€€å‡º
 	tp_task->usTaskWaitCnt++;
-	if(tp_task->usTaskWaitCnt > (5000 / sysTASK_INIT_CYCLE_TIME))
+	if(tp_task->usTaskWaitCnt > (10000 / sysTASK_INIT_CYCLE_TIME))
 	{
-//		gpioASSIST_OPEN_OFF();
+		gpioASSIST_OPEN_OFF();
+		cBms_Switch(SO_KEY, ST_OFF, false);
 	}
 	
 	#if(boardUSE_OS)

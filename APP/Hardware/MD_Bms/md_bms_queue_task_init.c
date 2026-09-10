@@ -1,6 +1,6 @@
 /*****************************************************************************************************************
 *                                                                                                                *
- *                                         ÏµÍ³µÄ¶ÓÁĞº¯Êı                                                  		*
+ *                                         ç³»ç»Ÿçš„é˜Ÿåˆ—å‡½æ•°                                                  		*
 *                                                                                                                *
 ******************************************************************************************************************/
 #include "MD_Bms/md_bms_queue_task.h"
@@ -10,63 +10,135 @@
 #include "MD_Bms/md_bms_prot_frame.h"
 #include "Sys/sys_task.h"
 #include "Print/print_task.h"
+#include "app_info.h"
 
 #define       	bmsTASK_INIT_CYCLE_TIME               		50
 
-//****************************************************º¯ÊıÉùÃ÷****************************************************//
-
+//****************************************************å‡½æ•°å£°æ˜****************************************************//
+static s8 c_bms_info_init(void);
 
 
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ÈÎÎñº¯Êı:³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    ä»»åŠ¡å‡½æ•°:åˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
 void v_bms_queue_task_init(Task_T *tp_task)
 {
-//	s8 ret = 0;
+	s8 c_ret = 0;
 	
 	switch (tp_task->ucStep)
     {
 		case 0:
         {
-			//»ñÈ¡²ÎÊı,ÓÃÀ´ÅĞ¶ÏÊÇ·ñÊÇ³äµç»½ĞÑ
-			if(c_bms_cs_get_param(1) > 0 || G_TestMode == true)
-				cQueue_GotoStep(tp_task, STEP_NEXT);  	//ÏÂÒ»²½
+			//è·å–å‚æ•°,ç”¨æ¥åˆ¤æ–­æ˜¯å¦æ˜¯å……ç”µå”¤é†’
+			if(c_bms_cs_get_param(bmsGET_PARAM_OBJ) > 0 || G_TestMode == true)
+				cQueue_GotoStep(tp_task, STEP_NEXT);  	//ä¸‹ä¸€æ­¥
 			else
 				break;
         }
-		
+
 		case 1:
+		{
+			//ç­‰å¾…è·å–APPä¿¡æ¯
+			if(tSysInfo.uInit.tFinish.bIF_AppInfo == false)
+				break;
+			
+			static bool b_ret = true;
+			c_ret = c_bms_info_init();
+			if(c_ret > 0)
+			{
+				if((uPrint.tFlag.bBmsTask || uPrint.tFlag.bImportant) && b_ret == false)
+					log_w("bBmsTask:BMSè·å–é”™è¯¯æ¸…é™¤");
+				
+				b_ret = true;
+			}
+			else
+			{
+				if((uPrint.tFlag.bBmsTask || uPrint.tFlag.bImportant) && b_ret == true)
+				{
+					log_w("bBmsTask:BMSåˆå§‹åŒ–å¤±è´¥ ä»£ç %d",c_ret);
+					b_ret = false;
+				}
+				break;
+			}
+			cQueue_GotoStep(tp_task, STEP_NEXT);
+		}
+		break;
+		
+		case 2:
 		{
 			tSysInfo.uInit.tFinish.bIF_BmsTask = 1;
 			cBms_CheckPerm();
 			if(uPrint.tFlag.bBmsTask)
-				sMyPrint("bBmsTask:³õÊ¼»¯BMS----³õÊ¼»¯Íê³É----\r\n");
+				sMyPrint("bBmsTask:åˆå§‹åŒ–BMS----åˆå§‹åŒ–å®Œæˆ----\r\n");
 			
-			cQueue_GotoStep(tp_task, STEP_END);  //½áÊø
+			cQueue_GotoStep(tp_task, STEP_END);  //ç»“æŸ
 		}
         break;
 
 		default:
-			cQueue_GotoStep(tp_task, STEP_END);  //½áÊø
+			cQueue_GotoStep(tp_task, STEP_END);  //ç»“æŸ
 			break;
     }
 	
 	tp_task->usTaskWaitCnt++;
-	if(tp_task->usTaskWaitCnt > (3000 / bmsTASK_INIT_CYCLE_TIME))  //µÈ´ı³¬Ê±
+	if(tp_task->usTaskWaitCnt > (3000 / bmsTASK_INIT_CYCLE_TIME))  //ç­‰å¾…è¶…æ—¶
 	{
 		if(uPrint.tFlag.bBmsTask)
-			log_w("bBmsTask:BMS³õÊ¼»¯ÈÎÎñµÈ´ı³¬Ê±,²½Öè%d", tp_task->ucStep);
+			log_w("bBmsTask:BMSåˆå§‹åŒ–ä»»åŠ¡ç­‰å¾…è¶…æ—¶,æ­¥éª¤%d", tp_task->ucStep);
 		
-		cQueue_GotoStep(tp_task, STEP_END);  //½áÊø
+		cQueue_GotoStep(tp_task, STEP_END);  //ç»“æŸ
 	}
 	
 	#if(boardUSE_OS)
 	vTaskDelay(bmsTASK_INIT_CYCLE_TIME);
 	#endif  //boardUSE_OS
 }
+
+/*****************************************************************************************************************
+-----å‡½æ•°åŠŸèƒ½   åˆå§‹åŒ–DCACä¿¡æ¯
+-----è¯´æ˜(å¤‡æ³¨)	none
+-----ä¼ å…¥å‚æ•°	none
+-----è¾“å‡ºå‚æ•°	none
+-----è¿”å›å€¼		å°äº0:å¤±è´¥	
+				0:æœªå®Œæˆ
+				å¤§äº0:å®Œæˆ
+******************************************************************************************************************/
+static s8 c_bms_info_init(void)
+{
+	s8 ret = 0;
+	const char* p_obj_str = tBmsMemParamStr;
+	static bool b_ret = true;
+	
+	//å·²ç»åˆå§‹åŒ–
+	if(tSysInfo.uInit.tFinish.bIF_SysInit == true)
+	{
+		ret = cApp_GetMemParam(p_obj_str);
+		if(ret > 0)//æˆåŠŸ
+			return 1;
+
+		if((uPrint.tFlag.bBmsTask || uPrint.tFlag.bImportant) && b_ret == true)
+		{
+			log_e("bBmsTask:å½“å‰ç³»ç»Ÿå·²ç»åˆå§‹åŒ–å®Œæˆ,ä½†æ˜¯tBMSè¯»å–ä¾æ—§ä¸ºç©º,å‡†å¤‡é‡ç½®");
+			b_ret = false;
+		}	
+	}
+	
+	//é‡æ–°åˆå§‹åŒ–
+	ret = cApp_MemParamInit(p_obj_str);
+	if(ret <= 0)//å¤±è´¥
+		return -1;
+	
+	ret = cApp_UpdateMemParam(p_obj_str);
+	if(ret <= 0)//å¤±è´¥
+		return -2;
+	
+	b_ret = true;
+	return 2;
+}
+
 #endif  //boardBMS_EN

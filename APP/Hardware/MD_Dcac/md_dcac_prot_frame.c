@@ -7,23 +7,26 @@
 #include "MD_Dcac/md_dcac_rec_task.h"
 #include "MD_Dcac/md_dcac_iface.h"
 #include "Print/print_task.h"
+#include "Megmeet/megmeet_proto.h"
+#include "Sys/sys_queue_task_update.h"
 
-#include "check.h"
-#include "function.h"
 #include "app_info.h"
 
 
 
 #define       	dcacDEV_ADRR                          	0x01
-#define  		dcacWAIT_NOTIFY_OUTTIME              	1000     //ÈÎÎñÍ¨Öª³¬Ê±Ê±¼ä MS
-#define       	dcacTX_PROTO_BUFF_LEN                   128
-#define       	dcacRX_PROTO_BUFF_LEN                   128
+#define  		dcacWAIT_NOTIFY_OUTTIME              	1000     //ä»»åŠ¡é€šçŸ¥è¶…æ—¶æ—¶é—´ MS
+#define       	dcacTX_PROTO_BUFF_LEN                   64
+#define       	dcacRX_PROTO_BUFF_LEN                   64
 
-//****************************************************²ÎÊı³õÊ¼»¯**************************************************//
-__ALIGNED(4) 	ModbusProtoTx_t *tpDcacProtoTx = NULL;	//·¢ËÍĞ­Òé
-__ALIGNED(4) 	ModbusProtoRx_t *tpDcacProtoRx = NULL;	//·¢ËÍĞ­Òé
+#define       	dcTASK_UPDATE_TX_FRAME_SIZE             256     /*!< DCACå‡çº§å¸§ç¼“å­˜å¤§å°ï¼Œå•ä½ï¼šå­—èŠ‚ */
+#define       	dcTASK_UPDATE_RX_FRAME_SIZE             64     /*!< DCACå‡çº§å¸§ç¼“å­˜å¤§å°ï¼Œå•ä½ï¼šå­—èŠ‚ */
 
-#pragma pack (1)   //Ç¿ÖÆ½øĞĞ1×Ö½Ú¶ÔÆë
+//****************************************************å‚æ•°åˆå§‹åŒ–**************************************************//
+__ALIGNED(4) 	ModbusProtoTx_t *tpDcacProtoTx = NULL;	//å‘é€åè®®
+__ALIGNED(4) 	ModbusProtoRx_t *tpDcacProtoRx = NULL;	//å‘é€åè®®
+
+#pragma pack (1)   //å¼ºåˆ¶è¿›è¡Œ1å­—èŠ‚å¯¹é½
 struct
 {
 	vu16 usAcOutSwitch;
@@ -41,25 +44,25 @@ struct
 	vu16 temp2;
 	vu16 usMaxInCurr;//0.1A
 }tDcacInit;
-#pragma pack()   //È¡Ïû½øĞĞ1×Ö½Ú¶ÔÆë
+#pragma pack()   //å–æ¶ˆè¿›è¡Œ1å­—èŠ‚å¯¹é½
 
-/*´´½¨»¥³âÁ¿*/
+/*åˆ›å»ºäº’æ–¥é‡*/
 #if(boardUSE_OS)
 SemaphoreHandle_t dcacSemaphoreMutex = NULL;
 #endif  //boardUSE_OS
 
 
-//****************************************************º¯ÊıÉùÃ÷****************************************************//
+//****************************************************å‡½æ•°å£°æ˜****************************************************//
 static s8 c_dcac_data_trans(u8 cmd, u16 reg_addr, u8* data, u8 len);
 
 
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    Í¨Ñ¶Ğ­Òé³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    é€šè®¯åè®®åˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 bool bDcac_SendProtInit(void)
 {
@@ -69,12 +72,12 @@ bool bDcac_SendProtInit(void)
 	if(c_result <= 0)
 	{
 		if(uPrint.tFlag.bDcacTask || uPrint.tFlag.bImportant)
-			log_e("bDcacTask:tpDcacProtoTxĞ­Òé¶ÔÏó³õÊ¼»¯Ê§°Ü,´úÂë%d",c_result);
+			log_e("bDcacTask:tpDcacProtoTxåè®®å¯¹è±¡åˆå§‹åŒ–å¤±è´¥,ä»£ç %d",c_result);
 		
 		return false;
 	}
 	
-	/* ´´½¨»¥³âĞÅºÅÁ¿ */
+	/* åˆ›å»ºäº’æ–¥ä¿¡å·é‡ */
 	#if(boardUSE_OS)
     dcacSemaphoreMutex = xSemaphoreCreateMutex();
 	#endif  //boardUSE_OS
@@ -84,28 +87,122 @@ bool bDcac_SendProtInit(void)
 
 bool bDcac_RecProtInit(void)
 {
-	s8 c_result = cModbus_RecProtoInit(&tpDcacProtoRx, 	//Ğ­ÒéÖ¸Õë
-								256,			//Ğ­Òé»º´æÆ÷´óĞ¡
-								dcacDEV_ADRR,	//Ğ­ÒéÉè±¸ID
-								boardREPET_TIMER_CYCLE_TMIE);			//¼ÆÊıÆ÷²ÉÑùÊ±¼ä
+	s8 c_result = cModbus_RecProtoInit(&tpDcacProtoRx, 	//åè®®æŒ‡é’ˆ
+								dcacRX_PROTO_BUFF_LEN, 	//åè®®ç¼“å­˜å™¨å¤§å°
+								dcacDEV_ADRR,			//åè®®è®¾å¤‡ID
+								boardREPET_TIMER_CYCLE_TMIE);	//è®¡æ•°å™¨é‡‡æ ·æ—¶é—´
 	if(c_result <= 0)
 	{
 		if(uPrint.tFlag.bDcacRecTask || uPrint.tFlag.bImportant)
-			log_e("bDcacRecTask:tpDcacProtoRxĞ­Òé¶ÔÏó³õÊ¼»¯Ê§°Ü,´úÂë%d",c_result);
+			log_e("bDcacRecTask:tpDcacProtoRxåè®®å¯¹è±¡åˆå§‹åŒ–å¤±è´¥,ä»£ç %d",c_result);
 		return false;
 	}
 	
 	return true;
 }
 
+/*****************************************************************************************************************
+-----å‡½æ•°åŠŸèƒ½    çº¿ç¨‹å®‰å…¨åœ°å†™å…¥DCACå‡çº§å›å¤ç¼“å­˜
+-----è¯´æ˜(å¤‡æ³¨)  åœ¨å‡çº§é˜¶æ®µï¼ŒPrintä»»åŠ¡ã€DCACæ¥æ”¶ä»»åŠ¡ã€DCACä»»åŠ¡å‡å¯èƒ½è®¿é—®
+                tpDcacTask->tReplyBuffï¼Œé€šè¿‡dcacSemaphoreMutexä¿è¯äº’æ–¥ã€‚
+-----ä¼ å…¥å‚æ•°    task: ä»»åŠ¡ç»“æ„ä½“æŒ‡é’ˆ
+                data: å¾…å†™å…¥æ•°æ®æŒ‡é’ˆ
+                len:  å¾…å†™å…¥æ•°æ®é•¿åº¦
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      true:å†™å…¥æˆåŠŸ  false:å†™å…¥å¤±è´¥
+******************************************************************************************************************/
+bool b_dcac_update_buf_write(Task_T* task, const u8* data, u16 len)
+{
+	bool b_ret = false;
+
+	if(task == NULL || data == NULL || len == 0 || task->tReplyBuff.buff == NULL)
+		return false;
+
+	#if(boardUSE_OS)
+	if(xSemaphoreTake(dcacSemaphoreMutex, pdMS_TO_TICKS(100)) != pdPASS)
+		return false;
+	#endif
+
+	lwrb_reset(&task->tReplyBuff);
+	b_ret = (lwrb_write(&task->tReplyBuff, data, len) == len);
+
+	#if(boardUSE_OS)
+	xSemaphoreGive(dcacSemaphoreMutex);
+	#endif
+
+	return b_ret;
+}
+
+/*****************************************************************************************************************
+-----å‡½æ•°åŠŸèƒ½    çº¿ç¨‹å®‰å…¨åœ°ä»DCACå‡çº§å›å¤ç¼“å­˜è¯»å–æ•°æ®
+-----è¯´æ˜(å¤‡æ³¨)  é€šè¿‡dcacSemaphoreMutexä¿è¯äº’æ–¥ï¼Œè¯»å–åä¸ç§»åŠ¨è¯»æŒ‡é’ˆã€‚
+-----ä¼ å…¥å‚æ•°    task: ä»»åŠ¡ç»“æ„ä½“æŒ‡é’ˆ
+                data: è¯»å–ç¼“å­˜æŒ‡é’ˆ
+                len:  è¯»å–æ•°æ®é•¿åº¦
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      true:è¯»å–æˆåŠŸ  false:è¯»å–å¤±è´¥
+******************************************************************************************************************/
+bool b_dcac_update_buf_peek(Task_T* task, u8* data, u16 len)
+{
+	bool b_ret = false;
+
+	if(task == NULL || data == NULL || len == 0 || task->tReplyBuff.buff == NULL)
+		return false;
+
+	if(len > lwrb_get_full(&task->tReplyBuff))
+		return false;
+
+	#if(boardUSE_OS)
+	if(xSemaphoreTake(dcacSemaphoreMutex, pdMS_TO_TICKS(100)) != pdPASS)
+		return false;
+	#endif
+
+	b_ret = (lwrb_peek(&task->tReplyBuff, 0, data, len) == len);
+
+	#if(boardUSE_OS)
+	xSemaphoreGive(dcacSemaphoreMutex);
+	#endif
+
+	return b_ret;
+}
+
+/*****************************************************************************************************************
+-----å‡½æ•°åŠŸèƒ½    çº¿ç¨‹å®‰å…¨åœ°å¤ä½DCACå‡çº§å›å¤ç¼“å­˜
+-----è¯´æ˜(å¤‡æ³¨)  é€šè¿‡dcacSemaphoreMutexä¿è¯äº’æ–¥ï¼Œç”¨äºA2/A4ç¡®è®¤åæ¸…é™¤ç¼“å­˜ã€‚
+-----ä¼ å…¥å‚æ•°    task: ä»»åŠ¡ç»“æ„ä½“æŒ‡é’ˆ
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      true:å¤ä½æˆåŠŸ  false:å¤ä½å¤±è´¥
+******************************************************************************************************************/
+bool b_dcac_update_buf_reset(Task_T* task)
+{
+	bool b_ret = false;
+
+	if(task == NULL || task->tReplyBuff.buff == NULL)
+		return false;
+
+	#if(boardUSE_OS)
+	if(xSemaphoreTake(dcacSemaphoreMutex, pdMS_TO_TICKS(100)) != pdPASS)
+		return false;
+	#endif
+
+	lwrb_reset(&task->tReplyBuff);
+	b_ret = true;
+
+	#if(boardUSE_OS)
+	xSemaphoreGive(dcacSemaphoreMutex);
+	#endif
+
+	return b_ret;
+}
+
 
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    Ö¸Áî:¿ª¹ØBMS
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    æŒ‡ä»¤:å¼€å…³BMS
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
 bool b_dcac_cs_ac_output_switch(u16 temp)
 {
@@ -119,11 +216,11 @@ bool b_dcac_cs_ac_output_switch(u16 temp)
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    Ö¸Áî:»ñÈ¡²ÎÊı
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    æŒ‡ä»¤:è·å–å‚æ•°
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
 bool b_dcac_cs_get_param1(void)
 {
@@ -139,11 +236,11 @@ bool b_dcac_cs_get_param1(void)
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    Ö¸Áî:»ñÈ¡²ÎÊı
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    æŒ‡ä»¤:è·å–å‚æ•°
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
 bool b_dcac_cs_get_param2(void)
 {
@@ -159,11 +256,11 @@ bool b_dcac_cs_get_param2(void)
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    Ö¸Áî:»ñÈ¡²ÎÊı
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    æŒ‡ä»¤:è·å–å‚æ•°
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
 bool b_dcac_cs_get_param3(void)
 {
@@ -179,17 +276,17 @@ bool b_dcac_cs_get_param3(void)
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    Ö¸Áî:ÉèÖÃ³äµç¹¦ÂÊ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    numÉèÖÃµÄ³äµç¹¦ÂÊ
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    æŒ‡ä»¤:è®¾ç½®å……ç”µåŠŸç‡
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    numè®¾ç½®çš„å……ç”µåŠŸç‡
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
 bool b_dcac_cs_set_total_chg_pwr(u16 pwr)
 {
-	tDcacInit.usChgPwr = pwr;	//³äµç¹¦ÂÊW
-	tDcacInit.usDisChgPwr = tAppMemParam.tDCAC.usOutPwrRating;
 	tDcacInit.usChgVolt = tAppMemParam.tBMS.usChgVolt; //0.1V
+	tDcacInit.usChgPwr = pwr;	//å……ç”µåŠŸç‡W
+	tDcacInit.usDisChgPwr = tAppMemParam.tDCAC.usOutPwrRating;
 	if(c_dcac_data_trans(modbusWRITE_MULTI_REG, 
 						dcacREG_ADDR_SET_TOTAL_CHG_PWR, 
 						(u8*)&tDcacInit.usChgPwr, 
@@ -201,17 +298,17 @@ bool b_dcac_cs_set_total_chg_pwr(u16 pwr)
 
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    Ö¸Áî:ÉèÖÃ³äµç¹¦ÂÊ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    numÉèÖÃµÄ³äµç¹¦ÂÊ
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    æŒ‡ä»¤:è®¾ç½®å……ç”µåŠŸç‡
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    numè®¾ç½®çš„å……ç”µåŠŸç‡
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
 bool b_dcac_cs_set_chg_pwr(u16 pwr)
 {
-	if(c_dcac_data_trans(modbusWRITE_SINGLE_REG, 
-						dcacREG_ADDR_SET_AC_CHG_PWR, 
-						(u8*)&pwr, 
+	if(c_dcac_data_trans(modbusWRITE_SINGLE_REG,
+						dcacREG_ADDR_SET_AC_CHG_PWR,
+						(u8*)&pwr,
 						1) <= 0)
 		return false;
 	
@@ -219,11 +316,11 @@ bool b_dcac_cs_set_chg_pwr(u16 pwr)
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    Ö¸Áî:¿ª¹ØBMS
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    æŒ‡ä»¤:å¼€å…³BMS
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
 bool b_dcac_cs_init(void)
 {
@@ -238,20 +335,19 @@ bool b_dcac_cs_init(void)
 	#elif(boardDCAC_VOLT_TYPE==3) //230V
 	tDcacInit.usOutVolt = 4;
 	#else
-    #error "DCACÀàĞÍ¶¨ÒåÓĞÎó"
+    #error "DCACç±»å‹å®šä¹‰æœ‰è¯¯"
 	#endif
 	
 	tDcacInit.usChgVolt = tAppMemParam.tBMS.usChgVolt; //0.1V
-	tDcacInit.usChgPwr = tAppMemParam.tDCAC.usInPwrRating;	//³äµç¹¦ÂÊW
+	// tDcacInit.usChgPwr = tAppMemParam.tDCAC.usInPwrRating;	//å……ç”µåŠŸç‡W
+	tDcacInit.usChgPwr = 0;	//å……ç”µåŠŸç‡W
 	tDcacInit.usDisChgPwr = tAppMemParam.tDCAC.usOutPwrRating;
 	
 	tDcacInit.usPvOV = tAppMemParam.tMPPT.usMaxInVolt; //0.1V
 
-
 	if(strstr(boardSOFTWARE_VERSION, "G3604") != NULL)
 		tDcacInit.ucFan = 0;
-	else if(strstr(boardSOFTWARE_VERSION, "G2404") != NULL
-			|| strstr(boardSOFTWARE_VERSION, "P3601") != NULL)
+	else
 		tDcacInit.ucFan = -1;
 	
 	tDcacInit.usPvChgPwr = 50;//1W
@@ -268,11 +364,11 @@ bool b_dcac_cs_init(void)
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    Ö¸Áî:²¢Íø¹¦ÂÊÉèÖÃ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    num:²¢Íø¹¦ÂÊ
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    æŒ‡ä»¤:å¹¶ç½‘åŠŸç‡è®¾ç½®
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    num:å¹¶ç½‘åŠŸç‡
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
 bool b_dcac_cs_set_para_in_pwr(u16 pwr)
 {
@@ -288,11 +384,11 @@ bool b_dcac_cs_set_para_in_pwr(u16 pwr)
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    Ö¸Áî:²¢Íø¹¦ÂÊÉèÖÃ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    num:²¢Íø¹¦ÂÊ
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    æŒ‡ä»¤:å¹¶ç½‘åŠŸç‡è®¾ç½®
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    num:å¹¶ç½‘åŠŸç‡
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
 bool b_dcac_cs_sys_switch(u16 temp)
 {
@@ -307,20 +403,20 @@ bool b_dcac_cs_sys_switch(u16 temp)
 
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ	DCACÊı¾İ´«Êä£¨ModbusĞ­ÒéÖ¡·¢ËÍÓë½ÓÊÕµÈ´ı£©
------ËµÃ÷(±¸×¢)	¸Ãº¯ÊıÍ¨¹ıModbusĞ­ÒéÏòDCACÉè±¸·¢ËÍÃüÁî£¬²¢µÈ´ıÉè±¸»Ø¸´¡£
-				Ê¹ÓÃ»¥³âËø±£»¤¹²Ïí×ÊÔ´£¬Ê¹ÓÃÈÎÎñÍ¨Öª»úÖÆÊµÏÖ·¢ËÍÓë½ÓÊÕµÄÍ¬²½¡£
------´«Èë²ÎÊı	cmd:ModbusÃüÁîÂë£¨ÈçmodbusREAD_MULTI_REG¡¢modbusWRITE_SINGLE_REGµÈ£©
-				reg_addr:¼Ä´æÆ÷µØÖ·
-				data:Ö¸ÏòÊı¾İµÄÖ¸Õë£¨Ğ´²Ù×÷Ê±ÎªÒªĞ´ÈëµÄÊı¾İ£¬¶Á²Ù×÷Ê±ÎªNULL£©
-				len:Êı¾İ³¤¶È£¨ÒÔ16Î»¼Ä´æÆ÷Îªµ¥Î»£©
------Êä³ö²ÎÊı	none
------·µ»ØÖµ		-99:»ñÈ¡»¥³âËø³¬Ê±£¨½öÔÚ²Ù×÷ÏµÍ³»·¾³ÏÂ£©
-				-1:Ğ´ÈëµÄLen³¬³ö×î´ó³¤¶È
-				-2:µÈ´ı»Ø¸´³¬Ê±
-				-3:Êı¾İ·¢ËÍ´íÎó
-				0:ÎŞ²Ù×÷£¨»¥³âËø»òĞ­Òé¶ÔÏóÎ´³õÊ¼»¯£©
-				1:²Ù×÷³É¹¦
+-----å‡½æ•°åŠŸèƒ½	DCACæ•°æ®ä¼ è¾“ï¼ˆModbusåè®®å¸§å‘é€ä¸æ¥æ”¶ç­‰å¾…ï¼‰
+-----è¯´æ˜(å¤‡æ³¨)	è¯¥å‡½æ•°é€šè¿‡Modbusåè®®å‘DCACè®¾å¤‡å‘é€å‘½ä»¤ï¼Œå¹¶ç­‰å¾…è®¾å¤‡å›å¤ã€‚
+				ä½¿ç”¨äº’æ–¥é”ä¿æŠ¤å…±äº«èµ„æºï¼Œä½¿ç”¨ä»»åŠ¡é€šçŸ¥æœºåˆ¶å®ç°å‘é€ä¸æ¥æ”¶çš„åŒæ­¥ã€‚
+-----ä¼ å…¥å‚æ•°	cmd:Modbuså‘½ä»¤ç ï¼ˆå¦‚modbusREAD_MULTI_REGã€modbusWRITE_SINGLE_REGç­‰ï¼‰
+				reg_addr:å¯„å­˜å™¨åœ°å€
+				data:æŒ‡å‘æ•°æ®çš„æŒ‡é’ˆï¼ˆå†™æ“ä½œæ—¶ä¸ºè¦å†™å…¥çš„æ•°æ®ï¼Œè¯»æ“ä½œæ—¶ä¸ºNULLï¼‰
+				len:æ•°æ®é•¿åº¦ï¼ˆä»¥16ä½å¯„å­˜å™¨ä¸ºå•ä½ï¼‰
+-----è¾“å‡ºå‚æ•°	none
+-----è¿”å›å€¼		-99:è·å–äº’æ–¥é”è¶…æ—¶ï¼ˆä»…åœ¨æ“ä½œç³»ç»Ÿç¯å¢ƒä¸‹ï¼‰
+				-1:å†™å…¥çš„Lenè¶…å‡ºæœ€å¤§é•¿åº¦
+				-2:ç­‰å¾…å›å¤è¶…æ—¶
+				-3:æ•°æ®å‘é€é”™è¯¯
+				0:æ— æ“ä½œï¼ˆäº’æ–¥é”æˆ–åè®®å¯¹è±¡æœªåˆå§‹åŒ–ï¼‰
+				1:æ“ä½œæˆåŠŸ
 ************************************************************************************************************************/
 static s8 c_dcac_data_trans(u8 cmd, u16 reg_addr, u8* data, u8 len)
 {
@@ -330,16 +426,14 @@ static s8 c_dcac_data_trans(u8 cmd, u16 reg_addr, u8* data, u8 len)
 		return 0;
 	
 	#if(boardUSE_OS)
-	// »ñÈ¡»¥³âËø£¬±£»¤¹²Ïí×ÊÔ´£¨×î¶àµÈ´ı1Ãë)
+	// è·å–äº’æ–¥é”ï¼Œä¿æŠ¤å…±äº«èµ„æºï¼ˆæœ€å¤šç­‰å¾…1ç§’)
 	if(dcacSemaphoreMutex == NULL)
 		return 0;
 	if(xSemaphoreTake(dcacSemaphoreMutex, pdMS_TO_TICKS(1000)) == pdFAIL)
 		return -99;
 
-	// Çå³ıÈÎÎñÍ¨Öª£¬±ÜÃâÀúÊ·Í¨Öª¸ÉÈÅ±¾´ÎÍ¨ĞÅ
-	while(ulTaskNotifyTake(pdTRUE, 0) > 0)
-	{
-	}
+	// æ¸…é™¤ä»»åŠ¡é€šçŸ¥ï¼Œé¿å…å†å²é€šçŸ¥å¹²æ‰°æœ¬æ¬¡é€šä¿¡
+	while(ulTaskNotifyTake(pdTRUE, 0) > 0){}
 	#endif  //boardUSE_OS
 
 	#if(boardDCAC_IFACE)
@@ -351,12 +445,12 @@ static s8 c_dcac_data_trans(u8 cmd, u16 reg_addr, u8* data, u8 len)
 
 		if(bDcac_DataSendStart(tpDcacProtoTx->ucaFrameData, tpDcacProtoTx->ucFrameLen) == true)
 		{
-			// µÈ´ı½ÓÊÕÈÎÎñÍ¨Öª£¨³¬Ê±1Ãë£©£¬±íÊ¾ÊÕµ½DCACÉè±¸µÄ»Ø¸´
+			// ç­‰å¾…æ¥æ”¶ä»»åŠ¡é€šçŸ¥ï¼ˆè¶…æ—¶1ç§’ï¼‰ï¼Œè¡¨ç¤ºæ”¶åˆ°DCACè®¾å¤‡çš„å›å¤
 			#if(boardUSE_OS)
 			if(ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(dcacWAIT_NOTIFY_OUTTIME)) <= 0)
 			{
 				if((uPrint.tFlag.bDcacTask || uPrint.tFlag.bImportant) && tDcac.eDevState != DS_LOST)
-					log_w("bDcacTask:ÃüÁî0x%x,¼Ä´æÆ÷%dµÈ´ı»Ø¸´³¬Ê±", cmd, reg_addr);
+					log_w("bDcacTask:å‘½ä»¤0x%x,å¯„å­˜å™¨%dç­‰å¾…å›å¤è¶…æ—¶", cmd, reg_addr);
 				
 				result = -2;
 			}
@@ -369,7 +463,7 @@ static s8 c_dcac_data_trans(u8 cmd, u16 reg_addr, u8* data, u8 len)
 	
 	cModbus_ResetTx(tpDcacProtoTx, dcacTX_PROTO_BUFF_LEN);
 	
-	vTaskDelay(5);
+	vTaskDelay(7);
 	
 	#if(boardUSE_OS)
 	if(dcacSemaphoreMutex != NULL)
@@ -377,6 +471,198 @@ static s8 c_dcac_data_trans(u8 cmd, u16 reg_addr, u8* data, u8 len)
 	#endif  //boardUSE_OS
 	
 	return result;
+}
+
+/* ========================================== å‡çº§åè®®ç»“æ„ä½“ ========================================== */
+MegmeetProtoTx_t*  tDcacMegmeetProtoTx  = NULL;   /*!< å‘é€åè®®æŒ‡é’ˆï¼ˆä¾›å¤–éƒ¨è®¿é—®ï¼‰ */
+MegmeetProtoRx_t*  tpDcacMegmeetProtoRx = NULL;   /*!< æ¥æ”¶åè®®æŒ‡é’ˆï¼ˆä¾›å¤–éƒ¨è®¿é—®ï¼‰ */
+
+/* ========================================== åè®®åˆå§‹åŒ–å‡½æ•° ========================================== */
+/**
+ * @brief DCAC Megmeetåè®®åˆå§‹åŒ–
+ * @return true æˆåŠŸ false å¤±è´¥
+ */
+bool bDcac_MegmeetProtInit(void)
+{
+    if (cMegmeet_ProtoSendInit(&tDcacMegmeetProtoTx, dcTASK_UPDATE_TX_FRAME_SIZE) < 0)
+    {
+        return false;
+    }
+    if (cMegmeet_ProtoRecInit(&tpDcacMegmeetProtoRx, dcTASK_UPDATE_RX_FRAME_SIZE) < 0)
+    {
+        return false;
+    }
+    return true;
+}
+
+/* ========================================== åè®®å¸§å‘é€å‡½æ•°å®ç° ========================================== */
+
+/*****************************************************************************************************************
+ -----å‡½æ•°åŠŸèƒ½    æ ¹æ®å‡çº§å¯¹è±¡è·å–Megmeetä»æœºåœ°å€
+ -----è¯´æ˜(å¤‡æ³¨)  MO_MGMT_AC/MO_MGMT_DCæ—¶ä»æœºåœ°å€ç­‰äºå„è‡ªICç±»å‹ï¼›MO_DCACæ²¿ç”¨æ—§åœ°å€ä¿æŒå…¼å®¹ã€‚
+                 å…¶ä»–å¯¹è±¡è¿”å›0ï¼ˆå¹¿æ’­ï¼‰ã€‚
+ -----ä¼ å…¥å‚æ•°    e_obj: å‡çº§å¯¹è±¡
+ -----è¾“å‡ºå‚æ•°    none
+ -----è¿”å›å€¼      ä»æœºåœ°å€
+ ******************************************************************************************************************/
+u8 ucDcac_GetUpdateSlaveAddr(ModuleObject_E e_obj)
+{
+    switch(e_obj)
+    {
+        case MO_MGMT_AC:   return MEGMEET_IC_TYPE_AC;     /* 0x30 */
+        case MO_MGMT_DC:   return MEGMEET_IC_TYPE_DC;     /* 0x20 */
+        case MO_DCAC:      return dcacDEV_ADRR;           /* 0x01ï¼Œå‘åå…¼å®¹ */
+        default:           return 0;                      /* å¹¿æ’­åœ°å€ */
+    }
+}
+
+/*****************************************************************************************************************
+ -----å‡½æ•°åŠŸèƒ½    æ ¹æ®å‡çº§å¯¹è±¡è·å–MegmeetèŠ¯ç‰‡ID(ICç±»å‹)
+ -----è¯´æ˜(å¤‡æ³¨)  MO_MGMT_AC/MO_MGMT_DCç›´æ¥è¿”å›å„è‡ªICç±»å‹ï¼›MO_DCACé»˜è®¤æŒ‰ACå¤„ç†ã€‚
+                 å…¶ä»–å¯¹è±¡è¿”å›dcacUPDATE_IC_TYPEé»˜è®¤ACå€¼ã€‚
+ -----ä¼ å…¥å‚æ•°    e_obj: å‡çº§å¯¹è±¡
+ -----è¾“å‡ºå‚æ•°    none
+ -----è¿”å›å€¼      ICç±»å‹
+ ******************************************************************************************************************/
+u8 ucDcac_GetUpdateIcType(ModuleObject_E e_obj)
+{
+    switch(e_obj)
+    {
+        case MO_MGMT_AC:   return MEGMEET_IC_TYPE_AC;     /* 0x30 */
+        case MO_MGMT_DC:   return MEGMEET_IC_TYPE_DC;     /* 0x20 */
+        case MO_DCAC:      return dcacUPDATE_IC_TYPE;     /* æ—§ç‰ˆé»˜è®¤AC */
+        default:           return dcacUPDATE_IC_TYPE;
+    }
+}
+
+/*****************************************************************************************************************
+ -----å‡½æ•°åŠŸèƒ½    æ„é€ å¹¶å‘é€Megmeetåè®®å¸§
+ -----è¯´æ˜(å¤‡æ³¨)  æ ¹æ®å‘½ä»¤ç å’Œè½½è·æ•°æ®æ„é€ Megmeetåè®®å¸§ï¼Œå¹¶é€šè¿‡DCACæ¥å£å‘é€ã€‚
+                 ic_typeä¸slave_addræŒ‰è°ƒç”¨æ–¹ä¼ å…¥å€¼ï¼Œè°ƒç”¨æ–¹å¯é€šè¿‡ucDcac_GetUpdateSlaveAddr/
+                 ucDcac_GetUpdateIcType(tUpdate.e_obj)è·å–ã€‚
+ -----ä¼ å…¥å‚æ•°    slave_addr : ä»æœºåœ°å€ï¼ˆ0ä¸ºå¹¿æ’­åœ°å€ï¼Œå…¶ä»–ä¸ºå…·ä½“ä»æœºåœ°å€ï¼‰
+                 ic_type    : èŠ¯ç‰‡IDï¼ˆAC/DC/ARMç­‰ï¼‰
+                 cmd        : Megmeetå‘½ä»¤ç 
+                 payload    : è½½è·æ•°æ®æŒ‡é’ˆï¼ˆå¯ä¸ºNULLï¼‰
+                 payload_len: è½½è·é•¿åº¦
+ -----è¾“å‡ºå‚æ•°    none
+ -----è¿”å›å€¼      true: å‘é€æˆåŠŸ  false: å‘é€å¤±è´¥
+ ******************************************************************************************************************/
+bool b_dcac_send_megmeet_frame(u8 slave_addr, u8 ic_type, u8 cmd, const u8* payload, u16 payload_len)
+{
+    MegmeetProtoTx_t* tp_proto_tx = tDcacMegmeetProtoTx;
+    bool b_send_ok = false;
+
+    if(tp_proto_tx == NULL)
+        return false;
+
+    if(cMegmeet_FrameCreate(slave_addr, ic_type, cmd, payload, payload_len,
+                            tp_proto_tx->ucaFrameData, tp_proto_tx->usBuffSize,
+                            &tp_proto_tx->usFrameLen) <= 0)
+        return false;
+
+    /* ç¡®ä¿UARTæ¥æ”¶æ•°æ®è·¯ç”±åˆ°DCACç¼“å†²åŒº,é˜²æ­¢bDcacUseFlagè¢«å…¶ä»–ä»»åŠ¡ä¿®æ”¹ */
+    bDcacUseFlag = true;
+    b_send_ok = bDcac_DataSendStart(tp_proto_tx->ucaFrameData, tp_proto_tx->usFrameLen);
+    return b_send_ok;
+}
+
+/*****************************************************************************************************************
+-----å‡½æ•°åŠŸèƒ½    å‘é€F0ï¼ˆè¯·æ±‚å‡çº§ï¼‰å¸§
+-----è¯´æ˜(å¤‡æ³¨)  å‘DCACä»æœºå‘é€å‡çº§è¯·æ±‚å‘½ä»¤ï¼Œpayloadå›ºå®šä¸º0x00ã€‚
+                slave_addrä¸ic_typeæŒ‰å½“å‰tUpdate.eObjåŠ¨æ€é€‰æ‹©ã€‚
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      true: å‘é€æˆåŠŸ  false: å‘é€å¤±è´¥
+******************************************************************************************************************/
+bool b_dcac_send_f0(u8 uc_payload)
+{
+	bool b_send_ok = false;
+    
+    b_send_ok = b_dcac_send_megmeet_frame(0,
+                                     ucDcac_GetUpdateIcType(tUpdate.eObj),
+                                     MEGMEET_CMD_REQ_UPDATE, &uc_payload, 1);
+	if(b_send_ok)
+		vUpdate_ResetRecTimeout(true);
+
+    return b_send_ok;
+}
+
+/*****************************************************************************************************************
+-----å‡½æ•°åŠŸèƒ½    å‘é€F6ï¼ˆè·³è½¬BOOTï¼‰å¸§
+-----è¯´æ˜(å¤‡æ³¨)  å‘½ä»¤DCACä»æœºè·³è½¬åˆ°BOOTæ¨¡å¼ï¼Œæ— payloadã€‚
+                slave_addrä¸ic_typeæŒ‰å½“å‰tUpdate.eObjåŠ¨æ€é€‰æ‹©ã€‚
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      true: å‘é€æˆåŠŸ  false: å‘é€å¤±è´¥
+******************************************************************************************************************/
+bool b_dcac_send_f6(bool b_reset_timeout)
+{
+	bool b_send_ok = false;
+    
+    b_send_ok = b_dcac_send_megmeet_frame(0,
+                                     ucDcac_GetUpdateIcType(tUpdate.eObj),
+                                     MEGMEET_CMD_JUMP_BOOT, NULL, 0);
+	if(b_send_ok && b_reset_timeout)
+		vUpdate_ResetRecTimeout(true);
+	
+    return b_send_ok;
+}
+
+/*****************************************************************************************************************
+-----å‡½æ•°åŠŸèƒ½    å‘é€F2ï¼ˆè®¾ç½®æ³¢ç‰¹ç‡ï¼‰å¸§
+-----è¯´æ˜(å¤‡æ³¨)  å‘DCACä»æœºè¯·æ±‚åˆ‡æ¢æ³¢ç‰¹ç‡ï¼Œå¹¶è®°å½•å¾…åˆ‡æ¢çš„æ³¢ç‰¹ç‡æ¨¡å¼ã€‚
+-----ä¼ å…¥å‚æ•°    us_baud: ç›®æ ‡æ³¢ç‰¹ç‡
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      true: å‘é€æˆåŠŸ  false: å‘é€å¤±è´¥
+******************************************************************************************************************/
+bool b_dcac_send_f2(u32 ul_baud, bool b_reset_timeout)
+{
+    u8 uc_payload = 0;
+
+    if(ul_baud == 9600)
+        uc_payload = 0x00;
+    else if(ul_baud == 115200)
+        uc_payload = 0x01;
+    else
+    {
+         bUpdate_SetErrCode(UEF_DP_F2_INVALID_BAUD);
+         return false;
+    }
+
+	bool b_send_ok = false;
+    
+    b_send_ok = b_dcac_send_megmeet_frame(0,
+                                     ucDcac_GetUpdateIcType(tUpdate.eObj),
+                                     MEGMEET_CMD_SET_BAUD, &uc_payload, 1);
+	if(b_send_ok && b_reset_timeout)
+		vUpdate_ResetRecTimeout(true);
+	
+    return b_send_ok;
+}
+
+
+/***********************************************************************************************************************
+-----å‡½æ•°åŠŸèƒ½   å‘é€å‡çº§æ•°æ®å¸§
+-----ä¼ å…¥å‚æ•°   cmd
+-----ä¼ å…¥å‚æ•°   payload
+-----ä¼ å…¥å‚æ•°   payload_len
+-----ä¼ å…¥å‚æ•°   b_reset_timeout
+-----è¿”å›å€¼     bool
+-----ä½œè€…       LJD
+-----æ—¥æœŸ       2026-07-01
+************************************************************************************************************************/
+bool b_dcac_cs_send_fw_data(u8 cmd, const u8* payload, u16 payload_len, bool b_reset_timeout)
+{
+	bool b_send_ok = false;
+    
+    b_send_ok = b_dcac_send_megmeet_frame(0,
+                                     ucDcac_GetUpdateIcType(tUpdate.eObj),
+                                     cmd, payload, payload_len);
+	if(b_send_ok && b_reset_timeout)
+		vUpdate_ResetRecTimeout(true);
+	
+    return b_send_ok;
 }
 
 #endif  //boardDCAC_EN

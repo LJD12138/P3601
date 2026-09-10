@@ -11,12 +11,12 @@
 #endif
 
 
-#define     	sysTASK_CYCLE_TIME                		100  //任务时间
+#define     	sysTASK_CYCLE_TIME                		100  //浠诲姟鏃堕棿
 
 
 bool bSys_QueueInit(void);
 
-//队列任务
+//闃熷垪浠诲姟
 void v_sys_queue_task_init(Task_T *tp_task);
 void v_sys_queue_task_closing(Task_T *tp_task);
 void v_sys_queue_task_shut_down(Task_T *tp_task);
@@ -25,9 +25,10 @@ void v_sys_queue_task_work(Task_T *tp_task);
 void v_sys_queue_task_err(Task_T *tp_task);
 void v_sys_queue_task_reset(Task_T *tp_task);
 
-#if(boardUPDATA)
-void v_sys_queue_task_updata(Task_T *tp_task);
-#endif  //boardUPDATA
+#if(boardUPDATE)
+void v_sys_queue_task_update(Task_T *tp_task);
+void v_sys_queue_task_update_err(Task_T *tp_task);
+#endif  //boardUPDATE
 
 #if(boardENG_MODE_EN)
 void v_sys_queue_task_eng(Task_T *tp_task);

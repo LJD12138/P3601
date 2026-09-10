@@ -1,6 +1,6 @@
 /*****************************************************************************************************************
 *                                                                                                                *
- *                                         Èí¼ş¶¨Ê±Æ÷                                                           *
+ *                                         è½¯ä»¶å®šæ—¶å™¨                                                           *
 *                                                                                                                *
 ******************************************************************************************************************/
 #include "timer_task.h"
@@ -8,9 +8,9 @@
 
 #include "Sys/sys_task.h"
 
-#if(boardUPDATA)
-#include "Sys/sys_queue_task_updata.h"
-#endif  //boardUPDATA
+#if(boardUPDATE)
+#include "Sys/sys_queue_task_update.h"
+#endif  //boardUPDATE
 
 #if(boardUSB_EN)
 #include "Usb/usb_task.h"
@@ -41,82 +41,86 @@
 #include "MD_Dcac/md_dcac_rec_task.h"
 #endif
 
+#if(boardWDGT_EN)
+#include "fwdgt.h"
+#endif  //boardWDGT_EN
 
-//****************************************************ÈÎÎñ³õÊ¼»¯**************************************************//
+
+//****************************************************ä»»åŠ¡åˆå§‹åŒ–**************************************************//
 #if(boardBMS_485_IFACE_EN)	
-TimerHandle_t 	tBmsRxEnTimer = NULL;     //µ¥´Î¶¨Ê±Æ÷,BMSµÄ458·¢ËÍÑÓÊ±ÇĞ»»
+TimerHandle_t 	tBmsRxEnTimer = NULL;     //å•æ¬¡å®šæ—¶å™¨,BMSçš„458å‘é€å»¶æ—¶åˆ‡æ¢
 #endif
 
 #if(boardMPPT_485_IFACE_EN)
-TimerHandle_t 	tMpptRxEnTimer = NULL;     //µ¥´Î¶¨Ê±Æ÷,MPPTµÄ458·¢ËÍÑÓÊ±ÇĞ»»
+TimerHandle_t 	tMpptRxEnTimer = NULL;     //å•æ¬¡å®šæ—¶å™¨,MPPTçš„458å‘é€å»¶æ—¶åˆ‡æ¢
 #endif
 
 #if(boardDCAC_485_IFACE_EN)
-TimerHandle_t 	tDcacRxEnTimer = NULL;     //µ¥´Î¶¨Ê±Æ÷,BMSµÄ458·¢ËÍÑÓÊ±ÇĞ»»
+TimerHandle_t 	tDcacRxEnTimer = NULL;     //å•æ¬¡å®šæ—¶å™¨,DCACçš„458å‘é€å»¶æ—¶åˆ‡æ¢
 #endif
 
 #if(boardBMS_EN)
-TimerHandle_t 	tWakeUpBmsTimer = NULL;   //µ¥´Î¶¨Ê±Æ÷,BMSµÄ»½ĞÑÊ¹ÄÜÑÓÊ±¹Ø±Õ
+TimerHandle_t 	tWakeUpBmsTimer = NULL;   //å•æ¬¡å®šæ—¶å™¨,BMSçš„å”¤é†’ä½¿èƒ½å»¶æ—¶å…³é—­
 #endif  //boardBMS_EN
 
-TimerHandle_t 	tRepetTimer   = NULL;     //ÖØ¸´¶¨Ê±Æ÷  repetition
+TimerHandle_t 	tRepetTimer   = NULL;     //é‡å¤å®šæ—¶å™¨  repetition
 
 static void vTimer_SignalCallback( TimerHandle_t xTimer );
 static void vTimer_RepetCallback( TimerHandle_t xTimer );
 
 
-//****************************************************²ÎÊı³õÊ¼»¯**************************************************//
+//****************************************************å‚æ•°åˆå§‹åŒ–**************************************************//
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ¶¨Ê±Æ÷ÈÎÎñ³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    å®šæ—¶å™¨ä»»åŠ¡åˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 void vTimer_TaskInit(void)
 {			
-	/*´´½¨µ¥´Î¶¨Ê±Æ÷*/
+	/*åˆ›å»ºå•æ¬¡å®šæ—¶å™¨*/
 	#if(boardBMS_485_IFACE_EN)
-    tBmsRxEnTimer = xTimerCreate("bms_exit_485_tx_timer",  	//Èí¼ş¶¨Ê±Æ÷µÄÃû×Ö  
-                            2,       	                    //¶¨Ê±Æ÷ÖÜÆÚ(ms),µ¥Î»Ê±ÖÓ½ÚÅÄ
-                            pdFALSE,                        //¶¨Ê±Æ÷Ä£Ê½£¬pdTRUEÎªÖÜÆÚ¶¨Ê±Æ÷£¬pdFALSEÎªµ¥´Î¶¨Ê±Æ÷
-                            (void*)1,        	            //¶¨Ê±Æ÷µÄIDºÅ=1
-                            vTimer_SignalCallback); 	    //¶¨Ê±Æ÷»Øµ÷º¯Êı
+    tBmsRxEnTimer = xTimerCreate("bms_exit_485_tx_timer",  	//è½¯ä»¶å®šæ—¶å™¨çš„åå­—  
+                            2,       	                    //å®šæ—¶å™¨å‘¨æœŸ(ms),å•ä½æ—¶é’ŸèŠ‚æ‹
+                            pdFALSE,                        //å®šæ—¶å™¨æ¨¡å¼ï¼ŒpdTRUEä¸ºå‘¨æœŸå®šæ—¶å™¨ï¼ŒpdFALSEä¸ºå•æ¬¡å®šæ—¶å™¨
+                            (void*)1,        	            //å®šæ—¶å™¨çš„IDå·=1
+                            vTimer_SignalCallback); 	    //å®šæ—¶å™¨å›è°ƒå‡½æ•°
 	#endif  //boardBMS_485_IFACE_EN
 	
 	#if(boardBMS_EN)
-	tWakeUpBmsTimer = xTimerCreate("wake_up_bms_timer",  	//Èí¼ş¶¨Ê±Æ÷µÄÃû×Ö  
-                            3000,       	                //¶¨Ê±Æ÷ÖÜÆÚ(ms),µ¥Î»Ê±ÖÓ½ÚÅÄ
-                            pdFALSE,                        //¶¨Ê±Æ÷Ä£Ê½£¬pdTRUEÎªÖÜÆÚ¶¨Ê±Æ÷£¬pdFALSEÎªµ¥´Î¶¨Ê±Æ÷
-                            (void*)2,        	            //¶¨Ê±Æ÷µÄIDºÅ=1
-                            vTimer_SignalCallback); 	    //¶¨Ê±Æ÷»Øµ÷º¯Êı
+	tWakeUpBmsTimer = xTimerCreate("wake_up_bms_timer",  	//è½¯ä»¶å®šæ—¶å™¨çš„åå­—  
+                            3000,       	                //å®šæ—¶å™¨å‘¨æœŸ(ms),å•ä½æ—¶é’ŸèŠ‚æ‹
+                            pdFALSE,                        //å®šæ—¶å™¨æ¨¡å¼ï¼ŒpdTRUEä¸ºå‘¨æœŸå®šæ—¶å™¨ï¼ŒpdFALSEä¸ºå•æ¬¡å®šæ—¶å™¨
+                            (void*)2,        	            //å®šæ—¶å™¨çš„IDå·=1
+                            vTimer_SignalCallback); 	    //å®šæ—¶å™¨å›è°ƒå‡½æ•°
 	#endif  //boardBMS_EN
 							
 	#if(boardDCAC_485_IFACE_EN)
-    tDcacRxEnTimer = xTimerCreate("acdc_exit_485_tx_timer", //Èí¼ş¶¨Ê±Æ÷µÄÃû×Ö  
-                            5,       	                    //¶¨Ê±Æ÷ÖÜÆÚ(ms),µ¥Î»Ê±ÖÓ½ÚÅÄ
-                            pdFALSE,                        //¶¨Ê±Æ÷Ä£Ê½£¬pdTRUEÎªÖÜÆÚ¶¨Ê±Æ÷£¬pdFALSEÎªµ¥´Î¶¨Ê±Æ÷
-                            (void*)3,        	            //¶¨Ê±Æ÷µÄIDºÅ=1
-                            vTimer_SignalCallback); 	    //¶¨Ê±Æ÷»Øµ÷º¯Êı
+    tDcacRxEnTimer = xTimerCreate("acdc_exit_485_tx_timer", //è½¯ä»¶å®šæ—¶å™¨çš„åå­—  
+                            3,       	                    //å®šæ—¶å™¨å‘¨æœŸ(ms),å•ä½æ—¶é’ŸèŠ‚æ‹
+                            pdFALSE,                        //å®šæ—¶å™¨æ¨¡å¼ï¼ŒpdTRUEä¸ºå‘¨æœŸå®šæ—¶å™¨ï¼ŒpdFALSEä¸ºå•æ¬¡å®šæ—¶å™¨
+                            (void*)3,        	            //å®šæ—¶å™¨çš„IDå·=1
+                            vTimer_SignalCallback); 	    //å®šæ—¶å™¨å›è°ƒå‡½æ•°
 	#endif  //boardDCAC_485_IFACE_EN
 	
 	#if(boardMPPT_485_IFACE_EN)
-    tMpptRxEnTimer = xTimerCreate("mppt_exit_485_tx_timer", //Èí¼ş¶¨Ê±Æ÷µÄÃû×Ö  
-                            2,       	                    //¶¨Ê±Æ÷ÖÜÆÚ(ms),µ¥Î»Ê±ÖÓ½ÚÅÄ
-                            pdFALSE,                        //¶¨Ê±Æ÷Ä£Ê½£¬pdTRUEÎªÖÜÆÚ¶¨Ê±Æ÷£¬pdFALSEÎªµ¥´Î¶¨Ê±Æ÷
-                            (void*)4,        	            //¶¨Ê±Æ÷µÄIDºÅ=1
-                            vTimer_SignalCallback); 	    //¶¨Ê±Æ÷»Øµ÷º¯Êı
+    tMpptRxEnTimer = xTimerCreate("mppt_exit_485_tx_timer", //è½¯ä»¶å®šæ—¶å™¨çš„åå­—  
+                            2,       	                    //å®šæ—¶å™¨å‘¨æœŸ(ms),å•ä½æ—¶é’ŸèŠ‚æ‹
+                            pdFALSE,                        //å®šæ—¶å™¨æ¨¡å¼ï¼ŒpdTRUEä¸ºå‘¨æœŸå®šæ—¶å™¨ï¼ŒpdFALSEä¸ºå•æ¬¡å®šæ—¶å™¨
+                            (void*)4,        	            //å®šæ—¶å™¨çš„IDå·=1
+                            vTimer_SignalCallback); 	    //å®šæ—¶å™¨å›è°ƒå‡½æ•°
 	#endif
 							
-	/*´´½¨ÖØ¸´¶¨Ê±Æ÷*/
-    tRepetTimer = xTimerCreate("repet_timer",  	            //Èí¼ş¶¨Ê±Æ÷µÄÃû×Ö  
-                            boardREPET_TIMER_CYCLE_TMIE,    //¶¨Ê±Æ÷ÖÜÆÚ(ms),µ¥Î»Ê±ÖÓ½ÚÅÄ
-                            pdTRUE,                         //¶¨Ê±Æ÷Ä£Ê½£¬pdTRUEÎªÖÜÆÚ¶¨Ê±Æ÷£¬pdFALSEÎªµ¥´Î¶¨Ê±Æ÷
-                            (void*)1,        	            //¶¨Ê±Æ÷µÄIDºÅ=1
-                            vTimer_RepetCallback); 	        //¶¨Ê±Æ÷»Øµ÷º¯Êı
+	/*åˆ›å»ºé‡å¤å®šæ—¶å™¨*/
+    tRepetTimer = xTimerCreate("repet_timer",  	            //è½¯ä»¶å®šæ—¶å™¨çš„åå­—  
+                            boardREPET_TIMER_CYCLE_TMIE,    //å®šæ—¶å™¨å‘¨æœŸ(ms),å•ä½æ—¶é’ŸèŠ‚æ‹
+                            pdTRUE,                         //å®šæ—¶å™¨æ¨¡å¼ï¼ŒpdTRUEä¸ºå‘¨æœŸå®šæ—¶å™¨ï¼ŒpdFALSEä¸ºå•æ¬¡å®šæ—¶å™¨
+                            (void*)1,        	            //å®šæ—¶å™¨çš„IDå·=1
+                            vTimer_RepetCallback); 	        //å®šæ—¶å™¨å›è°ƒå‡½æ•°
 	
-	//¿ªÊ¼¶¨Ê±Æ÷
+	//å¼€å§‹å®šæ—¶å™¨
 	#if(boardBMS_485_IFACE_EN)
 	xTimerStart(tBmsRxEnTimer, 0);
     #endif  //boardBMS_485_IFACE_EN
@@ -139,11 +143,11 @@ void vTimer_TaskInit(void)
 
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    µ¥´Î¶¨Ê±Æ÷»Øµ÷º¯Êı
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    xTimer:µ÷ÓÃº¯ÊıµÄ¾ä±ú
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    å•æ¬¡å®šæ—¶å™¨å›è°ƒå‡½æ•°
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    xTimer:è°ƒç”¨å‡½æ•°çš„å¥æŸ„
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 static void vTimer_SignalCallback( TimerHandle_t xTimer )
 {
@@ -165,33 +169,46 @@ static void vTimer_SignalCallback( TimerHandle_t xTimer )
 	}
 	else if(pvTimerGetTimerID(xTimer) == ((void *)4))
 	{
-		// #if(boardMPPT_485_IFACE_EN)
-		// vMppt_485TransEnable(false);
-		// #endif
+		#if(boardMPPT_485_IFACE_EN)
+		vMppt_485TransEnable(false);
+		#endif
 	}		
 }
 
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ÖØ¸´¶¨Ê±Æ÷»Øµ÷º¯Êı
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    xTimer:µ÷ÓÃº¯ÊıµÄ¾ä±ú
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    é‡å¤å®šæ—¶å™¨å›è°ƒå‡½æ•°
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    xTimer:è°ƒç”¨å‡½æ•°çš„å¥æŸ„
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 static vu8 timer_cnt = 0;
 static void vTimer_RepetCallback( TimerHandle_t xTimer )
 {
-	#if(boardUPDATA)
-	if(tSysInfo.eDevState ==DS_UPDATA_MODE)
+	#if(boardUPDATE)
+	if(tSysInfo.eDevState ==DS_UPDATE_MODE)
 	{
-		vUpdata_TickTimer();
+		vUpdate_TickTimer();
+		
+//		#if(boardBMS_EN && (!boardDEBUG))
+		vBms_RecTickTimer();
+//		#endif
+		
+//		#if(boardPRINT_IFACE && (!boardDEBUG))
+		vPrint_RecTickTimer();
+//		#endif
+		
+		#if(boardDCAC_EN && (!boardDEBUG))
+		vDcac_RecTickTimer();
+		#endif
+		
 		return;
 	}
-	#endif  //boardUPDATA
+	#endif  //boardUPDATE
 	
 	timer_cnt++;
-	if(timer_cnt >= (1000/boardREPET_TIMER_CYCLE_TMIE)) //1S¼ÆÊ± 
+	if(timer_cnt >= (1000/boardREPET_TIMER_CYCLE_TMIE)) //1Sè®¡æ—¶ 
 	{
 		timer_cnt = 0;
 		vSys_TickTimer();
@@ -223,15 +240,15 @@ static void vTimer_RepetCallback( TimerHandle_t xTimer )
 		#if(boardUSE_OS_DEBUG_OUT)
 		if(uPrint.tFlag.bFreeRTOS)
 		{
-			size_t num = xPortGetFreeHeapSize();	         //»ñÈ¡µ±Ç°Î´·ÖÅäµÄÄÚ´æ¶Ñ´óĞ¡
-			sMyPrint("bFreeRTOS:Î´·ÖÅäµÄÄÚ´æ¶Ñ = %d word\r\n",num);
+			size_t num = xPortGetFreeHeapSize();	         //è·å–å½“å‰æœªåˆ†é…çš„å†…å­˜å †å¤§å°
+			sMyPrint("bFreeRTOS:æœªåˆ†é…çš„å†…å­˜å † = %d word\r\n",num);
 			
-			num = xPortGetMinimumEverFreeHeapSize();	 	//»ñÈ¡Î´·ÖÅäµÄÄÚ´æ¶ÑÀúÊ·×îĞ¡Öµ
-			sMyPrint("bFreeRTOS:Î´·ÖÅäµÄÄÚ´æ¶Ñ×îĞ¡Öµ = %d word\r\n",num);
+			num = xPortGetMinimumEverFreeHeapSize();	 	//è·å–æœªåˆ†é…çš„å†…å­˜å †å†å²æœ€å°å€¼
+			sMyPrint("bFreeRTOS:æœªåˆ†é…çš„å†…å­˜å †æœ€å°å€¼ = %d word\r\n",num);
 			
 			char InfoBuffer[1024] = {0};
 			vTaskList((char *) &InfoBuffer);
-			printf("\r\nÈÎÎñÃû      ÈÎÎñ×´Ì¬  ÓÅÏÈ¼¶  Ê£ÓàÕ»  ÈÎÎñĞòºÅ\r\n");
+			printf("\r\nä»»åŠ¡å      ä»»åŠ¡çŠ¶æ€  ä¼˜å…ˆçº§  å‰©ä½™æ ˆ  ä»»åŠ¡åºå·\r\n");
 			printf("\r\n %s \r\n", InfoBuffer);
 		}
 		#endif  //boardUSE_OS_DEBUG_OUT
@@ -259,14 +276,29 @@ static void vTimer_RepetCallback( TimerHandle_t xTimer )
 }
 
 #if(boardLOW_POWER)
-//½øÈëµÍ¹¦ºÄ
+//è¿›å…¥ä½åŠŸè€—
 void vCount_EnterLowPower(void)
 {
-	xTimerDelete(tSignalTimer,100);
-	xTimerDelete(tRepetTimer,100);
+	#if(boardBMS_485_IFACE_EN)
+	xTimerDelete(tBmsRxEnTimer, 100);
+	#endif  //boardBMS_485_IFACE_EN
+
+	#if(boardBMS_EN)
+	xTimerDelete(tWakeUpBmsTimer, 100);
+	#endif  //boardBMS_EN
+
+	#if(boardDCAC_485_IFACE_EN)
+	xTimerDelete(tDcacRxEnTimer, 100);
+	#endif  //boardDCAC_485_IFACE_EN
+
+	#if(boardMPPT_485_IFACE_EN)
+	xTimerDelete(tMpptRxEnTimer, 100);
+	#endif  //boardMPPT_485_IFACE_EN
+
+	xTimerDelete(tRepetTimer, 100);
 }
 
-//ÍË³öµÍ¹¦ºÄ
+//é€€å‡ºä½åŠŸè€—
 void vCount_ExitLowPower(void)
 {
 	vTimer_TaskInit();

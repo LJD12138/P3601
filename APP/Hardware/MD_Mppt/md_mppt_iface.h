@@ -15,7 +15,7 @@
 #define     	mpptUSART_GPIO_TX_RCU           		gpioUSART0_GPIO_TX_RCU
 #define     	mpptUSART_GPIO_TX_PORT          		gpioUSART0_GPIO_TX_PORT
 #define     	mpptUSART_GPIO_TX_PIN           		gpioUSART0_GPIO_TX_PIN
-//¥Æø⁄
+//‰∏≤Âè£
 #define     	mpptUSART_RCU           				RCU_USART0
 #define     	mpptUSART               				USART0
 #define     	mpptUSART_BAUD          				115200
@@ -40,7 +40,7 @@
 #define     	mpptUSART_GPIO_TX_RCU           		gpioUSART1_GPIO_TX_RCU
 #define     	mpptUSART_GPIO_TX_PORT          		gpioUSART1_GPIO_TX_PORT
 #define     	mpptUSART_GPIO_TX_PIN           		gpioUSART1_GPIO_TX_PIN
-//¥Æø⁄
+//‰∏≤Âè£
 #define     	mpptUSART_RCU           				RCU_USART1
 #define     	mpptUSART               				USART1
 #define     	mpptUSART_BAUD          				115200
@@ -65,7 +65,7 @@
 #define     	mpptUSART_GPIO_TX_RCU					gpioUSART2_GPIO_TX_RCU
 #define     	mpptUSART_GPIO_TX_PORT					gpioUSART2_GPIO_TX_PORT
 #define     	mpptUSART_GPIO_TX_PIN					gpioUSART2_GPIO_TX_PIN
-//¥Æø⁄
+//‰∏≤Âè£
 #define     	mpptUSART_RCU           				RCU_USART2
 #define     	mpptUSART               				USART2
 #define     	mpptUSART_BAUD          				115200
@@ -90,7 +90,7 @@
 #define     	mpptUSART_GPIO_TX_RCU           		gpioUART3_GPIO_TX_RCU
 #define     	mpptUSART_GPIO_TX_PORT          		gpioUART3_GPIO_TX_PORT
 #define     	mpptUSART_GPIO_TX_PIN           		gpioUART3_GPIO_TX_PIN
-//¥Æø⁄
+//‰∏≤Âè£
 #define     	mpptUSART_RCU           				RCU_UART3
 #define     	mpptUSART               				UART3
 #define     	mpptUSART_BAUD          				115200
@@ -115,7 +115,7 @@
 #define     	mpptUSART_GPIO_TX_RCU           		gpioUART4_GPIO_TX_RCU
 #define     	mpptUSART_GPIO_TX_PORT          		gpioUART4_GPIO_TX_PORT
 #define     	mpptUSART_GPIO_TX_PIN           		gpioUART4_GPIO_TX_PIN
-//¥Æø⁄
+//‰∏≤Âè£
 #define     	mpptUSART_RCU           				RCU_UART4
 #define     	mpptUSART               				UART4
 #define     	mpptUSART_BAUD          				115200
@@ -128,8 +128,8 @@
 #define     	mpptGPIO_485_TX_EN_RCU       		RCU_GPIOB
 #define     	mpptGPIO_485_TX_EN_PORT      		GPIOB
 #define     	mpptGPIO_485_TX_EN_PIN       		GPIO_PIN_2
-#define     	mpptGPIO_485_TX_EN_ON()      		GPIO_BOP(mpptGPIO_485_TX_EN_PORT) = mpptGPIO_485_TX_EN_PIN   // πƒ‹∑¢ÀÕ
-#define     	mpptGPIO_485_TX_EN_OFF()     		GPIO_BC(mpptGPIO_485_TX_EN_PORT)  = mpptGPIO_485_TX_EN_PIN   // πƒ‹Ω” ’
+#define     	mpptGPIO_485_TX_EN_ON()      		GPIO_BOP(mpptGPIO_485_TX_EN_PORT) = mpptGPIO_485_TX_EN_PIN   //‰ΩøËÉΩÂèëÈÄÅ
+#define     	mpptGPIO_485_TX_EN_OFF()     		GPIO_BC(mpptGPIO_485_TX_EN_PORT)  = mpptGPIO_485_TX_EN_PIN   //‰ΩøËÉΩÊé•Êî∂
 #endif //boardMPPT_485_IFACE_EN
 
 

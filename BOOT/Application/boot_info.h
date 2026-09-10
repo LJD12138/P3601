@@ -13,30 +13,30 @@ extern const char tBootMemParamStr[];
 extern const char tBootVerInfoStr[];
 extern const char tBootParamStr[];
 
-//APP×´Ì¬
+//APPçŠ¶æ€
 typedef enum
 {
-	AS_NULL = 0,		//Î´Ñ¡Ôñ
-    AS_FINISH,			//¸ÕÉı¼¶Íê³É
-	AS_OK,				//µ±Ç°ÊÇÍêÕûµÄ
-	AS_ERASE,			//ÒÑ¾­²Á³ı
+	AS_NULL = 0,		//æœªé€‰æ‹©
+    AS_FINISH,			//åˆšå‡çº§å®Œæˆ
+	AS_OK,				//å½“å‰æ˜¯å®Œæ•´çš„
+	AS_ERASE,			//å·²ç»æ“¦é™¤
 }AppState_E;
 
-#pragma pack(1)  //Ò»¸ö×Ö½Ú¶ÔÆë
+#pragma pack(1)  //ä¸€ä¸ªå­—èŠ‚å¯¹é½
 typedef struct
 {
-	char        saVersion[32];    // Èí¼ş°æ±¾
-    char        saBuildDate[32];  // ³ÌĞò±àÒëÈÕÆÚ
-    char        saBuildTime[32];  // ³ÌĞò±àÒëÊ±¼ä
+	char        saVersion[32];    // è½¯ä»¶ç‰ˆæœ¬
+    char        saBuildDate[32];  // ç¨‹åºç¼–è¯‘æ—¥æœŸ
+    char        saBuildTime[32];  // ç¨‹åºç¼–è¯‘æ—¶é—´
 }VerInfo_T;
 #pragma pack()
 
-#pragma pack(4)  //Ò»¸ö×Ö½Ú¶ÔÆë
+#pragma pack(4)  //ä¸€ä¸ªå­—èŠ‚å¯¹é½
 typedef struct
 {
-	vu32        		ulCmd;             	// 0xAAAA_AAAAĞèÒªÉı¼¶,ÆäËû²»ĞèÒªÉı¼¶
-	AppState_E			eAppState;			// APP×´Ì¬
-	vu8					ucAppFaultCnt;		// APPÆô¶¯Ê§°Ü¼ÆÊı 
+	vu32        		ulCmd;             	// 0xAAAA_AAAAéœ€è¦å‡çº§,å…¶ä»–ä¸éœ€è¦å‡çº§
+	AppState_E			eAppState;			// APPçŠ¶æ€
+	vu8					ucAppFaultCnt;		// APPå¯åŠ¨å¤±è´¥è®¡æ•° 
 }BootParam_T;
 #pragma pack()
 
@@ -55,13 +55,13 @@ extern const ef_env default_env_set[];
 
 SysTaskId_E eBoot_InfoInit(bool init);
 s8 cBoot_MemParamInit(const char* id_str);
-s16 cBoot_UpdataMemParam(const char* id_str);
+s16 cBoot_UpdateMemParam(const char* id_str);
 s16 cBoot_GetMemParam(const char* id_str);
 u16 usBoot_GetMemParamSize(void);
 bool bBoot_CmdExist(u32 cmd);
 
-#if(boardUPDATA)
-s8 cBoot_CtrlUpdata(bool en, AppState_E state);
+#if(boardUPDATE)
+s8 cBoot_CtrlUpdate(bool en, AppState_E state);
 #endif
 
 #endif  

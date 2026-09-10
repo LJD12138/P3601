@@ -48,21 +48,21 @@ OF SUCH DAMAGE.
 #include <assert.h>
 
 //#define		//4Tab									//10Tab
-#define     	mainINIT_BOOT_PARAM_FLAG     			0x0000000	//³õÊ¼»¯BOOT²ÎÊı
-#define     	mainINIT_FINISH_FLAG        			0x88888888	//ÏµÍ³³õÊ¼»¯Íê³É
-#define     	mainUPDATA_FLAG             			0xAAAAAAAA	//Éı¼¶
-#define     	mainDISPLAY_FLAG            			0xAAAABBBB	//ÏÔÊ¾
-#define     	mainLOW_POWER_FLAG          			0xBBBBCCCC	//½øÈëµÍ¹¦ºÄ
-#define     	mainINIT_APP_PARAM_FLAG     			0xEFEFFEFE	//³õÊ¼»¯APP²ÎÊı
+#define     	mainINIT_BOOT_PARAM_FLAG     			0x0000000	//åˆå§‹åŒ–BOOTå‚æ•°
+#define     	mainINIT_FINISH_FLAG        			0x88888888	//ç³»ç»Ÿåˆå§‹åŒ–å®Œæˆ
+#define     	mainUPDATE_FLAG             			0xAAAAAAAA	//å‡çº§
+#define     	mainDISPLAY_FLAG            			0xAAAABBBB	//æ˜¾ç¤º
+#define     	mainLOW_POWER_FLAG          			0xBBBBCCCC	//è¿›å…¥ä½åŠŸè€—
+#define     	mainINIT_APP_PARAM_FLAG     			0xEFEFFEFE	//åˆå§‹åŒ–APPå‚æ•°
 
-#define     	RANGE(val, min, max)     				((val < min) ? false : ((val > max) ? false : true))  //ÔÚ·¶Î§ÄÚÎªtrue,°üº¬minºÍmax   
-#define     	RANGE_NO(val, min, max)     			((val < min) ? true  : ((val > max) ? true  : false)) //ÔÚ·¶Î§ÍâÎªtrue
-#define     	RANGE_M(val, max)     					((val > max) ? false : true)  							//ÔÚ·¶Î§ÄÚÎªtrue,°üº¬max  
+#define     	RANGE(val, min, max)     				((val < min) ? false : ((val > max) ? false : true))  //åœ¨èŒƒå›´å†…ä¸ºtrue,åŒ…å«minå’Œmax   
+#define     	RANGE_NO(val, min, max)     			((val < min) ? true  : ((val > max) ? true  : false)) //åœ¨èŒƒå›´å¤–ä¸ºtrue
+#define     	RANGE_M(val, max)     					((val > max) ? false : true)  							//åœ¨èŒƒå›´å†…ä¸ºtrue,åŒ…å«max  
 #define     	LIMIT(X, min, MAX)          			((X) <= (min) ? (min) : ((X) >= (MAX) ? (MAX) : (X)))
 #define     	LIMIT_MAX(X, MAX)           			((X) < (MAX) ? (X) : (MAX))
 #define     	LIMIT_MIN(X, MIN)           			((X) > (MIN) ? (X) : (MIN))
 
-#define     	MSEC(TIME)                  			((TIME) / tickTime)                         //ms×ª³ÉÊµ¼ÊµÄ tickÊ±¼ä
+#define     	MSEC(TIME)                  			((TIME) / tickTime)                         //msè½¬æˆå®é™…çš„ tickæ—¶é—´
 #define     	MAX2(a, b)                  			((a > b) ? a : b)
 #define     	MAX3(a, b, c)               			(a) > (b) ? ((a) > (c) ? (a) : (c)) : ((b) > (c) ? (b) : (c))
 #define     	MIN2(a, b)                  			((a < b) ? a : b)
@@ -103,7 +103,7 @@ OF SUCH DAMAGE.
 
 
 
-//**********************************ÓĞ·ûºÅ*********************************************************************
+//**********************************æœ‰ç¬¦å·*********************************************************************
 typedef       	int64_t  								s64;
 typedef       	int32_t  								s32;
 typedef       	int16_t  								s16;
@@ -124,7 +124,7 @@ typedef __I   	int32_t  								vsc32;           /*!< Read Only	*/
 typedef __I   	int16_t  								vsc16;           /*!< Read Only	*/
 typedef __I   	int8_t   								vsc8;            /*!< Read Only	*/
 
-//**********************************ÎŞ·ûºÅ*********************************************************************
+//**********************************æ— ç¬¦å·*********************************************************************
 typedef       	uint64_t 								u64;
 typedef       	uint32_t 								u32;
 typedef       	uint16_t 								u16;
@@ -145,74 +145,78 @@ typedef __I   	uint32_t 								vuc32;           /*!< Read Only  */
 typedef __I   	uint16_t 								vuc16;           /*!< Read Only  */
 typedef __I   	uint8_t  								vuc8;            /*!< Read Only  */
 
-//ÏµÍ³ÔËĞĞ×´Ì¬
+//ç³»ç»Ÿè¿è¡ŒçŠ¶æ€
 typedef enum
 {
-	DS_LOST = 0,		// ¶ªÊ§
-	DS_INIT,	       	// ³õÊ¼»¯
-	DS_CLOSING ,       	// ¹Ø±ÕÖĞ
-	DS_SHUT_DOWN,      	// ¹Ø»ú×´Ì¬ 3
-	DS_ERR,            	// ´íÎó×´Ì¬
-    DS_BOOTING,        	// ×°ÔØÖĞ  5
-    DS_WORK,           	// ¹¤×÷×´Ì¬
-	DS_UPDATA_MODE,		// Éı¼¶Ä£Ê½
-	DS_ENG_MODE,       	// ¹¤³ÌÄ£Ê½ engineering mode
+	DS_LOST = 0,		// ä¸¢å¤±
+	DS_INIT,	       	// åˆå§‹åŒ–
+	DS_CLOSING ,       	// å…³é—­ä¸­
+	DS_SHUT_DOWN,      	// å…³æœºçŠ¶æ€ 3
+	DS_ERR,            	// é”™è¯¯çŠ¶æ€
+    DS_BOOTING,        	// è£…è½½ä¸­  5
+    DS_WORK,           	// å·¥ä½œçŠ¶æ€
+	DS_UPDATE_MODE,		// å‡çº§æ¨¡å¼
+	DS_ENG_MODE,       	// å·¥ç¨‹æ¨¡å¼ engineering mode
 }DevState_E;
 
 
-//¿ª¹ØÀàĞÍ
+//å¼€å…³ç±»å‹
 typedef enum
 {
 	ST_OFF=0,
 	ST_ON,
-	ST_NULL,//½øĞĞÈ¡·´
+	ST_NULL,//è¿›è¡Œå–å
 }SwitchType_E;
 
-//¿ª¹ØµÄ¶ÔÏó
+//å¼€å…³çš„å¯¹è±¡
 typedef enum
 {
-	SO_KEY=0,  		//°´¼ü
-	SO_CONSOLE,    	//Ãæ°å
-	SO_PARA,     	//²¢»ú
-	SO_DCAC,    	//Äæ±ä³äµç¼¤»î
-	SO_MPPT,    	//MPPT³äµç¼¤»î
+	SO_KEY=0,  		//æŒ‰é”®
+	SO_CONSOLE,    	//é¢æ¿
+	SO_PARA,     	//å¹¶æœº
+	SO_DCAC,    	//é€†å˜å……ç”µæ¿€æ´»
+	SO_MPPT,    	//MPPTå……ç”µæ¿€æ´»
 }SwitchObject_E;
 
-//²Ù×÷µÄ¶ÔÏó
+//æ“ä½œçš„å¯¹è±¡
 typedef enum
 {
-	OO_CHG=0,  		//³äµç
-	OO_DISCHG,    	//·Åµç
-	OO_ALL,    		//³ä·Åµç
-	OO_PARA_IN,    	//²¢Íø
+	OO_CHG=0,  		//å……ç”µ
+	OO_DISCHG,    	//æ”¾ç”µ
+	OO_ALL,    		//å……æ”¾ç”µ
+	OO_PARA_IN,    	//å¹¶ç½‘
 }OperaObject_E;
 
-//ÊäÈëÊä³ö×´Ì¬
+//è¾“å…¥è¾“å‡ºçŠ¶æ€
 typedef enum
 {
-	IOS_CLOSING=0,  	//¹Ø±ÕÖĞ
-	IOS_SHUT_DOWN,  	//¹Ø±Õ
-	IOS_PROTE,      	//±£»¤  ĞèÒª¹Ø»úÇå³ı
-	IOS_ERR,        	//´íÎó  ¿ÉÒÔÒÆ³ıÊäÈëÇå³ı
-	IOS_STARTING,   	//Æô¶¯ÖĞ
-	IOS_WORK,       	//¹¤×÷
+	IOS_CLOSING=0,  	//å…³é—­ä¸­
+	IOS_SHUT_DOWN,  	//å…³é—­
+	IOS_PROTE,      	//ä¿æŠ¤  éœ€è¦å…³æœºæ¸…é™¤
+	IOS_ERR,        	//é”™è¯¯  å¯ä»¥ç§»é™¤è¾“å…¥æ¸…é™¤
+	IOS_STARTING,   	//å¯åŠ¨ä¸­
+	IOS_WORK,       	//å·¥ä½œ
 }InOutState_E;
 
-//²½Öè
+//æ­¥éª¤
 typedef enum
 {
-	STEP_FORWARD = (u8)0xfd,//ÉÏÒ»²½
-	STEP_NEXT = (u8)0xfe,//ÏÂÒ»²½
-	STEP_END = (u8)0xff,//½áÊø
+	STEP_FORWARD = (u8)0xfd,//ä¸Šä¸€æ­¥
+	STEP_NEXT = (u8)0xfe,//ä¸‹ä¸€æ­¥
+	STEP_END = (u8)0xff,//ç»“æŸ
 }Step_E;
 
-//Ä£¿é¶ÔÏó
+//æ¨¡å—å¯¹è±¡
 typedef enum
 {
-	MO_CONSOLE=0,
-	MO_BMS,
-	MO_MPPT,
-	MO_DCAC,
+	MO_DEFAULT = 0,		//å½“å‰è¿æ¥è®¾å¤‡
+    MO_CONSOLE,			//ä¸»æ§
+	MO_BMS,				//ç”µæ± 
+	MO_MPPT,			//å…‰ä¼
+	MO_DCAC,			//é€†å˜
+	MO_MGMT_AC,			//MEGMEET_IC_TYPE_AC
+	MO_MGMT_DC,			//MEGMEET_IC_TYPE_DC
+	MO_INVAILD,			//è¶…èŒƒå›´
 }ModuleObject_E;
 
 typedef union

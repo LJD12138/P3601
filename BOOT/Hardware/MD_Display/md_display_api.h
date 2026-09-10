@@ -30,8 +30,8 @@ extern "C" {
 #define SOC_MAX    188 //188
 #define O_ERR      0xFFFF 
  
-//#define IN_OUT_ZEOR_POWER_HOR   1//ÊäÈëÊä³ö0¹¦ÂÊºá¸Ü
-#define IN_OUT_ONE_ZEOR_POWER     2//ÊäÈëÊä³ö1¸ö0¹¦ÂÊ
+//#define IN_OUT_ZEOR_POWER_HOR   1//è¾“å…¥è¾“å‡º0åŠŸç‡æ¨ªæ 
+#define IN_OUT_ONE_ZEOR_POWER     2//è¾“å…¥è¾“å‡º1ä¸ª0åŠŸç‡
 
 
 /* ==========================================globals=====================================*/
@@ -41,7 +41,7 @@ extern "C" {
 
 
 /* ==========================================extern======================================*/
-//Éè±¸×´Ì¬
+//è®¾å¤‡çŠ¶æ€
 void Display_IconWifi(void);
 void Display_IconBL(void);
 void Display_IconFan(void);
@@ -53,14 +53,14 @@ void Display_IconAcOut(void);
 void Display_IconAcIn(void);
 void Display_IconDcIn(void);
 void Display_IconPvIn(void);
-void Display_InputAnderson(void);//°²µÂÉ­ÊäÈë±êÊ¶
+void Display_InputAnderson(void);//å®‰å¾·æ£®è¾“å…¥æ ‡è¯†
 void Display_IconUps(void);
 
-//·ûºÅ
-void Display_IconUpdata(void);//¸üĞÂ±êÊ¶
-void Display_SymbolPerCent(void);//°Ù·ÖºÅ%±êÊ¶
+//ç¬¦å·
+void Display_IconUpdate(void);//æ›´æ–°æ ‡è¯†
+void Display_SymbolPerCent(void);//ç™¾åˆ†å·%æ ‡è¯†
 
-//´íÎó
+//é”™è¯¯
 void Display_IconSysErr(void);
 void Display_IconBatErr(void);
 void Display_IconBatLock(void);
@@ -69,13 +69,13 @@ void Display_IconOutOT(void);
 void Display_IconUT(void);
 void Display_IconOL(void);
 
-//ÉèÖÃÖ¸Áî
+//è®¾ç½®æŒ‡ä»¤
 void Display_SetStandbyMode(void);
 void Display_SetRunMode(void);
 void Display_ClearData(void);
 void Display_RefreshData(void);
 
-//Êı¾İÏÔÊ¾
+//æ•°æ®æ˜¾ç¤º
 void Display_NoShowAll(void);
 void Display_ShowAll(void);
 void Display_ShowON(void);
@@ -93,9 +93,9 @@ void Display_OutPwr(u16 power);
 
 void Display_ShowErrCode(uint32_t list);
 void Display_OutNum(s16 num);
-void Display_UpdataProgress(u16 frame_num, u16 rec_frame_num);
-void Display_UpdataState(u8 obj, u8 proto, u8 num);
-void Display_UpdataTime(u16 min);
+void Display_UpdateProgress(u16 frame_num, u16 rec_frame_num);
+void Display_UpdateState(u8 obj, u8 proto, u8 num);
+void Display_UpdateTime(u16 min);
 #endif  //
 
 #ifdef __cplusplus

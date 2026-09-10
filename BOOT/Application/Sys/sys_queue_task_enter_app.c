@@ -1,27 +1,27 @@
 /*****************************************************************************************************************
 *                                                                                                                *
- *                                         ÏµÍ³µÄ¶ÓÁĞº¯Êı                                                  		*
+ *                                         ç³»ç»Ÿçš„é˜Ÿåˆ—å‡½æ•°                                                  		*
 *                                                                                                                *
 ******************************************************************************************************************/
 #include "Sys/sys_queue_task.h"
-#include "Sys/sys_queue_task_updata.h"
+#include "Sys/sys_queue_task_update.h"
 #include "Print/print_task.h"
 #include "Print/print_iface.h"
 
 #include "boot_info.h"
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ÏµÍ³³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    ç³»ç»Ÿåˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/  
 void v_sys_queue_task_enter_app(Task_T *tp_task)
 {
 	static s8 ret = 0;
 	
-	#if(boardUPDATA)
+	#if(boardUPDATE)
 	static uint8_t u8_illegal_addr_cnt;
 	#endif
 	
@@ -29,13 +29,13 @@ void v_sys_queue_task_enter_app(Task_T *tp_task)
     {
 		case 0:
 		{
-			//µÈ´ıPrint´òÓ¡Íê³É
+			//ç­‰å¾…Printæ‰“å°å®Œæˆ
 			#if(boardPRINT_IFACE)
 			if(bPrint_CheckSendFinish() == false)
 				break;
 			#endif
 			
-			//¿ªÊ¼Ó³Éäµ½Íâ²¿Flash
+			//å¼€å§‹æ˜ å°„åˆ°å¤–éƒ¨Flash
 			#if(boardIC_TYPE == boardIC_STM32H7XX)
 			ret = cQSPI_MemoryMapped();
 			#else
@@ -43,7 +43,7 @@ void v_sys_queue_task_enter_app(Task_T *tp_task)
 			#endif
 			
 			if(ret > 0)
-				cQueue_GotoStep( tp_task, STEP_NEXT);  //ÏÂÒ»²½
+				cQueue_GotoStep( tp_task, STEP_NEXT);  //ä¸‹ä¸€æ­¥
 		}
 		break;
 		
@@ -51,39 +51,39 @@ void v_sys_queue_task_enter_app(Task_T *tp_task)
 		{
 			ret = cSys_JumpToApp();
 			if(ret <= 0)
-				cQueue_GotoStep( tp_task, STEP_NEXT);  //ÏÂÒ»²½
+				cQueue_GotoStep( tp_task, STEP_NEXT);  //ä¸‹ä¸€æ­¥
 		}
 		break;
 		
 		case 2:
 		{
-			//ÑÓÊ±1S
+			//å»¶æ—¶1S
 			tpSysTask->usStepWaitCnt++;
 			if(tpSysTask->usStepWaitCnt < (1000 / sysTASK_CYCLE_TIME))
 				break;
 			tpSysTask->usStepWaitCnt = 0;
 			
-			#if(boardUPDATA)
+			#if(boardUPDATE)
 			if(++u8_illegal_addr_cnt > 10)
 			{
-				//¹Ø±ÕÄÚ´æÓ³Éä(²»¹Ø±ÕĞ´Flash»á¿¨ËÀ,»¹²»ÖªµÀÔ­Òò)
+				//å…³é—­å†…å­˜æ˜ å°„(ä¸å…³é—­å†™Flashä¼šå¡æ­»,è¿˜ä¸çŸ¥é“åŸå› )
 				#if(boardIC_TYPE == boardIC_STM32H7XX)
 				cQSPI_QuitMemoryMapped();
 				#endif  //boardIC_STM32H7XX
 				
 				u8_illegal_addr_cnt = 0;
-				cBoot_CtrlUpdata(true, AS_ERASE);
+				cBoot_CtrlUpdate(true, AS_ERASE);
 				#if(boardCONSOLE_EN)
-				cUpdata_ChSelect(CT_CONSOLE, PT_BAIKU);
+				cUpdate_ChSelect(CT_CONSOLE, PT_BAIKU);
 				#elif(boardPRINT_IFACE)
-				cUpdata_ChSelect(CT_PRINT, PT_XMODEM);
+				cUpdate_ChSelect(CT_PRINT, PT_XMODEM);
 				#endif
-				cQueue_GotoStep( tp_task, STEP_END);  //½áÊø
+				cQueue_GotoStep( tp_task, STEP_END);  //ç»“æŸ
 				break;
 			}
 			#endif
 			
-			//¿ªÊ¼Ó³Éäµ½Íâ²¿Flash
+			//å¼€å§‹æ˜ å°„åˆ°å¤–éƒ¨Flash
 			#if(boardIC_TYPE == boardIC_STM32H7XX)
 			ret = cQSPI_MemoryMapped();
 			#else
@@ -91,13 +91,13 @@ void v_sys_queue_task_enter_app(Task_T *tp_task)
 			#endif
 			
 //			if(uPrint.tFlag.bSysTask == 1)
-				log_e("BOOTÌø×ªAPPÊ§°Ü,´íÎó´úÂë%d!!!\0",ret);
+				log_e("BOOTè·³è½¬APPå¤±è´¥%d,é”™è¯¯ä»£ç %d!!!\0",u8_illegal_addr_cnt, ret);
 			
-			cQueue_GotoStep( tp_task, STEP_FORWARD);  //·µ»ØÉÏÒ»²½ÖØĞÂ¼ì²â
+			cQueue_GotoStep( tp_task, STEP_FORWARD);  //è¿”å›ä¸Šä¸€æ­¥é‡æ–°æ£€æµ‹
 		}break;
 		
         default:
-				cQueue_GotoStep( tp_task, STEP_END);  //½áÊø
+				cQueue_GotoStep( tp_task, STEP_END);  //ç»“æŸ
 			break;
     } 
 }

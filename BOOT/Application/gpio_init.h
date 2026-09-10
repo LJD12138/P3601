@@ -14,7 +14,7 @@
 #define     	gpioASSIST_OPEN_ON()              		GPIO_BOP(gpioASSIST_OPEN_PORT) = (uint32_t)gpioASSIST_OPEN_PIN  
 #define     	gpioASSIST_OPEN_OFF()             		GPIO_BC(gpioASSIST_OPEN_PORT) = (uint32_t)gpioASSIST_OPEN_PIN
 
-//∑Á…»
+//È£éÊâá
 #define 		fanPWM_GPIO_RCU                    		RCU_GPIOB 
 #define 		fanPWM_GPIO_PORT                   		GPIOB
 #define 		fanPWM_PIN                         		GPIO_PIN_1
@@ -29,7 +29,7 @@
 #define     	gpioUSART0_GPIO_TX_PORT                	GPIOA
 #define     	gpioUSART0_GPIO_TX_PIN                 	GPIO_PIN_9
 #else
-//¥Æø⁄0÷ÿ”≥…‰
+//‰∏≤Âè£0ÈáçÊò†Â∞Ñ
 #define     	gpioUSART0_GPIO_RX_RCU                 	RCU_GPIOB
 #define     	gpioUSART0_GPIO_RX_PORT                	GPIOB
 #define     	gpioUSART0_GPIO_RX_PIN                 	GPIO_PIN_7
@@ -106,7 +106,7 @@
 
 __STATIC_INLINE bool KEY_POWER_IsPress(void)          
 {    
-    if((GPIO_ISTAT(KEY_POWER_GPIO)&(KEY_POWER_PIN)) == 0)//∂¡»°∞¥º¸
+    if((GPIO_ISTAT(KEY_POWER_GPIO)&(KEY_POWER_PIN)) == 0)//ËØªÂèñÊåâÈîÆ
         return true;
     else
         return false;

@@ -4,7 +4,7 @@
 #include "Print/print_iface.h"
 #include "Print/print_task.h"
 #include "Sys/sys_task.h"
-#include "Sys/sys_queue_task_updata.h"
+#include "Sys/sys_queue_task_update.h"
 
 #include "..\..\BOOT\Application\flash_allot_table.h"
 
@@ -24,31 +24,31 @@
 #endif  //boardUSE_OS
 
 #define     	printDEV_ADRR							printCONSOLE_MASTER_ADDR
-#define    		printWAIT_NOTIFY_OUTTIME				1000     //ÈÎÎñÍ¨Öª³¬Ê±Ê±¼ä MS
+#define    		printWAIT_NOTIFY_OUTTIME				1000     //ä»»åŠ¡é€šçŸ¥è¶…æ—¶æ—¶é—´ MS
 #define       	printTX_FRAME_SIZE                     	256
 #define       	printRX_FRAME_SIZE                     	256
 														
-//****************************************************²ÎÊı³õÊ¼»¯**************************************************//
-__ALIGNED(4) BaikuProtoTx_t *tpPrintProtoTx = NULL;	//·¢ËÍĞ­Òé
+//****************************************************å‚æ•°åˆå§‹åŒ–**************************************************//
+__ALIGNED(4) BaikuProtoTx_t *tpPrintProtoTx = NULL;	//å‘é€åè®®
 __ALIGNED(4) BaikuProtoRx_t *tpPrintProtoRx = NULL;
 
 vu8 uc_next_cmd = 0;
 
-//****************************************************º¯ÊıÉùÃ÷****************************************************//
+//****************************************************å‡½æ•°å£°æ˜****************************************************//
 static s8 c_print_data_trans(u8 cmd, u8* data, u8 len);
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    Í¨Ñ¶Ğ­Òé³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    é€šè®¯åè®®åˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 bool bPrint_SendProtInit(void)
 {
-	s8 c_result = cBaiku_ProtoTransInit(&tpPrintProtoTx,//Ğ­ÒéÖ¸Õë
-								printTX_FRAME_SIZE, 	//Ğ­Òé»º´æÆ÷´óĞ¡
-								printDEV_ADRR);			//Ğ­ÒéÉè±¸ID
+	s8 c_result = cBaiku_ProtoSendInit(&tpPrintProtoTx,//åè®®æŒ‡é’ˆ
+								printTX_FRAME_SIZE, 	//åè®®ç¼“å­˜å™¨å¤§å°
+								printDEV_ADRR);			//åè®®è®¾å¤‡ID
 	if(c_result <= 0)
 		return false;
 	
@@ -57,10 +57,10 @@ bool bPrint_SendProtInit(void)
 
 bool bPrint_RecProtInit(void)
 {
-	s8 c_result = cBaiku_ProtoRecInit(&tpPrintProtoRx, 	//Ğ­ÒéÖ¸Õë
-								printRX_FRAME_SIZE,		//Ğ­Òé»º´æÆ÷´óĞ¡
-								printDEV_ADRR,			//Ğ­ÒéÉè±¸ID
-								boardREPET_TIMER_CYCLE_TMIE);//¼ÆÊıÆ÷²ÉÑùÊ±¼ä
+	s8 c_result = cBaiku_ProtoRecInit(&tpPrintProtoRx, 	//åè®®æŒ‡é’ˆ
+								printRX_FRAME_SIZE,		//åè®®ç¼“å­˜å™¨å¤§å°
+								sysDEV_ADRR,			//åè®®è®¾å¤‡ID
+								boardREPET_TIMER_CYCLE_TMIE);//è®¡æ•°å™¨é‡‡æ ·æ—¶é—´
 	if(c_result <= 0)
 		return false;
 	
@@ -71,11 +71,11 @@ bool bPrint_RecProtInit(void)
 
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ³ÖĞø»Ø¸´
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      true:·¢ËÍ³É¹¦   false:·¢ËÍÊ§°Ü
+-----å‡½æ•°åŠŸèƒ½    æŒç»­å›å¤
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      true:å‘é€æˆåŠŸ   false:å‘é€å¤±è´¥
 ************************************************************************************************************************/
 s8 c_cycle_relay_data(void)
 {
@@ -97,11 +97,11 @@ s8 c_cycle_relay_data(void)
 }
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    »Ø¸´print×´Ì¬  0x87
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      true:·¢ËÍ³É¹¦   false:·¢ËÍÊ§°Ü
+-----å‡½æ•°åŠŸèƒ½    å›å¤printçŠ¶æ€  0x87
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      true:å‘é€æˆåŠŸ   false:å‘é€å¤±è´¥
 ************************************************************************************************************************/
 s8 c_relay84_set_proto(BaikuProtoRx_t* proto)
 {
@@ -110,19 +110,19 @@ s8 c_relay84_set_proto(BaikuProtoRx_t* proto)
 	if(proto->ucValidLen != 3 || obj >= 2)
 		return -10;
 
-	if(cUpdata_ChSelect(CT_PRINT, (ProtoType_E)tpPrintProtoRx->ucpValidData[0]) <= 0)
+	if(cUpdate_ChSelect(CT_PRINT, (ProtoType_E)tpPrintProtoRx->ucpValidData[0]) <= 0)
 		return -11;
 
-	memcpy((u16*)&tUpdata.usTotalFrmValue, &tpPrintProtoRx->ucpValidData[1], 2);
+	memcpy((u16*)&tUpdate.usTotalFrmValue, &tpPrintProtoRx->ucpValidData[1], 2);
 	return c_print_data_trans(baikuCMD_REPLY_SET_PROTO, NULL, 0);
 }
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    »Ø¸´print×´Ì¬  0x87
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      true:·¢ËÍ³É¹¦   false:·¢ËÍÊ§°Ü
+-----å‡½æ•°åŠŸèƒ½    å›å¤printçŠ¶æ€  0x87
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      true:å‘é€æˆåŠŸ   false:å‘é€å¤±è´¥
 ************************************************************************************************************************/
 s8 c_relay84_set_print_state(BaikuProtoRx_t* proto)
 {
@@ -143,11 +143,11 @@ s8 c_relay84_set_print_state(BaikuProtoRx_t* proto)
 }
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    »Ø¸´print×´Ì¬  0x87
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      true:·¢ËÍ³É¹¦   false:·¢ËÍÊ§°Ü
+-----å‡½æ•°åŠŸèƒ½    å›å¤printçŠ¶æ€  0x87
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      true:å‘é€æˆåŠŸ   false:å‘é€å¤±è´¥
 ************************************************************************************************************************/
 s8 c_relay86_get_print_state(BaikuProtoRx_t* proto)
 {
@@ -162,7 +162,7 @@ s8 c_relay86_get_print_state(BaikuProtoRx_t* proto)
 	data[0] = obj;
 	
     len += sizeof(uPrint); 
-    if(len > sizeof(data)) return -11;//data³¤¶È²»×ã    
+    if(len > sizeof(data)) return -11;//dataé•¿åº¦ä¸è¶³    
     memcpy(&data[1], (u8*)&uPrint, sizeof(uPrint));
 
     return c_print_data_trans(baikuCMD_REPLY_PRINT_STATE, data, sizeof(data));
@@ -170,11 +170,11 @@ s8 c_relay86_get_print_state(BaikuProtoRx_t* proto)
 
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    »Ø¸´print×´Ì¬  0x87
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      true:·¢ËÍ³É¹¦   false:·¢ËÍÊ§°Ü
+-----å‡½æ•°åŠŸèƒ½    å›å¤printçŠ¶æ€  0x87
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      true:å‘é€æˆåŠŸ   false:å‘é€å¤±è´¥
 ************************************************************************************************************************/
 s8 c_relay88_sys_set(BaikuProtoRx_t* proto)
 {
@@ -190,16 +190,16 @@ s8 c_relay88_sys_set(BaikuProtoRx_t* proto)
 	
 	memcpy(&tparam, proto->ucpValidData, proto->ucValidLen);
 	//BMS
-	if(tparam.obj == UO_DEFAULT ||
-		tparam.obj == UO_BMS)
+	if(tparam.obj == MO_DEFAULT ||
+		tparam.obj == MO_BMS)
 	{
-		if(tparam.cmd == mainUPDATA_FLAG)
+		if(tparam.cmd == mainUPDATE_FLAG)
 		{
 			temp = 0x00;
 			c_print_data_trans(baikuCMD_REPLY_SYS_SET, &temp, 1);
 			
 			#if(boardPRINT_IFACE)
-			cUpdata_ChSelect(CT_PRINT, PT_XMODEM);
+			cUpdate_ChSelect(CT_PRINT, PT_XMODEM);
 			#endif
 		}
 		else if(tparam.cmd == mainINIT_BOOT_PARAM_FLAG)
@@ -216,17 +216,17 @@ s8 c_relay88_sys_set(BaikuProtoRx_t* proto)
 }
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ	Êı¾İ´«Êä
------ËµÃ÷(±¸×¢) 
------´«Èë²ÎÊı	cmd:Ö¸Áî
-				data:Ö¸ÏòÊı¾İÖ¸Õë
-				len:Êı¾İµÄ³¤¶È
------Êä³ö²ÎÊı	none
------·µ»ØÖµ		-1:Ğ´ÈëµÄLen³¬³ö×î´ó³¤¶È
-				-2:µÈ»á»Ø¸´³¬Ê±
-				-3:Êı¾İ·¢ËÍ´íÎó
-				0:ÎŞ²Ù×÷
-				1:²Ù×÷³É¹¦
+-----å‡½æ•°åŠŸèƒ½	æ•°æ®ä¼ è¾“
+-----è¯´æ˜(å¤‡æ³¨) 
+-----ä¼ å…¥å‚æ•°	cmd:æŒ‡ä»¤
+				data:æŒ‡å‘æ•°æ®æŒ‡é’ˆ
+				len:æ•°æ®çš„é•¿åº¦
+-----è¾“å‡ºå‚æ•°	none
+-----è¿”å›å€¼		-1:å†™å…¥çš„Lenè¶…å‡ºæœ€å¤§é•¿åº¦
+				-2:ç­‰ä¼šå›å¤è¶…æ—¶
+				-3:æ•°æ®å‘é€é”™è¯¯
+				0:æ— æ“ä½œ
+				1:æ“ä½œæˆåŠŸ
 ************************************************************************************************************************/
 static s8 c_print_data_trans(u8 cmd, u8* data, u8 len)
 {

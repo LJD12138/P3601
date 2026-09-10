@@ -6,30 +6,31 @@
 #include "queue_task.h"
 
 //#define		//4Tab									//10Tab
-#define			sysLOW_POWER_MODE						0      //0:²»½øÈëĞİÃß   1:Ë¯ÃßÄ£Ê½   2:´ı»úÄ£Ê½
+#define			sysLOW_POWER_MODE						0      //0:ä¸è¿›å…¥ä¼‘çœ    1:ç¡çœ æ¨¡å¼   2:å¾…æœºæ¨¡å¼
+#define     	sysDEV_ADRR								0x20
 extern 			Task_T									*tpSysTask;
 
-//*******ÈÎÎñ ID  ************************************************
+//*******ä»»åŠ¡ ID  ************************************************
 typedef enum
 {
-	STI_NULL = 0,      				 		//¿ÕÈÎÎñº¯Êı
-	STI_INIT,								//³õÊ¼»¯
-	STI_ENTER_APP,							//½øÈëAPP
-	STI_ERR,								//´íÎó
-	STI_RESET,								//ÖØÖÃ
-	#if(boardUPDATA)
-    STI_UPDATA,           					//Éı¼¶
+	STI_NULL = 0,      				 		//ç©ºä»»åŠ¡å‡½æ•°
+	STI_INIT,								//åˆå§‹åŒ–
+	STI_ENTER_APP,							//è¿›å…¥APP
+	STI_ERR,								//é”™è¯¯
+	STI_RESET,								//é‡ç½®
+	#if(boardUPDATE)
+    STI_UPDATE,           					//å‡çº§
 	#endif
 	#if(boardDISPLAY_EN)
-	STI_DISPLAY,							//ÏÔÊ¾
+	STI_DISPLAY,							//æ˜¾ç¤º
 	#endif
 	#if(boardLOW_POWER)
-	STI_LOW_POWER,							//µÍ¹¦ºÄ
+	STI_LOW_POWER,							//ä½åŠŸè€—
 	#endif
 }SysTaskId_E;
 
 
-//Éè±¸³õÊ¼»¯±êÖ¾Î»
+//è®¾å¤‡åˆå§‹åŒ–æ ‡å¿—ä½
 typedef union
 {
 	struct
@@ -51,7 +52,7 @@ typedef union
 	u16 State;
 }InitFinish_U;
 
-//ÏµÍ³¹©µçÀàĞÍ
+//ç³»ç»Ÿä¾›ç”µç±»å‹
 typedef enum
 {
 	SPT_5V = 0,
@@ -59,19 +60,19 @@ typedef enum
 	SPT_10V,
 }SysPowerType_E;
 
-//´íÎó
+//é”™è¯¯
 typedef enum 
 {
-    SEC_CLEAR_ALL = 0,		//ÇåËùÓĞ´íÎó
+    SEC_CLEAR_ALL = 0,		//æ¸…æ‰€æœ‰é”™è¯¯
 	
-	SEC_PARA_LOST,			//²¢»ú¶ªÊ§
-	SEC_CONSOLE_LOST,		//Ãæ°å¶ªÊ§
-	SEC_DISCHG_MOS_ERR,		//·ÅµçMOS´íÎó
-    SEC_CHG_MOS_ERR,		//³äµçMOS´íÎó
+	SEC_PARA_LOST,			//å¹¶æœºä¸¢å¤±
+	SEC_CONSOLE_LOST,		//é¢æ¿ä¸¢å¤±
+	SEC_DISCHG_MOS_ERR,		//æ”¾ç”µMOSé”™è¯¯
+    SEC_CHG_MOS_ERR,		//å……ç”µMOSé”™è¯¯
 
-	SEC_MOS_ERR1,			//MOS´íÎó1
-	SEC_MOS_ERR2,			//MOS´íÎó2
-	SEC_MOS_ERR3,			//MOS´íÎó3
+	SEC_MOS_ERR1,			//MOSé”™è¯¯1
+	SEC_MOS_ERR2,			//MOSé”™è¯¯2
+	SEC_MOS_ERR3,			//MOSé”™è¯¯3
 }SysErrCode_E;
 
 typedef union
@@ -90,26 +91,26 @@ typedef union
 	uint16_t usCode;
 }SysErrCode_N;
 
-#pragma pack(1)//Ç¿ÖÆÒ»¸ö×Ö½Ú¶ÔÆë
+#pragma pack(1)//å¼ºåˆ¶ä¸€ä¸ªå­—èŠ‚å¯¹é½
 typedef struct
 {
 	//1Tab				//5Tab				//5Tab
-    vu16             	usAutoOffCnt;       //×Ô¶¯¹Ø±Õ¼ÆÊ±
-	vu16             	usAutoOffTime;      //×Ô¶¯¹Ø±ÕÊ±¼ä  0Îª¹Ø±Õ´Ë¹¦ÄÜ
-    vs16             	sMaxTemp;           //Õû»ú×î¸ßÎÂ 1ÉãÊÏ¶È
-	vs16             	sMinTemp;           //Õû»ú×îµÍÎÂ 1ÉãÊÏ¶È
-	vs16             	sBoardTempMax;      //°åÔØ×î¸ßÎÂ (Ö÷¿Ø)
+    vu16             	usAutoOffCnt;       //è‡ªåŠ¨å…³é—­è®¡æ—¶
+	vu16             	usAutoOffTime;      //è‡ªåŠ¨å…³é—­æ—¶é—´  0ä¸ºå…³é—­æ­¤åŠŸèƒ½
+    vs16             	sMaxTemp;           //æ•´æœºæœ€é«˜æ¸© 1æ‘„æ°åº¦
+	vs16             	sMinTemp;           //æ•´æœºæœ€ä½æ¸© 1æ‘„æ°åº¦
+	vs16             	sBoardTempMax;      //æ¿è½½æœ€é«˜æ¸© (ä¸»æ§)
 	vu16				usVoltMax;			//0.01V
 	vu16				usVoltMin;			//0.01V
-	vu16             	usOutputPwr;        //Êä³ö¹¦ÂÊ
-	vu16             	usInputPwr;         //ÊäÈë¹¦ÂÊ
-	vu16             	usNeedSleepCnt;     //ĞèÒªĞİÃß¼ÆÊ±
-	InitFinish_U     	uInit;              //³õÊ¼»¯Íê³É
-	SysPowerType_E   	ePowerType;         //ÏµÍ³¹©µçÀàĞÍ
-	SysErrCode_N  		uErrCode;        	//´íÎó´úÂë
-	DevState_E    		eDevState;          //Éè±¸×´Ì¬
+	vu16             	usOutputPwr;        //è¾“å‡ºåŠŸç‡
+	vu16             	usInputPwr;         //è¾“å…¥åŠŸç‡
+	vu16             	usNeedSleepCnt;     //éœ€è¦ä¼‘çœ è®¡æ—¶
+	InitFinish_U     	uInit;              //åˆå§‹åŒ–å®Œæˆ
+	SysPowerType_E   	ePowerType;         //ç³»ç»Ÿä¾›ç”µç±»å‹
+	SysErrCode_N  		uErrCode;        	//é”™è¯¯ä»£ç 
+	DevState_E    		eDevState;          //è®¾å¤‡çŠ¶æ€
 }SysInfo_T;         
-#pragma pack() //È¡ÏûÒ»¸ö×Ö½Ú¶ÔÆë
+#pragma pack() //å–æ¶ˆä¸€ä¸ªå­—èŠ‚å¯¹é½
 extern  SysInfo_T    	tSysInfo; 
 //		//2Tab			//4Tab
 						

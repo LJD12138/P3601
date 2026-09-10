@@ -20,33 +20,33 @@ static vu16 	S_DataSendSize = 0;
 static vu16 	S_DataSendCnt = 0;
 
 #if(boardPRINT_IFACE_DMA_EN)
-static __ALIGNED(4) u8 ucaPrintRxDmaBuffData[printRX_DMA_BUFF_SIZE];   //ÓÃÓÚ°ÑÊý¾Ý×°ÔØµ½DMA·¢ËÍ 
+static __ALIGNED(4) u8 ucaPrintRxDmaBuffData[printRX_DMA_BUFF_SIZE];   //ç”¨äºŽæŠŠæ•°æ®è£…è½½åˆ°DMAå‘é€ 
 #endif
-static __ALIGNED(4) u8 ucaPrintTxDmaBuffData[printTX_DMA_BUFF_SIZE];   	//ÓÃÓÚ°ÑÊý¾Ý×°ÔØµ½DMA·¢ËÍ
+static __ALIGNED(4) u8 ucaPrintTxDmaBuffData[printTX_DMA_BUFF_SIZE];   	//ç”¨äºŽæŠŠæ•°æ®è£…è½½åˆ°DMAå‘é€
 
 
 /***********************************************************************************************************************
------º¯Êý¹¦ÄÜ    printf½Ó¿ÚÓ³Éä
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    none
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    printfæŽ¥å£æ˜ å°„
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      none
 ************************************************************************************************************************/
 #if boardCM_BACKTRACE
 #pragma import(__use_no_semihosting)             
-//±ê×¼¿âÐèÒªµÄÖ§³Öº¯Êý                 
+//æ ‡å‡†åº“éœ€è¦çš„æ”¯æŒå‡½æ•°                 
 struct __FILE 
 { 
 	int handle; 
 }; 
  
 FILE __stdout;       
-//¶¨Òå_sys_exit()ÒÔ±ÜÃâÊ¹ÓÃ°ëÖ÷»úÄ£Ê½    
+//å®šä¹‰_sys_exit()ä»¥é¿å…ä½¿ç”¨åŠä¸»æœºæ¨¡å¼    
 void _sys_exit(int x) 
 { 
 	x = x; 
 } 
-//ÖØ¶¨Òåfputcº¯Êý 
+//é‡å®šä¹‰fputcå‡½æ•° 
 int fputc(int ch, FILE *f)
 {
 	#if(boardPRINT_485_IFACE_EN)
@@ -68,18 +68,18 @@ int fputc(int ch, FILE *f)
 #endif 
 
 /***********************************************************************************************************************
------º¯Êý¹¦ÄÜ    IO¿Ú³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    none
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    IOå£åˆå§‹åŒ–
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      none
 ************************************************************************************************************************/
 static void v_print_gpio_init(void)
 {
-	/*Ê¹ÄÜ¸´ÓÃÊ±ÖÓ*/
-	rcu_periph_clock_enable(RCU_AF); //¿ªÆô¸´ÓÃÍâÉèÊ±ÖÓÊ¹ÄÜ
+	/*ä½¿èƒ½å¤ç”¨æ—¶é’Ÿ*/
+	rcu_periph_clock_enable(RCU_AF); //å¼€å¯å¤ç”¨å¤–è®¾æ—¶é’Ÿä½¿èƒ½
 	#if(gpioUSART0_REMAP_EN)
-	//ÖØÓ³Éä´®¿Ú0
+	//é‡æ˜ å°„ä¸²å£0
 	gpio_pin_remap_config(GPIO_USART0_REMAP,ENABLE);
 	#endif
 	
@@ -92,24 +92,24 @@ static void v_print_gpio_init(void)
     gpio_init(printUSART_GPIO_RX_PORT, GPIO_MODE_IPU, GPIO_OSPEED_50MHZ, printUSART_GPIO_RX_PIN);
 	
 	#if(boardPRINT_485_IFACE_EN)
-    //458 ·¢ÉäÊ¹ÄÜ 
+    //458 å‘å°„ä½¿èƒ½ 
 	rcu_periph_clock_enable(printGPIO_485_TX_EN_RCU);
 	gpio_init(printGPIO_485_TX_EN_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, printGPIO_485_TX_EN_PIN);
-	printGPIO_485_TX_EN_OFF();  //Ä¬ÈÏ½ÓÊÕ
+	printGPIO_485_TX_EN_OFF();  //é»˜è®¤æŽ¥æ”¶
 	#endif
 	
-	//½Ó¿ÚÊ¹ÄÜ
+	//æŽ¥å£ä½¿èƒ½
 	rcu_periph_clock_enable(printIFACE_EN_RCU);
 	gpio_init(printIFACE_EN_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_50MHZ, printIFACE_EN_PIN);
-	printIFACE_EN_ON();  //Ä¬ÈÏ½ÓÊÕ
+	printIFACE_EN_ON();  //é»˜è®¤æŽ¥æ”¶
 }
 
 /***********************************************************************************************************************
------º¯Êý¹¦ÄÜ    ´®¿Ú³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    none
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    ä¸²å£åˆå§‹åŒ–
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      none
 ************************************************************************************************************************/
 static void v_print_usart_init( void )
 {
@@ -144,11 +144,11 @@ static void v_print_usart_init( void )
 
 
 /***********************************************************************************************************************
------º¯Êý¹¦ÄÜ    DMA³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    none
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    DMAåˆå§‹åŒ–
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      none
 ************************************************************************************************************************/
 #if(boardPRINT_IFACE_DMA_EN)
 static void v_print_dma_init(void)
@@ -167,15 +167,15 @@ static void v_print_dma_init(void)
 	/* initialize DMA parameters */
     dma_struct_para_init(&dma_init_struct);
 	
-    dma_init_struct.direction    = DMA_MEMORY_TO_PERIPHERAL;            /* ÍâÉèµ½ÄÚ´æ */              
-    dma_init_struct.memory_addr  = (uint32_t)ucaPrintTxDmaBuffData;    	/* ÉèÖÃÄÚ´æ½ÓÊÕ»ùµØÖ· */
-    dma_init_struct.memory_inc   = DMA_MEMORY_INCREASE_ENABLE;          /* ÄÚ´æµØÖ·µÝÔö */
-	dma_init_struct.memory_width = DMA_MEMORY_WIDTH_8BIT;               /* 8Î»ÄÚ´æÊý¾Ý */
-    dma_init_struct.number       = 0;  									/* BuffÊý×éµÄ´óÐ¡ */
-    dma_init_struct.periph_addr  = (uint32_t)(&USART_DATA(printUSART));	/* ÍâÉè»ùµØÖ·,USARTÊý¾Ý¼Ä´æÆ÷µØÖ· */
-    dma_init_struct.periph_inc   = DMA_PERIPH_INCREASE_DISABLE;         /* ÍâÉèµØÖ·²»µÝÔö */
-	dma_init_struct.periph_width = DMA_PERIPHERAL_WIDTH_8BIT;           /* 8Î»ÍâÉèÊý¾Ý */
-    dma_init_struct.priority     = DMA_PRIORITY_ULTRA_HIGH;             /* ×î¸ßDMAÍ¨µÀÓÅÏÈ¼¶ */
+    dma_init_struct.direction    = DMA_MEMORY_TO_PERIPHERAL;            /* å¤–è®¾åˆ°å†…å­˜ */              
+    dma_init_struct.memory_addr  = (uint32_t)ucaPrintTxDmaBuffData;    	/* è®¾ç½®å†…å­˜æŽ¥æ”¶åŸºåœ°å€ */
+    dma_init_struct.memory_inc   = DMA_MEMORY_INCREASE_ENABLE;          /* å†…å­˜åœ°å€é€’å¢ž */
+	dma_init_struct.memory_width = DMA_MEMORY_WIDTH_8BIT;               /* 8ä½å†…å­˜æ•°æ® */
+    dma_init_struct.number       = 0;  									/* Buffæ•°ç»„çš„å¤§å° */
+    dma_init_struct.periph_addr  = (uint32_t)(&USART_DATA(printUSART));	/* å¤–è®¾åŸºåœ°å€,USARTæ•°æ®å¯„å­˜å™¨åœ°å€ */
+    dma_init_struct.periph_inc   = DMA_PERIPH_INCREASE_DISABLE;         /* å¤–è®¾åœ°å€ä¸é€’å¢ž */
+	dma_init_struct.periph_width = DMA_PERIPHERAL_WIDTH_8BIT;           /* 8ä½å¤–è®¾æ•°æ® */
+    dma_init_struct.priority     = DMA_PRIORITY_ULTRA_HIGH;             /* æœ€é«˜DMAé€šé“ä¼˜å…ˆçº§ */
     dma_init(printUSART_DMA, printUSART_DMA_TX_CH, &dma_init_struct);
     
     
@@ -188,10 +188,10 @@ static void v_print_dma_init(void)
     dma_init(printUSART_DMA, printUSART_DMA_RX_CH, &dma_init_struct);
 	
 	
-	dma_circulation_disable(printUSART_DMA, printUSART_DMA_TX_CH);                    /* ¹Ø±ÕDMA_TXÑ­»·Ä£Ê½ */
-	dma_memory_to_memory_disable(printUSART_DMA, printUSART_DMA_TX_CH);               /* DMAÄÚ´æµ½ÄÚ´æÄ£Ê½²»¿ªÆô */
-	dma_circulation_disable(printUSART_DMA, printUSART_DMA_RX_CH);                    /* ¹Ø±ÕDMA_RXÑ­»·Ä£Ê½ */
-    dma_memory_to_memory_disable(printUSART_DMA, printUSART_DMA_RX_CH);               /* DMAÄÚ´æµ½ÄÚ´æÄ£Ê½²»¿ªÆô */
+	dma_circulation_disable(printUSART_DMA, printUSART_DMA_TX_CH);                    /* å…³é—­DMA_TXå¾ªçŽ¯æ¨¡å¼ */
+	dma_memory_to_memory_disable(printUSART_DMA, printUSART_DMA_TX_CH);               /* DMAå†…å­˜åˆ°å†…å­˜æ¨¡å¼ä¸å¼€å¯ */
+	dma_circulation_disable(printUSART_DMA, printUSART_DMA_RX_CH);                    /* å…³é—­DMA_RXå¾ªçŽ¯æ¨¡å¼ */
+    dma_memory_to_memory_disable(printUSART_DMA, printUSART_DMA_RX_CH);               /* DMAå†…å­˜åˆ°å†…å­˜æ¨¡å¼ä¸å¼€å¯ */
 	
 	/* enable USART DMA for reception */
     usart_dma_receive_config(printUSART, USART_RECEIVE_DMA_ENABLE);
@@ -207,20 +207,20 @@ static void v_print_dma_init(void)
     /* enable DMA0 channel3 */
     dma_channel_disable(printUSART_DMA, printUSART_DMA_TX_CH);
     
-	//´®¿Ú¿ÕÏÐÖÐ¶Ï
+	//ä¸²å£ç©ºé—²ä¸­æ–­
     usart_interrupt_flag_clear(printUSART, USART_INT_FLAG_IDLE);
     usart_interrupt_enable(printUSART, USART_INT_IDLE); 
 }
 #endif
 
 /***********************************************************************************************************************
------º¯Êý¹¦ÄÜ    Print³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    none
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    Printåˆå§‹åŒ–
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      none
 ************************************************************************************************************************/
-void vPrint_Init( void )//´®¿Ú³õÊ¼»¯
+void vPrint_Init( void )//ä¸²å£åˆå§‹åŒ–
 {
 	v_print_gpio_init();
 	v_print_usart_init();
@@ -230,11 +230,11 @@ void vPrint_Init( void )//´®¿Ú³õÊ¼»¯
 }
 
 /***********************************************************************************************************************
------º¯Êý¹¦ÄÜ    ¶Ë¿ÚÖØÖÃ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    none
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      true:·¢ËÍÍê³É    false:·¢ËÍÖÐ  
+-----å‡½æ•°åŠŸèƒ½    ç«¯å£é‡ç½®
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      true:å‘é€å®Œæˆ    false:å‘é€ä¸­  
 ************************************************************************************************************************/
 void vPrint_DeInit( void )
 {
@@ -247,11 +247,11 @@ void vPrint_DeInit( void )
 }
 
 /*****************************************************************************************************************
------º¯Êý¹¦ÄÜ    ´®¿Ú·¢Éäº¯Êý
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    SendSize:Òª·¢ËÍÊý¾ÝµÄ´óÐ¡
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      true:³É¹¦    false:Ê§°Ü
+-----å‡½æ•°åŠŸèƒ½    ä¸²å£å‘å°„å‡½æ•°
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    SendSize:è¦å‘é€æ•°æ®çš„å¤§å°
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      true:æˆåŠŸ    false:å¤±è´¥
 ******************************************************************************************************************/
 bool bPrint_DataSendStart(u16 len)
 {
@@ -265,17 +265,17 @@ bool bPrint_DataSendStart(u16 len)
 	if(len > printTX_DMA_BUFF_SIZE)
 		len = printTX_DMA_BUFF_SIZE;
 	
-	//È¡³öÊý¾Ý
+	//å–å‡ºæ•°æ®
 	S_DataSendSize = lwrb_read(&tPrintTxBuff, ucaPrintTxDmaBuffData, len);
 	
 	#if(boardPRINT_IFACE_DMA_EN)
-	//Çå³ýÈ«²¿·¢ËÍÍê³É±êÖ¾Î»
+	//æ¸…é™¤å…¨éƒ¨å‘é€å®Œæˆæ ‡å¿—ä½
 	dma_flag_clear(printUSART_DMA, printUSART_DMA_TX_CH, DMA_FLAG_FTF); 
-	//×°ÔØÊý¾Ý
+	//è£…è½½æ•°æ®
 	dma_memory_address_config(printUSART_DMA, printUSART_DMA_TX_CH,(uint32_t)ucaPrintTxDmaBuffData);
-	//×°ÔØ³¤¶È
+	//è£…è½½é•¿åº¦
 	dma_transfer_number_config(printUSART_DMA,printUSART_DMA_TX_CH,S_DataSendSize);
-	//¿ªÊ¼DMA·¢ËÍ
+	//å¼€å§‹DMAå‘é€
 	dma_channel_enable(printUSART_DMA, printUSART_DMA_TX_CH);
 	return true;
 	
@@ -283,27 +283,27 @@ bool bPrint_DataSendStart(u16 len)
 	
     S_DataSendCnt = 0; 
 	usart_interrupt_flag_clear(printUSART, USART_INT_FLAG_TBE);
-	//¿ÕÏÐ¾Í²úÉúÖÐ¶Ï
+	//ç©ºé—²å°±äº§ç”Ÿä¸­æ–­
 	usart_interrupt_enable(printUSART, USART_INT_TBE);           
     return true;
 	#endif  //boardPRINT_IFACE_DMA_EN
 }
 
 /*****************************************************************************************************************
------º¯Êý¹¦ÄÜ    485·¢ËÍÊ¹ÄÜ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    en true:¿ªÆô    false:¹Ø±Õ
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    485å‘é€ä½¿èƒ½
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    en true:å¼€å¯    false:å…³é—­
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      none
 ******************************************************************************************************************/
 #if(boardPRINT_485_IFACE_EN)
 void vPrint_485TransEnable(bool en)
 {
 	if(en == true)
-		printGPIO_485_TX_EN_ON();  //ÇÐ»»Îª·¢ËÍÄ£Ê½
+		printGPIO_485_TX_EN_ON();  //åˆ‡æ¢ä¸ºå‘é€æ¨¡å¼
 	else
 	{
-		printGPIO_485_TX_EN_OFF();  //ÇÐ»»Îª½ÓÊÕÄ£Ê½
+		printGPIO_485_TX_EN_OFF();  //åˆ‡æ¢ä¸ºæŽ¥æ”¶æ¨¡å¼
 		
 		#if(!boardUSE_OS)
 		bSysTick_PrintSendFinish = false;
@@ -313,11 +313,11 @@ void vPrint_485TransEnable(bool en)
 #endif
 
 /***********************************************************************************************************************
------º¯Êý¹¦ÄÜ    ¼ì²é·¢ÉäÇé¿ö
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    none
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      true:·¢ËÍÍê³É    false:·¢ËÍÖÐ  
+-----å‡½æ•°åŠŸèƒ½    æ£€æŸ¥å‘å°„æƒ…å†µ
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      true:å‘é€å®Œæˆ    false:å‘é€ä¸­  
 ************************************************************************************************************************/
 bool bPrint_CheckSendFinish(void)
 {
@@ -328,11 +328,11 @@ bool bPrint_CheckSendFinish(void)
 }
 
 /***********************************************************************************************************************
------º¯Êý¹¦ÄÜ    ½øÈëµÍ¹¦ºÄ/Çå³ýÖÐ¶Ï
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    none
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    è¿›å…¥ä½ŽåŠŸè€—/æ¸…é™¤ä¸­æ–­
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      none
 ************************************************************************************************************************/
 #if(boardLOW_POWER)
 void vPrint_EnterLowPower( void )
@@ -357,23 +357,23 @@ void vPrint_EnterLowPower( void )
 
 #if(boardPRINT_IFACE_DMA_EN)
 /***********************************************************************************************************************
------º¯Êý¹¦ÄÜ    DMA·¢ËÍÍê³ÉÖÐ¶Ï
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    none
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    DMAå‘é€å®Œæˆä¸­æ–­
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      none
 ************************************************************************************************************************/
 void printUSART_DMA_TX_IRQ_HANDLER(void)
 {
     if(dma_interrupt_flag_get(printUSART_DMA, printUSART_DMA_TX_CH, DMA_INT_FLAG_FTF)) 
 	{
         dma_interrupt_flag_clear(printUSART_DMA, printUSART_DMA_TX_CH, DMA_INT_FLAG_G);
-		//¹Ø±ÕDMA·¢ËÍ
+		//å…³é—­DMAå‘é€
 	    dma_channel_disable(printUSART_DMA, printUSART_DMA_TX_CH);
-		//·¢ËÍÍê³É
+		//å‘é€å®Œæˆ
 		S_DataSendSize = 0;
 		
-		//ÑÓÊ±¹Ø±Õ
+		//å»¶æ—¶å…³é—­
 		#if(boardPRINT_485_IFACE_EN)
 		#if(!boardUSE_OS)
 		bSysTick_PrintSendFinish = true;
@@ -386,49 +386,49 @@ void printUSART_DMA_TX_IRQ_HANDLER(void)
 
 
 /***********************************************************************************************************************
------º¯Êý¹¦ÄÜ    ´®¿Ú½ÓÊÕÍê³ÉÖÐ¶Ï
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    none
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    ä¸²å£æŽ¥æ”¶å®Œæˆä¸­æ–­
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      none
 ************************************************************************************************************************/
 static u8 uc_read_buff_len=0;
 void printUSART_IRQ_HANDLER(void)
 {
     if(RESET != usart_interrupt_flag_get(printUSART, USART_INT_FLAG_IDLE)) 
 	{
-		//Çå³ýÖÐ¶Ï
+		//æ¸…é™¤ä¸­æ–­
         usart_interrupt_flag_clear(printUSART, USART_INT_FLAG_IDLE);
-		//Çå³ý¿ÕÏÐ±êÖ¾Î»
+		//æ¸…é™¤ç©ºé—²æ ‡å¿—ä½
 		usart_data_receive(printUSART);
-		//¹Ø±ÕDMA´«Êä
+		//å…³é—­DMAä¼ è¾“
 		dma_channel_disable(printUSART_DMA, printUSART_DMA_RX_CH); 
 		
-		//»ñÈ¡½ÓÊÕµ½µÄÊý¾Ý³¤¶È£¬µ¥Î»£º×Ö½Ú
+		//èŽ·å–æŽ¥æ”¶åˆ°çš„æ•°æ®é•¿åº¦ï¼Œå•ä½ï¼šå­—èŠ‚
 		uc_read_buff_len = printRX_DMA_BUFF_SIZE - dma_transfer_number_get(printUSART_DMA,printUSART_DMA_RX_CH);
-		//×ª´æÊý¾Ýµ½´ý´¦ÀíÊý¾Ý»º³åÇø
+		//è½¬å­˜æ•°æ®åˆ°å¾…å¤„ç†æ•°æ®ç¼“å†²åŒº
 		if(tpPrintProtoRx != NULL)
 			lwrb_write(&tpPrintProtoRx->tRxBuff, ucaPrintRxDmaBuffData, uc_read_buff_len);
-		//Í¨Öª½ÓÊÕÈÎÎñ
+		//é€šçŸ¥æŽ¥æ”¶ä»»åŠ¡
 		#if(boardUSE_OS)
 		vTaskNotifyGiveFromISR(tPrintTaskHandler,NULL);
 		#endif  //boardUSE_OS
 
-		//ÖØÐÂÉèÖÃDMA´«Êä
-		//×°ÔØ³¤¶È
+		//é‡æ–°è®¾ç½®DMAä¼ è¾“
+		//è£…è½½é•¿åº¦
 		dma_transfer_number_config(printUSART_DMA,printUSART_DMA_RX_CH,printRX_DMA_BUFF_SIZE);
-		//¿ªÆôDMA´«Êä
+		//å¼€å¯DMAä¼ è¾“
 		dma_channel_enable(printUSART_DMA, printUSART_DMA_RX_CH); 
     }
 }
 
 #else
 /***********************************************************************************************************************
------º¯Êý¹¦ÄÜ    ´®¿ÚÖÐ¶Ï
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    none
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    ä¸²å£ä¸­æ–­
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      none
 ************************************************************************************************************************/
 void printUSART_IRQ_HANDLER(void)
 {
@@ -436,8 +436,9 @@ void printUSART_IRQ_HANDLER(void)
 	{
 		usart_interrupt_flag_clear(printUSART, USART_INT_FLAG_RBNE);
 
+		u8 ucData = USART_DATA(printUSART);
 		if(tpPrintProtoRx != NULL)
-			lwrb_write(&tpPrintProtoRx->tRxBuff, (u8*)&USART_DATA(printUSART), 1); 
+			lwrb_write(&tpPrintProtoRx->tRxBuff, (u8*)&ucData, 1); 
     } 
 
 	if(RESET != usart_interrupt_flag_get(printUSART, USART_INT_FLAG_TBE))
@@ -451,7 +452,7 @@ void printUSART_IRQ_HANDLER(void)
         }
         else
         {
-            usart_interrupt_disable(printUSART, USART_INT_TBE);  //Çå³ý¿ÕÏÐÖÐ¶Ï
+            usart_interrupt_disable(printUSART, USART_INT_TBE);  //æ¸…é™¤ç©ºé—²ä¸­æ–­
             S_DataSendCnt = 0;
             S_DataSendSize = 0;
 			

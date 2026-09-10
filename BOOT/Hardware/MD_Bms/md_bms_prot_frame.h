@@ -21,7 +21,7 @@ extern SemaphoreHandle_t bmsSemaphoreMutex;
 
 s8 c_bms_cs_get_param(u8 num);
 s8 c_bms_cs_switch(TaskInParam_U u_in_param);
-s8 c_bms_cs_send_updata(void);
+s8 c_bms_cs_send_update(void);
 
 bool bBms_SendProtInit(void);
 bool bBms_RecProtInit(void);

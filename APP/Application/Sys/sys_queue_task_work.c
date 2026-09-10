@@ -1,6 +1,6 @@
 /*****************************************************************************************************************
 *                                                                                                                *
- *                                         ÏµÍ³µÄ¶ÓÁĞº¯Êı                                                  		*
+ *                                         ç³»ç»Ÿçš„é˜Ÿåˆ—å‡½æ•°                                                  		*
 *                                                                                                                *
 ******************************************************************************************************************/
 #include "Sys/sys_queue_task.h"
@@ -22,21 +22,21 @@
 #include "app_info.h"
 #include "gpio_init.h"
 														
-#define     	sysTASK_WORK_CYCLE_TIME					10 //ÈÎÎñÊ±¼ä
+#define     	sysTASK_WORK_CYCLE_TIME					10 //ä»»åŠ¡æ—¶é—´
 
 
-//****************************************************²ÎÊı³õÊ¼»¯**************************************************//
+//****************************************************å‚æ•°åˆå§‹åŒ–**************************************************//
 SysPerm_U uPerm;
 
-//****************************************************º¯ÊıÉùÃ÷****************************************************//
+//****************************************************å‡½æ•°å£°æ˜****************************************************//
 static void v_chg_pwr_manage(void);
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ¹¤×÷
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    å·¥ä½œ
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/ 
 void v_sys_queue_task_work(Task_T *tp_task)
 {
@@ -46,14 +46,14 @@ void v_sys_queue_task_work(Task_T *tp_task)
 	if(tSysInfo.uErrCode.tCode.bBootFault)
 		bSys_SetErrCode(SEC_BOOT_FAULT, false);
 	
-	//¼ì²éÏµÍ³»îÔ¾×´Ì¬
+	//æ£€æŸ¥ç³»ç»Ÿæ´»è·ƒçŠ¶æ€
 	if(bSys_CheckActState() == true)
 		bSys_SetAutoOffTime(tAppMemParam.tSYS.usAutoOffTime);
 	
-	//¶ÓÁĞÀïÃæÓĞÈÎÎñ
+	//é˜Ÿåˆ—é‡Œé¢æœ‰ä»»åŠ¡
 	if(lwrb_get_full(&tp_task->tQueueBuff))  
 	{
-		cQueue_GotoStep( tp_task, STEP_END );  //½áÊø
+		cQueue_GotoStep( tp_task, STEP_END );  //ç»“æŸ
 		return;
 	}
 	
@@ -61,7 +61,7 @@ void v_sys_queue_task_work(Task_T *tp_task)
     {
 		case 0:
 		{
-			cQueue_GotoStep( tp_task, STEP_NEXT );  //ÏÂÒ»²½
+			cQueue_GotoStep( tp_task, STEP_NEXT );  //ä¸‹ä¸€æ­¥
 		}
 		break;
 		
@@ -72,7 +72,7 @@ void v_sys_queue_task_work(Task_T *tp_task)
 		break;
 		
         default:
-			cQueue_GotoStep(tp_task, STEP_END);  //½áÊø
+			cQueue_GotoStep(tp_task, STEP_END);  //ç»“æŸ
 			break;
     }
 	
@@ -84,24 +84,19 @@ void v_sys_queue_task_work(Task_T *tp_task)
 __STATIC_INLINE void v_chg_pwr_manage(void)
 {
 	#if(boardBMS_EN)
-	
-	//1:³äÂú  0:¸Õ²åÉÏµç¿ÉÒÔ³äµç  -1:Ò»Ö±²å×Åµç¿ÉÒÔ³äµç
+
+	//1:å……æ»¡  0:åˆšæ’ä¸Šç”µå¯ä»¥å……ç”µ  -1:ä¸€ç›´æ’ç€ç”µå¯ä»¥å……ç”µ
 	static s8  c_chg_full_flag = 0;
-	
+
 	memset(&tSysInfo.tSetChgPwr, 0, sizeof(tSysInfo.tSetChgPwr));
-	
-	//²»Ğí¿É³äµç
-	if(tSysInfo.uPerm.tPerm.bChgPerm == false ||
-		tSysInfo.uPerm.tPerm.bForceClose == true)
-		return;
-	
-	//³äÂúºó,ĞèÒª½µµÍµ½90²ÅÔÙ´Î¿ªÊ¼³äµç
+
+	//å……æ»¡å,éœ€è¦é™ä½åˆ°90æ‰å†æ¬¡å¼€å§‹å……ç”µ
 	if(ucBms_GetSoc() == 100)
 		c_chg_full_flag = 1;
 	else if(ucBms_GetSoc() <= 90)
 		c_chg_full_flag = -1;
-	
-	//ÒÆ³ı³äµç,¿ÉÒÔÔÙ´Î³äµç
+
+	//ç§»é™¤å……ç”µ,å¯ä»¥å†æ¬¡å……ç”µ
 	if(
 		#if(boardMPPT_EN)
 		tMppt.eDevState == DS_SHUT_DOWN
@@ -116,36 +111,75 @@ __STATIC_INLINE void v_chg_pwr_manage(void)
 		#endif  //boardDCAC_EN
 		)
 		c_chg_full_flag = 0;
-	
-	//³äÂúÎ´ÊÍ·Å
+
+	//ä¸è®¸å¯å……ç”µ
+	if(tSysInfo.uPerm.tPerm.bChgPerm == false ||
+		tSysInfo.uPerm.tPerm.bForceClose == true)
+		return;
+
+	//å……æ»¡æœªé‡Šæ”¾
 	if(c_chg_full_flag > 0)
 		return;
 
-	//ÉèÖÃMPPT³äµç¹¦ÂÊ
+	//===== æ ¸å¿ƒæ”¹é€ : ç›´æ¥ä½¿ç”¨BMSè®¸å¯åŠŸç‡ä½œä¸ºæ€»å……ç”µåŠŸç‡é™åˆ¶ =====
+	//BMSä¸ŠæŠ¥çš„usPermMaxChgPwrå·²åŒ…å«SOCå’Œæ¸©åº¦é™åˆ¶
+	u16 us_bms_perm = tBmsRx.usPermMaxChgPwr;
+
+	//BMSä¸å…è®¸å……ç”µ(é€šä¿¡å¼‚å¸¸æˆ–BMSä¸»åŠ¨ç¦æ­¢)
+	if(us_bms_perm == 0)
+		return;
+
+	//è®¾ç½®MPPTå……ç”µåŠŸç‡ (MPPTä¼˜å…ˆ: ç»™MPPTæœ€å¤§å¯ç”¨é¢åº¦, MPPTå°½åŠ›è¾“å‡º)
 	#if(boardMPPT_EN)
-	if(tMppt.bChgPerm == true && 
+	if(tMppt.bChgPerm == true &&
 		tMppt.eDevState >= DS_BOOTING)
 	{
-		if(ucBms_GetSoc() >= 98)
-			tSysInfo.tSetChgPwr.usMPPT = sysCHG_PWR_LEVEL1;
-		else if(ucBms_GetSoc() <=2 || ucBms_GetSoc() >= 90)
-			tSysInfo.tSetChgPwr.usMPPT = sysCHG_PWR_LEVEL2;
+		tSysInfo.tSetChgPwr.usMPPT = tAppMemParam.tMPPT.usInPwrRating / 10;
+
+		//è®¾ç½®MPPTå……ç”µåŠŸç‡,æ ¹æ®æ¸©åº¦é™åŠŸç‡
+		//0:å…¨åŠŸç‡  1:0.75åŠŸç‡ 2:0.5åŠŸç‡
+		static u8 uc_temp_gear = 0;
+		if(uc_temp_gear == 1)
+		{
+			if(tDcac.sMaxTemp <= 60)
+				uc_temp_gear = 0;
+			else if(tDcac.sMaxTemp > 70)
+				uc_temp_gear = 2;
+
+			tSysInfo.tSetChgPwr.usMPPT = tSysInfo.tSetChgPwr.usMPPT * 0.75f;
+		}
+		else if(uc_temp_gear == 2)
+		{
+			if(tDcac.sMaxTemp <= 65)
+				uc_temp_gear = 1;
+
+			tSysInfo.tSetChgPwr.usMPPT = tSysInfo.tSetChgPwr.usMPPT * 0.5f;
+		}
 		else
-			tSysInfo.tSetChgPwr.usMPPT = tAppMemParam.tMPPT.usInPwrRating / 10;
+		{
+			if(tDcac.sMaxTemp > 70)
+				uc_temp_gear = 2;
+			else if(tDcac.sMaxTemp > 65)
+				uc_temp_gear = 1;
+
+			tSysInfo.tSetChgPwr.usMPPT = tSysInfo.tSetChgPwr.usMPPT;
+		}
+
+
+
+		tSysInfo.tSetChgPwr.usMPPT = MIN3(us_bms_perm,
+			tAppMemParam.tMPPT.usInPwrRating / 10,
+			tSysInfo.tSetChgPwr.usMPPT);
 	}
 	#endif  //boardMPPT_EN
-	
-	//ÉèÖÃDCAC³äµç¹¦ÂÊ
+
+	//è®¾ç½®DCACå……ç”µåŠŸç‡ (DCACç®¡ç†PV+ACæ€»åŠŸç‡, å›ºä»¶è‡ªåŠ¨è¡¥å¿MPPTå®é™…è¾“å‡º)
 	#if(boardDCAC_EN)
-	if(tDcac.uPerm.tPerm.bChgPerm == true && 
+	if(tDcac.uPerm.tPerm.bChgPerm == true &&
 		tDcac.eChgState >= IOS_STARTING)
 	{
-		if(ucBms_GetSoc() >= 98)
-			tSysInfo.tSetChgPwr.usDCAC = sysCHG_PWR_LEVEL1;
-		else if(ucBms_GetSoc() <=2 || ucBms_GetSoc() >= 90)
-			tSysInfo.tSetChgPwr.usDCAC = sysCHG_PWR_LEVEL2;
-		else
-			tSysInfo.tSetChgPwr.usDCAC = tAppMemParam.tDCAC.usInPwrRating;
+		tSysInfo.tSetChgPwr.usDCAC = MIN2(us_bms_perm,
+										tAppMemParam.tDCAC.usInPwrRating);
 	}
 	#endif  //boardDCAC_EN
 

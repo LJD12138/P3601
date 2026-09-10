@@ -1,6 +1,6 @@
 /*****************************************************************************************************************
 *                                                                                                                *
- *                                         ÏµÍ³µÄ¶ÓÁĞº¯Êı                                                  		*
+ *                                         ç³»ç»Ÿçš„é˜Ÿåˆ—å‡½æ•°                                                  		*
 *                                                                                                                *
 ******************************************************************************************************************/
 #include "Usb/usb_queue_task.h"
@@ -22,11 +22,11 @@ static s8 c_usb_info_init(void);
 
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ÈÎÎñº¯Êı:³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    ä»»åŠ¡å‡½æ•°:åˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
 void v_usb_queue_task_init(Task_T *tp_task)
 {
@@ -38,11 +38,11 @@ void v_usb_queue_task_init(Task_T *tp_task)
         {
 			bUsb_SetDevState(DS_INIT);
 
-			//µÈ´ı»ñÈ¡APPĞÅÏ¢
+			//ç­‰å¾…è·å–APPä¿¡æ¯
 			if(tSysInfo.uInit.tFinish.bIF_AppInfo == false)
 				break;
 
-			cQueue_GotoStep(tp_task, STEP_NEXT);  	//ÏÂÒ»²½
+			cQueue_GotoStep(tp_task, STEP_NEXT);  	//ä¸‹ä¸€æ­¥
         }
 		break;
 
@@ -53,7 +53,7 @@ void v_usb_queue_task_init(Task_T *tp_task)
 			if(c_ret > 0)
 			{
 				if((uPrint.tFlag.bUsbTask || uPrint.tFlag.bImportant) && b_ret == false)
-					log_w("bUsbTask:tUSB»ñÈ¡´íÎóÇå³ı");
+					log_w("bUsbTask:tUSBè·å–é”™è¯¯æ¸…é™¤");
 				
 				b_ret = true;
 			}
@@ -61,13 +61,13 @@ void v_usb_queue_task_init(Task_T *tp_task)
 			{
 				if((uPrint.tFlag.bUsbTask || uPrint.tFlag.bImportant) && b_ret == true)
 				{
-					log_w("bUsbTask:tUSB³õÊ¼»¯Ê§°Ü ´úÂë%d",c_ret);
+					log_w("bUsbTask:tUSBåˆå§‹åŒ–å¤±è´¥ ä»£ç %d",c_ret);
 					b_ret = false;
 				}
 				break;
 			}
 
-			cQueue_GotoStep(tp_task, STEP_NEXT);  	//ÏÂÒ»²½
+			cQueue_GotoStep(tp_task, STEP_NEXT);  	//ä¸‹ä¸€æ­¥
         }
 		break;
 	
@@ -75,23 +75,23 @@ void v_usb_queue_task_init(Task_T *tp_task)
 		{
 			tSysInfo.uInit.tFinish.bIF_UsbTask = true;
 			bUsb_SetDevState(DS_SHUT_DOWN);
-			cQueue_GotoStep(tp_task, STEP_END);  //½áÊø
+			cQueue_GotoStep(tp_task, STEP_END);  //ç»“æŸ
 		}
 		break;
 			
 		default:
-			cQueue_GotoStep(tp_task, STEP_END);  //½áÊø
+			cQueue_GotoStep(tp_task, STEP_END);  //ç»“æŸ
 			break;
     }
 	
-	//µÈ´ı³¬Ê±
+	//ç­‰å¾…è¶…æ—¶
 	tp_task->usTaskWaitCnt++;
 	if(tp_task->usTaskWaitCnt > (3000 / usbTASK_INIT_CYCLE_TIME)) 
 	{
 		if(uPrint.tFlag.bUsbTask)
-			log_w("bUsbTask:³õÊ¼»¯ÈÎÎñµÈ´ı³¬Ê±");
+			log_w("bUsbTask:åˆå§‹åŒ–ä»»åŠ¡ç­‰å¾…è¶…æ—¶");
 		
-		cQueue_GotoStep(tp_task, STEP_END);  //½áÊø
+		cQueue_GotoStep(tp_task, STEP_END);  //ç»“æŸ
 	}
 	
 	#if(boardUSE_OS)
@@ -100,13 +100,13 @@ void v_usb_queue_task_init(Task_T *tp_task)
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ	»ñÈ¡ĞÅÏ¢
------ËµÃ÷(±¸×¢)	none
------´«Èë²ÎÊı	none
------Êä³ö²ÎÊı	none
------·µ»ØÖµ		Ğ¡ÓÚ0:Ê§°Ü	
-				0:Î´Íê³É
-				´óÓÚ0:Íê³É
+-----å‡½æ•°åŠŸèƒ½	è·å–ä¿¡æ¯
+-----è¯´æ˜(å¤‡æ³¨)	none
+-----ä¼ å…¥å‚æ•°	none
+-----è¾“å‡ºå‚æ•°	none
+-----è¿”å›å€¼		å°äº0:å¤±è´¥	
+				0:æœªå®Œæˆ
+				å¤§äº0:å®Œæˆ
 ******************************************************************************************************************/
 static s8 c_usb_info_init(void)
 {
@@ -114,30 +114,31 @@ static s8 c_usb_info_init(void)
 	const char* p_obj_str = tUsbMemParamStr;
 	static bool b_ret = true;
 	
-	//ÒÑ¾­³õÊ¼»¯
+	//å·²ç»åˆå§‹åŒ–
 	if(tSysInfo.uInit.tFinish.bIF_SysInit == true)
 	{
 		ret = cApp_GetMemParam(p_obj_str);
-		if(ret > 0)//³É¹¦
+		if(ret > 0)//æˆåŠŸ
 			return 1;
 
 		if((uPrint.tFlag.bUsbTask || uPrint.tFlag.bImportant) && b_ret == true)
 		{
-			log_e("bUsbTask:µ±Ç°ÏµÍ³ÒÑ¾­³õÊ¼»¯Íê³É,µ«ÊÇtUSB¶ÁÈ¡ÒÀ¾ÉÎª¿Õ,×¼±¸ÖØÖÃ");
+			log_e("bUsbTask:å½“å‰ç³»ç»Ÿå·²ç»åˆå§‹åŒ–å®Œæˆ,ä½†æ˜¯tUSBè¯»å–ä¾æ—§ä¸ºç©º,å‡†å¤‡é‡ç½®");
 			b_ret = false;
 		}	
 	}
 	
-	//ÖØĞÂ³õÊ¼»¯
+	//é‡æ–°åˆå§‹åŒ–
 	ret = cApp_MemParamInit(p_obj_str);
-	if(ret <= 0)//Ê§°Ü
+	if(ret <= 0)//å¤±è´¥
 		return -1;
 	
-	ret = cApp_UpdataMemParam(p_obj_str);
-	if(ret <= 0)//Ê§°Ü
+	ret = cApp_UpdateMemParam(p_obj_str);
+	if(ret <= 0)//å¤±è´¥
 		return -2;
 	
 	b_ret = true;
 	return 2;
 }
 #endif  //boardUSB_EN
+

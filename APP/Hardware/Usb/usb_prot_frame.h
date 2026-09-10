@@ -5,8 +5,8 @@
 
 #if(boardUSB_EN)
 #include "main.h"
+#include "i2c.h"
 // #include "Modbus/modbus_proto.h"
-
 
 // extern			ModbusProtoTx_t 						*tpUsbProtoTx;
 // extern 			ModbusProtoRx_t 						*tpUsbProtoRx;

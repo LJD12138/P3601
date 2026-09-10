@@ -1,6 +1,6 @@
 /*****************************************************************************************************************
 *                                                                                                                *
- *                                         Ğ­Òé½âÎö¹¹Ôì                                                         *
+ *                                         åè®®è§£ææ„é€                                                          *
 *                                                                                                                *
 ******************************************************************************************************************/
 #include "Modbus/modbus_proto.h"
@@ -13,34 +13,39 @@
 #include "task.h"
 #endif
 
-//****************************************************¾Ö²¿ºê¶¨Òå**************************************************//
+//****************************************************å±€éƒ¨å®å®šä¹‰**************************************************//
 
 
-//****************************************************²ÎÊı³õÊ¼»¯**************************************************//
-const u8 ucaModbusCmdBuff[5] = {modbusWRITE_MULTI_REG, 
+//****************************************************å‚æ•°åˆå§‹åŒ–**************************************************//
+static const u8 ucaModbusCmdBuff[5] = {modbusWRITE_MULTI_REG, 
 								modbusWRITE_SINGLE_REG,
 								modbusREAD_MULTI_REG,
 								modbusREAD_MULTI_BIT,
 								modbusWRITE_SINGLE_BIT};
 
-//****************************************************º¯ÊıÉùÃ÷****************************************************//
-bool b_modbus_jump_step(ModbusProtoRx_t* proto, ModbusRxStep_E step);
-s8 c_check_cmd_exist(u8 cmd);
-s8 c_proto_decrypt(ModbusProtoRx_t* proto);
+//****************************************************å‡½æ•°å£°æ˜****************************************************//
+static bool b_modbus_jump_step(ModbusProtoRx_t* proto, ModbusRxStep_E step);
+static s8 c_check_cmd_exist(u8 cmd);
+static s8 c_proto_decrypt(ModbusProtoRx_t* proto);
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ	½ÓÊÜĞ­Òé³õÊ¼»¯
------ËµÃ÷(±¸×¢)	none
------´«Èë²ÎÊı	proto:½ÓÊÜĞ­Òé½á¹¹Ìå
-				buff_len::Ğ­Òé»º´æÆ÷´óĞ¡
-				dev_addr:Éè±¸µØÖ·
-				cycle_time:Ğ­ÒéÑ­»·Ê±»ù
------Êä³ö²ÎÊı	none
------·µ»ØÖµ		Ğ¡ÓÚ0:²Ù×÷Ê§°Ü   µÈÓÚ0:Ã»²Ù×÷    ´óÓÚ0:²Ù×÷³É¹¦
+-----å‡½æ•°åŠŸèƒ½	æ¥å—åè®®åˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)	none
+-----ä¼ å…¥å‚æ•°	proto:æ¥å—åè®®ç»“æ„ä½“
+				buff_len::åè®®ç¼“å­˜å™¨å¤§å°
+				dev_addr:è®¾å¤‡åœ°å€
+				cycle_time:åè®®å¾ªç¯æ—¶åŸº
+-----è¾“å‡ºå‚æ•°	none
+-----è¿”å›å€¼		å°äº0:æ“ä½œå¤±è´¥   ç­‰äº0:æ²¡æ“ä½œ    å¤§äº0:æ“ä½œæˆåŠŸ
 ******************************************************************************************************************/
 s8 cModbus_RecProtoInit(ModbusProtoRx_t** proto, u16 buff_len, u8 dev_addr, u16 cycle_time)
 {
 	s8 result = 1;
+	ModbusProtoRx_t* new_proto = NULL;
+	u8* frame_data = NULL;
+	
+	if(proto == NULL)
+		return -3;
 	
 	if(buff_len < 6) 
 		return -1;
@@ -51,23 +56,29 @@ s8 cModbus_RecProtoInit(ModbusProtoRx_t** proto, u16 buff_len, u8 dev_addr, u16 
 	
 //	sMyPrint("Free Heap: %u\n", xPortGetFreeHeapSize());
 	
-	// ¶¯Ì¬·ÖÅäÄÚ´æ
+	// åŠ¨æ€åˆ†é…å†…å­˜
     size_t total_size = sizeof(ModbusProtoRx_t) + buff_len;
 	#if(boardUSE_OS)
-	*proto = (ModbusProtoRx_t*)pvPortMalloc(total_size);
-	(*proto)->ucpFrameData = (u8*)pvPortMalloc(buff_len);
+	new_proto = (ModbusProtoRx_t*)pvPortMalloc(total_size);
+	if(new_proto != NULL)
+		frame_data = (u8*)pvPortMalloc(buff_len);
 	#else
-	*proto = (ModbusProtoRx_t*)malloc(total_size);
-	(*proto)->ucpFrameData = (u8*)malloc(buff_len);
+	new_proto = (ModbusProtoRx_t*)malloc(total_size);
+	if(new_proto != NULL)
+		frame_data = (u8*)malloc(buff_len);
 	#endif
     
-	
-	if(*proto != NULL && (*proto)->ucpFrameData != NULL)
+	if(new_proto != NULL && frame_data != NULL)
 	{
+		*proto = new_proto;
+		(*proto)->ucpFrameData = frame_data;
+		(*proto)->usFrameDataSize = buff_len;
 		(*proto)->ucAddr = dev_addr;
 		(*proto)->usTaskCycleTime = cycle_time;
 		(*proto)->usRecOverTimeCnt = 0;
 		(*proto)->usLostOverTimeCnt = 0;
+		(*proto)->ucpValidData = NULL;
+		(*proto)->ucValidLen = 0;
 		
 		lwrb_init(&(*proto)->tRxBuff, (*proto)->ucaData, buff_len);
 		lwrb_reset(&(*proto)->tRxBuff);
@@ -77,12 +88,17 @@ s8 cModbus_RecProtoInit(ModbusProtoRx_t** proto, u16 buff_len, u8 dev_addr, u16 
 	else 
 	{
 		#if(boardUSE_OS)
-		vPortFree((*proto)->ucpFrameData);  //ÏÈÊÍ·Å×ÓÄÚ´æ,Òª²»»áµ¼ÖÂ±ÀÀ£
-		vPortFree((*proto));
+		if(frame_data != NULL)
+			vPortFree(frame_data);
+		if(new_proto != NULL)
+			vPortFree(new_proto);
 		#else
-		free((*proto)->ucpFrameData);  //ÏÈÊÍ·Å×ÓÄÚ´æ,Òª²»»áµ¼ÖÂ±ÀÀ£
-		free((*proto));
+		if(frame_data != NULL)
+			free(frame_data);
+		if(new_proto != NULL)
+			free(new_proto);
 		#endif
+		*proto = NULL;
 		result =  -2;
 	}
 	#if(boardUSE_OS)
@@ -93,17 +109,21 @@ s8 cModbus_RecProtoInit(ModbusProtoRx_t** proto, u16 buff_len, u8 dev_addr, u16 
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ	·¢ËÍĞ­Òé³õÊ¼»¯
------ËµÃ÷(±¸×¢)	none
------´«Èë²ÎÊı	proto:½ÓÊÜĞ­Òé½á¹¹Ìå
-				buff_len::Ğ­Òé»º´æÆ÷´óĞ¡
-				dev_addr:Éè±¸µØÖ·
------Êä³ö²ÎÊı	none
------·µ»ØÖµ		Ğ¡ÓÚ0:²Ù×÷Ê§°Ü   µÈÓÚ0:Ã»²Ù×÷    ´óÓÚ0:²Ù×÷³É¹¦
+-----å‡½æ•°åŠŸèƒ½	å‘é€åè®®åˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)	none
+-----ä¼ å…¥å‚æ•°	proto:æ¥å—åè®®ç»“æ„ä½“
+				buff_len::åè®®ç¼“å­˜å™¨å¤§å°
+				dev_addr:è®¾å¤‡åœ°å€
+-----è¾“å‡ºå‚æ•°	none
+-----è¿”å›å€¼		å°äº0:æ“ä½œå¤±è´¥   ç­‰äº0:æ²¡æ“ä½œ    å¤§äº0:æ“ä½œæˆåŠŸ
 ******************************************************************************************************************/
 s8 cModbus_TransProtoInit(ModbusProtoTx_t** proto, u16 buff_len, u8 dev_addr)
 {
 	s8 result = 1;
+	ModbusProtoTx_t* new_proto = NULL;
+	
+	if(proto == NULL)
+		return -3;
 	
 	if(buff_len < 6) 
 		return -1;
@@ -111,23 +131,29 @@ s8 cModbus_TransProtoInit(ModbusProtoTx_t** proto, u16 buff_len, u8 dev_addr)
 	#if(boardUSE_OS)
 	taskENTER_CRITICAL();
 	#endif
-	// ¶¯Ì¬·ÖÅäÄÚ´æ
+	// åŠ¨æ€åˆ†é…å†…å­˜
 	size_t total_size = sizeof(ModbusProtoTx_t) + buff_len;
 	#if(boardUSE_OS)
-    *proto = (ModbusProtoTx_t*)pvPortMalloc(total_size);
+    new_proto = (ModbusProtoTx_t*)pvPortMalloc(total_size);
 	#else
-    *proto = (ModbusProtoTx_t*)malloc(total_size);
+    new_proto = (ModbusProtoTx_t*)malloc(total_size);
 	#endif
 	
-	(*proto)->ucAddr = dev_addr;
-	
-	if(*proto == NULL)
+	if(new_proto != NULL)
 	{
-		#if(boardUSE_OS)
-		vPortFree((*proto));
-		#else
-		free((*proto));
-		#endif
+		*proto = new_proto;
+		(*proto)->ucAddr = dev_addr;
+		(*proto)->usFrameDataSize = buff_len;
+		(*proto)->ucCharLen = 0;
+		(*proto)->ucFrameLen = 0;
+		(*proto)->usRegSize = 0;
+		(*proto)->usRegAddr = 0;
+		(*proto)->usRegData = 0;
+		memset((*proto)->ucaFrameData, 0, buff_len);
+	}
+	else
+	{
+		*proto = NULL;
 		result =  -2;
 	}
 	#if(boardUSE_OS)
@@ -138,9 +164,9 @@ s8 cModbus_TransProtoInit(ModbusProtoTx_t** proto, u16 buff_len, u8 dev_addr)
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ	¹¹ÔìĞ­Òé
------ËµÃ÷(±¸×¢)	none
------´«Èë²ÎÊı	FrameInfĞ­ÒéµÄ½á¹¹Ìå
+-----å‡½æ•°åŠŸèƒ½	æ„é€ åè®®
+-----è¯´æ˜(å¤‡æ³¨)	none
+-----ä¼ å…¥å‚æ•°	FrameInfåè®®çš„ç»“æ„ä½“
 				[0]:Header
 				[1]:Addr
 				[2]:Len = Cmd~CheckSum;
@@ -149,25 +175,27 @@ s8 cModbus_TransProtoInit(ModbusProtoTx_t** proto, u16 buff_len, u8 dev_addr)
 				[5]:data
 				[5+n]:payload data
 				[6+n]:CheckSum
------Êä³ö²ÎÊı	none
------·µ»ØÖµ		Ğ¡ÓÚ0:²Ù×÷Ê§°Ü   µÈÓÚ0:Ã»²Ù×÷    ´óÓÚ0:²Ù×÷³É¹¦
+-----è¾“å‡ºå‚æ•°	none
+-----è¿”å›å€¼		å°äº0:æ“ä½œå¤±è´¥   ç­‰äº0:æ²¡æ“ä½œ    å¤§äº0:æ“ä½œæˆåŠŸ
 ******************************************************************************************************************/
 s8 cModbus_ProtoCreate(ModbusProtoTx_t* proto, u8 cmd, u16 reg_addr, u8* data, u16 len)
 {
 	s8 result = 1;
 	u8 uc_char_len = 0;
-	u16 us_total_len = 0;  //²»°üº¬Ğ£Ñé
+	u16 us_total_len = 0;  //ä¸åŒ…å«æ ¡éªŒ
+	u16 us_total_frame_len = 0;
 	u16 us_tx_crc = 0;
-	
-	//×Ü³¤¶È²»¿ÉÒÔ³¬¹ı256(250+6)
-    if(len > 250)   
-        return -1;
 	
 	if(proto == NULL)
 		return -2;
 	
 	if(c_check_cmd_exist(cmd) <= 0)
 		return -3;
+	
+	if((cmd == modbusWRITE_MULTI_REG && len > 123) ||
+	   (cmd == modbusREAD_MULTI_REG && len > 125) ||
+	   (cmd == modbusREAD_MULTI_BIT && len > 2000))
+		return -1;
 	
 	switch(cmd)
 	{
@@ -178,7 +206,7 @@ s8 cModbus_ProtoCreate(ModbusProtoTx_t* proto, u8 cmd, u16 reg_addr, u8* data, u
 			
 			uc_char_len = len * 2;
 			
-			//×é½¨Êı¾İÖ¡
+			//ç»„å»ºæ•°æ®å¸§
 			proto->ucaFrameData[0] = proto->ucAddr;
 			proto->ucaFrameData[1] = cmd;
 			proto->ucaFrameData[2] = reg_addr >> 8;
@@ -203,7 +231,7 @@ s8 cModbus_ProtoCreate(ModbusProtoTx_t* proto, u8 cmd, u16 reg_addr, u8* data, u
 			
 			uc_char_len = len * 2;
 			
-			//×é½¨Êı¾İÖ¡
+			//ç»„å»ºæ•°æ®å¸§
 			proto->ucaFrameData[0] = proto->ucAddr;
 			proto->ucaFrameData[1] = cmd;
 			proto->ucaFrameData[2] = reg_addr >> 8;
@@ -223,7 +251,7 @@ s8 cModbus_ProtoCreate(ModbusProtoTx_t* proto, u8 cmd, u16 reg_addr, u8* data, u
 			if(len == 0)
 				return -4;
 			
-			//×é½¨Êı¾İÖ¡
+			//ç»„å»ºæ•°æ®å¸§
 			proto->ucaFrameData[0] = proto->ucAddr;
 			proto->ucaFrameData[1] = cmd;
 			proto->ucaFrameData[2] = reg_addr >> 8;
@@ -234,7 +262,7 @@ s8 cModbus_ProtoCreate(ModbusProtoTx_t* proto, u8 cmd, u16 reg_addr, u8* data, u
 			us_total_len = 6;
 			
 			proto->usRegAddr = reg_addr;
-			proto->ucCharLen = len / 8;
+			proto->ucCharLen = (len + 7) / 8;
 		}
 		break;
 		
@@ -245,7 +273,7 @@ s8 cModbus_ProtoCreate(ModbusProtoTx_t* proto, u8 cmd, u16 reg_addr, u8* data, u
 			
 			uc_char_len = len * 2;
 			
-			//×é½¨Êı¾İÖ¡
+			//ç»„å»ºæ•°æ®å¸§
 			proto->ucaFrameData[0] = proto->ucAddr;
 			proto->ucaFrameData[1] = cmd;
 			proto->ucaFrameData[2] = reg_addr >> 8;
@@ -265,7 +293,7 @@ s8 cModbus_ProtoCreate(ModbusProtoTx_t* proto, u8 cmd, u16 reg_addr, u8* data, u
 			if(len == 0)
 				return -4;
 			
-			//×é½¨Êı¾İÖ¡
+			//ç»„å»ºæ•°æ®å¸§
 			proto->ucaFrameData[0] = proto->ucAddr;
 			proto->ucaFrameData[1] = cmd;
 			proto->ucaFrameData[2] = reg_addr >> 8;
@@ -284,24 +312,28 @@ s8 cModbus_ProtoCreate(ModbusProtoTx_t* proto, u8 cmd, u16 reg_addr, u8* data, u
 			return -4;
 	}
 	
-	//¼ÆËãÊı¾İÖ¡CRCÂë
+	us_total_frame_len = us_total_len + 2;
+	if(proto->usFrameDataSize != 0 && us_total_frame_len > proto->usFrameDataSize)
+		return -5;
+	
+	//è®¡ç®—æ•°æ®å¸§CRCç 
 	us_tx_crc = usCheck_CRC16(proto->ucaFrameData, us_total_len);
 	
 	proto->ucaFrameData[us_total_len] = us_tx_crc & 0x00ff;
 	proto->ucaFrameData[us_total_len + 1] = us_tx_crc >> 8;
 	
-	proto->ucFrameLen = us_total_len + 2;
+	proto->ucFrameLen = us_total_frame_len;
 	
     return result;
 }
 
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ½âÎöĞ­Òé
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    FrameInfĞ­ÒéµÄ½á¹¹Ìå
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      Ğ¡ÓÚ0:²Ù×÷Ê§°Ü   µÈÓÚ0:Ã»²Ù×÷    ´óÓÚ0:²Ù×÷³É¹¦
+-----å‡½æ•°åŠŸèƒ½    è§£æåè®®
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    FrameInfåè®®çš„ç»“æ„ä½“
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      å°äº0:æ“ä½œå¤±è´¥   ç­‰äº0:æ²¡æ“ä½œ    å¤§äº0:æ“ä½œæˆåŠŸ
 ******************************************************************************************************************/
 s8 cModbus_ProtoCheck(ModbusProtoRx_t* proto)
 {
@@ -314,7 +346,7 @@ s8 cModbus_ProtoCheck(ModbusProtoRx_t* proto)
 	
 	switch(proto->eStep)
 	{
-		case MRS_ADDR:  //µØÖ·
+		case MRS_ADDR:  //åœ°å€
 		{
 			if(lwrb_get_full(&proto->tRxBuff) < proto->ucWaitRecLen)
 				return 0;
@@ -325,7 +357,7 @@ s8 cModbus_ProtoCheck(ModbusProtoRx_t* proto)
 			{
 				c_result = c_check_cmd_exist(temp[1]);
 				
-				//Æ¥¶Ô³É¹¦
+				//åŒ¹å¯¹æˆåŠŸ
 				if(temp[0] == proto->ucAddr && c_result != 0)
 				{
 					proto->ucAddr = temp[0];
@@ -333,17 +365,18 @@ s8 cModbus_ProtoCheck(ModbusProtoRx_t* proto)
 					
 					memcpy(proto->ucpFrameData, temp, 2);
 					
-					//¹ÊÕÏÂë
+					//æ•…éšœç 
 					if(c_result < 0)
 					{
+						proto->ucWaitRecLen = 3;
 						b_modbus_jump_step(proto, MRS_ERR);
 						return 0;
 					}
 					else if(proto->ucCmd == modbusWRITE_MULTI_REG)
 						proto->ucWaitRecLen = sizeof(proto->usRegAddr) + sizeof(proto->usRegSize);
-					else if(proto->ucCmd == modbusREAD_MULTI_REG)
+					else if(proto->ucCmd == modbusREAD_MULTI_REG || proto->ucCmd == modbusREAD_MULTI_BIT)
 						proto->ucWaitRecLen = sizeof(proto->ucCharLen);
-					else if(proto->ucCmd == modbusWRITE_SINGLE_REG)
+					else if(proto->ucCmd == modbusWRITE_SINGLE_REG || proto->ucCmd == modbusWRITE_SINGLE_BIT)
 						proto->ucWaitRecLen = sizeof(proto->usRegAddr);
 					else
 						proto->ucWaitRecLen = 2;
@@ -353,29 +386,29 @@ s8 cModbus_ProtoCheck(ModbusProtoRx_t* proto)
 				}
 				else 
 				{
-					//»º´æÇøÎª¿ÕÔòÍË³öÑ­»·
+					//ç¼“å­˜åŒºä¸ºç©ºåˆ™é€€å‡ºå¾ªç¯
 					if(lwrb_get_full(&proto->tRxBuff) == 0)
 						break;
 					
 					temp[0] = temp[1];
 					lwrb_read(&proto->tRxBuff, &temp[1], 1);
 					
-					//³¬Ê±ÍË³ö
+					//è¶…æ—¶é€€å‡º
 					delay_cnt--;
 					if(delay_cnt == 0)
 						return -3;
 				}
 			}
-			//Òıµ¼Âë¿ÉÄÜ¶ªÊ§
+			//å¼•å¯¼ç å¯èƒ½ä¸¢å¤±
 			if(proto->eStep == MRS_ADDR)
 				return -4;
 		}
 
-		case MRS_LEN: //µÈ´ı½ÓÊÕ³¤¶È
+		case MRS_LEN: //ç­‰å¾…æ¥æ”¶é•¿åº¦
 		{
 			if(lwrb_get_full(&proto->tRxBuff) >= proto->ucWaitRecLen)
 			{
-				//È¡³ö³¤¶È
+				//å–å‡ºé•¿åº¦
 				if(proto->ucCmd == modbusWRITE_MULTI_REG)
 				{
 					lwrb_read(&proto->tRxBuff, temp, 4);
@@ -387,17 +420,22 @@ s8 cModbus_ProtoCheck(ModbusProtoRx_t* proto)
 					
 					proto->ucWaitRecLen = 2;
 				}
-				else if(proto->ucCmd == modbusREAD_MULTI_REG)
+				else if(proto->ucCmd == modbusREAD_MULTI_REG || proto->ucCmd == modbusREAD_MULTI_BIT)
 				{
 					lwrb_read(&proto->tRxBuff, temp, 1);
 					
 					proto->ucCharLen = temp[0];
+					if(((u16)proto->ucCharLen + 5) > proto->usFrameDataSize)
+					{
+						b_modbus_jump_step(proto, MRS_ADDR);
+						return -5;
+					}
 					
 					memcpy(&proto->ucpFrameData[2], temp, 1);
 					
 					proto->ucWaitRecLen = proto->ucCharLen + 2;
 				}
-				else if(proto->ucCmd == modbusWRITE_SINGLE_REG)
+				else if(proto->ucCmd == modbusWRITE_SINGLE_REG || proto->ucCmd == modbusWRITE_SINGLE_BIT)
 				{
 					lwrb_read(&proto->tRxBuff, temp, 2);
 	
@@ -405,7 +443,7 @@ s8 cModbus_ProtoCheck(ModbusProtoRx_t* proto)
 					
 					memcpy(&proto->ucpFrameData[2], temp, 2);
 					
-					proto->ucWaitRecLen = 2;
+					proto->ucWaitRecLen = sizeof(u16) + 2;
 				}
 				else
 					proto->ucWaitRecLen = 2;
@@ -416,39 +454,52 @@ s8 cModbus_ProtoCheck(ModbusProtoRx_t* proto)
 				break;
 		}
 		
-		case MRS_END: //½áÊø
+		case MRS_END: //ç»“æŸ
 		{
 			if(lwrb_get_full(&proto->tRxBuff) >= proto->ucWaitRecLen)
 			{
-				if(c_proto_decrypt(proto) <= 0)
-					return -2;  //Ğ£Ñé³ö´í
+				c_result = c_proto_decrypt(proto);
+				if(c_result <= 0)
+				{
+					b_modbus_jump_step(proto, MRS_ADDR);
+					return (-10 + c_result);  //æ ¡éªŒå‡ºé”™
+				}
 				
-				c_result = 1;
 				b_modbus_jump_step(proto, MRS_ADDR);
+				return 1;
 			}
 		}
 		break;
 		
-		case MRS_ERR: //´íÎó
+		case MRS_ERR: //é”™è¯¯
 		{
-			c_result = 1;
+			if(lwrb_get_full(&proto->tRxBuff) < proto->ucWaitRecLen)
+				break;
+			
+			c_result = c_proto_decrypt(proto);
+			if(c_result <= 0)
+			{
+				b_modbus_jump_step(proto, MRS_ADDR);
+				return (-20 + c_result);
+			}
+			
 			b_modbus_jump_step(proto, MRS_ADDR);
+			return -29;
 		}
-		break;
 		
 		default:
 			b_modbus_jump_step(proto, MRS_ADDR);
 		break; 
 	}
-	return c_result;
+	return 0;
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ½âÎöĞ­Òé
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    FrameInfĞ­ÒéµÄ½á¹¹Ìå
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      Ğ¡ÓÚ0:²Ù×÷Ê§°Ü   µÈÓÚ0:Ã»²Ù×÷    ´óÓÚ0:²Ù×÷³É¹¦
+-----å‡½æ•°åŠŸèƒ½    è§£æåè®®
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    FrameInfåè®®çš„ç»“æ„ä½“
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      å°äº0:æ“ä½œå¤±è´¥   ç­‰äº0:æ²¡æ“ä½œ    å¤§äº0:æ“ä½œæˆåŠŸ
 ******************************************************************************************************************/
 s8 cModbus_StepWaitOutTime(ModbusProtoRx_t* proto)
 {
@@ -461,11 +512,11 @@ s8 cModbus_StepWaitOutTime(ModbusProtoRx_t* proto)
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ÖØÖÃ½ÓÊÜĞ­ÒéBUFF
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    FrameInfĞ­ÒéµÄ½á¹¹Ìå
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      Ğ¡ÓÚ0:²Ù×÷Ê§°Ü   µÈÓÚ0:Ã»²Ù×÷    ´óÓÚ0:²Ù×÷³É¹¦
+-----å‡½æ•°åŠŸèƒ½    é‡ç½®æ¥å—åè®®BUFF
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    FrameInfåè®®çš„ç»“æ„ä½“
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      å°äº0:æ“ä½œå¤±è´¥   ç­‰äº0:æ²¡æ“ä½œ    å¤§äº0:æ“ä½œæˆåŠŸ
 ******************************************************************************************************************/
 s8 cModbus_ResetRxBuff(ModbusProtoRx_t* proto)
 {
@@ -473,6 +524,7 @@ s8 cModbus_ResetRxBuff(ModbusProtoRx_t* proto)
 		return -1;
 	
 	lwrb_reset(&proto->tRxBuff);
+	vModbus_RecEnd(proto);
 	b_modbus_jump_step(proto, MRS_ADDR);
 	
 	return 1;
@@ -480,28 +532,33 @@ s8 cModbus_ResetRxBuff(ModbusProtoRx_t* proto)
 
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ÖØÖÃ·¢ËÍĞ­ÒéBUFF
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    FrameInfĞ­ÒéµÄ½á¹¹Ìå
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      Ğ¡ÓÚ0:²Ù×÷Ê§°Ü   µÈÓÚ0:Ã»²Ù×÷    ´óÓÚ0:²Ù×÷³É¹¦
+-----å‡½æ•°åŠŸèƒ½    é‡ç½®å‘é€åè®®BUFF
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    FrameInfåè®®çš„ç»“æ„ä½“
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      å°äº0:æ“ä½œå¤±è´¥   ç­‰äº0:æ²¡æ“ä½œ    å¤§äº0:æ“ä½œæˆåŠŸ
 ******************************************************************************************************************/
 s8 cModbus_ResetTx(ModbusProtoTx_t* proto, u16 len)
 {
 	if(proto == NULL)
 		return -1;
 	
-	memset(&proto[1], 0, len - 1);
+	proto->ucCharLen = 0;
+	proto->ucFrameLen = 0;
+	proto->usRegSize = 0;
+	proto->usRegAddr = 0;
+	proto->usRegData = 0;
+	memset(proto->ucaFrameData, 0, len);
 	
 	return 1;
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ÖØÖÃ½ÓÊÜĞ­ÒéBUFF
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    FrameInfĞ­ÒéµÄ½á¹¹Ìå
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      Ğ¡ÓÚ0:²Ù×÷Ê§°Ü   µÈÓÚ0:Ã»²Ù×÷    ´óÓÚ0:²Ù×÷³É¹¦
+-----å‡½æ•°åŠŸèƒ½    é‡ç½®æ¥å—åè®®BUFF
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    FrameInfåè®®çš„ç»“æ„ä½“
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      å°äº0:æ“ä½œå¤±è´¥   ç­‰äº0:æ²¡æ“ä½œ    å¤§äº0:æ“ä½œæˆåŠŸ
 ******************************************************************************************************************/
 void vModbus_RecEnd(ModbusProtoRx_t* proto)
 {
@@ -512,39 +569,46 @@ void vModbus_RecEnd(ModbusProtoRx_t* proto)
 	proto->usRegSize = 0;
 	proto->usRegAddr = 0;
 	proto->ucValidLen = 0;
+	proto->ucpValidData = NULL;
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ½âÎöĞ­Òé
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    FrameInfĞ­ÒéµÄ½á¹¹Ìå
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      Ğ¡ÓÚ0:²Ù×÷Ê§°Ü   µÈÓÚ0:Ã»²Ù×÷    ´óÓÚ0:²Ù×÷³É¹¦
+-----å‡½æ•°åŠŸèƒ½    è§£æåè®®
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    FrameInfåè®®çš„ç»“æ„ä½“
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      å°äº0:æ“ä½œå¤±è´¥   ç­‰äº0:æ²¡æ“ä½œ    å¤§äº0:æ“ä½œæˆåŠŸ
 ******************************************************************************************************************/
-bool b_modbus_jump_step(ModbusProtoRx_t* proto, ModbusRxStep_E step)
+static bool b_modbus_jump_step(ModbusProtoRx_t* proto, ModbusRxStep_E step)
 {
 	if(proto == NULL)
 		return false;
 	
 	switch(step)
 	{
-		case MRS_ADDR:  //µØÖ·
+		case MRS_ADDR:  //åœ°å€
 		{
 			proto->ucWaitRecLen = sizeof(proto->ucAddr) + sizeof(proto->ucCmd);
 			proto->usRecOverTimeCnt = 0;
 		}
 		break;
 		
-		case MRS_LEN:  //Ö¸Áî
+		case MRS_LEN:  //æŒ‡ä»¤
 		{
 			proto->usRecOverTimeCnt = (2000/proto->usTaskCycleTime);
 		}
 		break;
 		
-		case MRS_END: //½áÊø
+		case MRS_END: //ç»“æŸ
 		{
 			proto->usRecOverTimeCnt = (1000/proto->usTaskCycleTime);
 			proto->usLostOverTimeCnt = (10000/proto->usTaskCycleTime);
+		}
+		break;
+		
+		case MRS_ERR: //é”™è¯¯
+		{
+			proto->usRecOverTimeCnt = (1000/proto->usTaskCycleTime);
 		}
 		break;
 		
@@ -560,15 +624,15 @@ bool b_modbus_jump_step(ModbusProtoRx_t* proto, ModbusRxStep_E step)
 
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ¼ì²éĞ­ÒéÊÇ·ñ´æÔÚ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    FrameInfĞ­ÒéµÄ½á¹¹Ìå
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      Ğ¡ÓÚ0:²Ù×÷Ê§°Ü   µÈÓÚ0:Ã»²Ù×÷    ´óÓÚ0:²Ù×÷³É¹¦
+-----å‡½æ•°åŠŸèƒ½    æ£€æŸ¥åè®®æ˜¯å¦å­˜åœ¨
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    FrameInfåè®®çš„ç»“æ„ä½“
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      å°äº0:æ“ä½œå¤±è´¥   ç­‰äº0:æ²¡æ“ä½œ    å¤§äº0:æ“ä½œæˆåŠŸ
 ******************************************************************************************************************/
-s8 c_check_cmd_exist(u8 cmd)
+static s8 c_check_cmd_exist(u8 cmd)
 {
-	//È¥³ı´íÎóbit
+	//å»é™¤é”™è¯¯bit
 	u8 temp_cmd = cmd & 0x7F;
 	
 	for(int i = 0; i < sizeof(ucaModbusCmdBuff); i++)
@@ -587,31 +651,43 @@ s8 c_check_cmd_exist(u8 cmd)
 
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ½âÎöĞ­Òé
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    FrameInfĞ­ÒéµÄ½á¹¹Ìå
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      Ğ¡ÓÚ0:²Ù×÷Ê§°Ü   µÈÓÚ0:Ã»²Ù×÷    ´óÓÚ0:²Ù×÷³É¹¦
+-----å‡½æ•°åŠŸèƒ½    è§£æåè®®
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    FrameInfåè®®çš„ç»“æ„ä½“
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      å°äº0:æ“ä½œå¤±è´¥   ç­‰äº0:æ²¡æ“ä½œ    å¤§äº0:æ“ä½œæˆåŠŸ
 ******************************************************************************************************************/
-s8 c_proto_decrypt(ModbusProtoRx_t* proto)
+static s8 c_proto_decrypt(ModbusProtoRx_t* proto)
 {
 	s8 result = 1;
 	u16 us_rx_crc = 0;
-	u16 us_total_len = 0;  //²»°üº¬Ğ£Ñé
+	u16 us_total_len = 0;  //ä¸åŒ…å«æ ¡éªŒ
+	u8 uc_cmd = 0;
 	
 	if(proto == NULL || proto->ucpFrameData == NULL)
 		return -1;
 	
-	switch(proto->ucCmd)
+	uc_cmd = proto->ucCmd & 0x7F;
+	if(uc_cmd != proto->ucCmd)
+	{
+		us_total_len = 3;
+		proto->ucCharLen = 1;
+		lwrb_read(&proto->tRxBuff, &proto->ucpFrameData[2], 1);
+		proto->ucpValidData = &proto->ucpFrameData[2];
+		proto->ucValidLen = 1;
+	}
+	else switch(uc_cmd)
 	{
 		case modbusWRITE_MULTI_REG:
 		{
 			us_total_len = 6;
 			proto->ucValidLen = 0;
+			proto->ucpValidData = NULL;
 		}
 		break;
 		
 		case modbusWRITE_SINGLE_REG:
+		case modbusWRITE_SINGLE_BIT:
 		{
 			us_total_len = 6;
 			proto->ucCharLen = 2;
@@ -623,6 +699,7 @@ s8 c_proto_decrypt(ModbusProtoRx_t* proto)
 		break;
 		
 		case modbusREAD_MULTI_REG:
+		case modbusREAD_MULTI_BIT:
 		{
 			us_total_len = 3 + proto->ucCharLen;
 			
@@ -631,19 +708,19 @@ s8 c_proto_decrypt(ModbusProtoRx_t* proto)
 			proto->ucValidLen = proto->ucCharLen;
 		}
 		break;
+		
+		default:
+			return -2;
 	}
 	
-	//È¡³öĞ£Ñé   
+	//å–å‡ºæ ¡éªŒ   
 	lwrb_read(&proto->tRxBuff, (u8*)&us_rx_crc, 2);
 	
-	u8 buff[50] = {0};
-	memcpy(buff, proto->ucpFrameData, us_total_len);
-	
-	//¼ÆËãĞ£ÑéÎ»
+	//è®¡ç®—æ ¡éªŒä½
 	u16 us_crc = usCheck_GetModbusCrc16(proto->ucpFrameData, us_total_len);
 	
 	if(us_rx_crc != us_crc)
-		return -2;
+		return -3;
 	
     return result;
 }

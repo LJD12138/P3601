@@ -10,13 +10,14 @@
       <TargetName>BOOT</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
+      <pArmCC>5060960::V5.06 update 7 (build 960)::.\ARMCC</pArmCC>
       <pCCUsed>5060960::V5.06 update 7 (build 960)::.\ARMCC</pCCUsed>
       <uAC6>0</uAC6>
       <TargetOption>
         <TargetCommonOption>
           <Device>GD32F303RE</Device>
           <Vendor>GigaDevice</Vendor>
-          <PackID>GigaDevice.GD32F30x_DFP.2.2.3</PackID>
+          <PackID>GigaDevice.GD32F30x_DFP.2.5.0</PackID>
           <PackURL>https://gd32mcu.com/data/documents/pack/</PackURL>
           <Cpu>IRAM(0x20000000,0x010000) IROM(0x08000000,0x080000) CPUTYPE("Cortex-M4") FPU2 CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
@@ -314,7 +315,7 @@
           </ArmAdsMisc>
           <Cads>
             <interw>1</interw>
-            <Optim>1</Optim>
+            <Optim>2</Optim>
             <oTime>0</oTime>
             <SplitLS>0</SplitLS>
             <OneElfS>1</OneElfS>
@@ -337,10 +338,10 @@
             <v6WtE>0</v6WtE>
             <v6Rtti>0</v6Rtti>
             <VariousControls>
-              <MiscControls></MiscControls>
+              <MiscControls>--no-multibyte-chars</MiscControls>
               <Define>USE_STDPERIPH_DRIVER,GD32F30X_HD</Define>
               <Undefine></Undefine>
-              <IncludePath>.\Firmware\CMSIS;.\Firmware\GD32F30x_standard_peripheral\Include;.\Firmware\CMSIS\GD\GD32F30x\Include;.\Application;.\ComFunc;.\Middlewares\SeggerRtt;.\Middlewares\LightweightRingBuffer\src;.\Middlewares\EasyFlash\inc;.\Middlewares\Protocol;.\Hardware</IncludePath>
+              <IncludePath>.\Firmware\CMSIS;.\Firmware\GD32F30x_standard_peripheral\Include;.\Firmware\CMSIS\GD\GD32F30x\Include;.\Application;.\ComFunc;.\Middlewares\SeggerRtt;.\Middlewares\LightweightRingBuffer\src;.\Middlewares\EasyFlash\inc;.\Middlewares\Protocol;.\Middlewares\MultiFuncKey;.\Hardware</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -649,6 +650,31 @@
               <FileType>5</FileType>
               <FilePath>.\Middlewares\Protocol\Baiku\baiku_proto.h</FilePath>
             </File>
+            <File>
+              <FileName>proto_update.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Middlewares\Protocol\proto_update.c</FilePath>
+            </File>
+            <File>
+              <FileName>proto_update.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Middlewares\Protocol\proto_update.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>MW-MultiFuncKey</GroupName>
+          <Files>
+            <File>
+              <FileName>mf_key.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Middlewares\MultiFuncKey\mf_key.c</FilePath>
+            </File>
+            <File>
+              <FileName>mf_key.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Middlewares\MultiFuncKey\mf_key.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -836,11 +862,6 @@
               <FilePath>.\Application\Sys\sys_queue_task_low_power.c</FilePath>
             </File>
             <File>
-              <FileName>sys_queue_task_updata.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Application\Sys\sys_queue_task_updata.c</FilePath>
-            </File>
-            <File>
               <FileName>sys_queue_task_err.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Application\Sys\sys_queue_task_err.c</FilePath>
@@ -850,40 +871,45 @@
               <FileType>1</FileType>
               <FilePath>.\Application\Sys\sys_queue_task_reset.c</FilePath>
             </File>
+            <File>
+              <FileName>sys_queue_task_update.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Application\Sys\sys_queue_task_update.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
-          <GroupName>HW-Updata</GroupName>
+          <GroupName>HW-Update</GroupName>
           <Files>
             <File>
               <FileName>baiku_proto.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Hardware\Updata\baiku_proto.c</FilePath>
+              <FilePath>.\Hardware\Update\baiku_proto.c</FilePath>
             </File>
             <File>
               <FileName>baiku_proto.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\Hardware\Updata\baiku_proto.h</FilePath>
+              <FilePath>.\Hardware\Update\baiku_proto.h</FilePath>
             </File>
             <File>
-              <FileName>updata_main.c</FileName>
+              <FileName>update_main.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Hardware\Updata\updata_main.c</FilePath>
+              <FilePath>.\Hardware\Update\update_main.c</FilePath>
             </File>
             <File>
-              <FileName>updata_main.h</FileName>
+              <FileName>update_main.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\Hardware\Updata\updata_main.h</FilePath>
+              <FilePath>.\Hardware\Update\update_main.h</FilePath>
             </File>
             <File>
               <FileName>xmodem_proto.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Hardware\Updata\xmodem_proto.c</FilePath>
+              <FilePath>.\Hardware\Update\xmodem_proto.c</FilePath>
             </File>
             <File>
               <FileName>xmodem_proto.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\Hardware\Updata\xmodem_proto.h</FilePath>
+              <FilePath>.\Hardware\Update\xmodem_proto.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -986,6 +1012,16 @@
               <FilePath>.\Hardware\Key\key_func.h</FilePath>
             </File>
             <File>
+              <FileName>key_iface.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Hardware\Key\key_iface.c</FilePath>
+            </File>
+            <File>
+              <FileName>key_iface.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Hardware\Key\key_iface.h</FilePath>
+            </File>
+            <File>
               <FileName>key_task.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Hardware\Key\key_task.c</FilePath>
@@ -1074,6 +1110,11 @@
               <FileName>md_bms_queue_task_main.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Hardware\MD_Bms\md_bms_queue_task_main.c</FilePath>
+            </File>
+            <File>
+              <FileName>md_bms_queue_task_update.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Hardware\MD_Bms\md_bms_queue_task_update.c</FilePath>
             </File>
             <File>
               <FileName>md_bms_rec_task.c</FileName>

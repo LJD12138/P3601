@@ -442,13 +442,13 @@
 
 
 
-#define BIAS3DUTY4	0x0852 //¶¨Òå1 3 Æ«Ñ¹4 ±³¼«
-#define RC256 		0x0830 //Ê¹ÓÃÄÚ²¿256KRC Õñµ´Æ÷
+#define BIAS3DUTY4	0x0852 //å®šä¹‰1 3 åå‹4 èƒŒæ
+#define RC256 		0x0830 //ä½¿ç”¨å†…éƒ¨256KRC æŒ¯è¡å™¨
 #define SYSDIS  	0x0800 //SYS AS_20210610
-#define SYSEN 		0x0802 //´ò¿ªÕñµ´·¢ÉúÆ÷
-#define LCDON 		0x0806 //´ò¿ªLCD 
-#define LCDOFF		0x0804//¹Ø±ÕLCD
-#define TIMERDIS 	0x0808 //¹Ø±ÕÊ±»ùÊä³ö
+#define SYSEN 		0x0802 //æ‰“å¼€æŒ¯è¡å‘ç”Ÿå™¨
+#define LCDON 		0x0806 //æ‰“å¼€LCD 
+#define LCDOFF		0x0804//å…³é—­LCD
+#define TIMERDIS 	0x0808 //å…³é—­æ—¶åŸºè¾“å‡º
 
 #define uchar unsigned char
 #define uint  unsigned int
@@ -459,7 +459,7 @@ extern unsigned char gsDisplayBuff2[16];
 
 
 
-void HT1621_IfaceInit(void); //HT1621-IO³õÊ¼»¯
+void HT1621_IfaceInit(void); //HT1621-IOåˆå§‹åŒ–
 void DelayMS(uint Ms);
 void Ht1621Wr_Comd(unsigned short int mDat,unsigned char mBitCnt);
 
@@ -480,9 +480,9 @@ void  S_Display(uint8_t  Num);
 void  Y_Display(uint8_t  Num);
 void  T_Display(uint8_t  Num);
 
-void DisplayIN_OUT_OOOO(u8 *set_task);//Ñ­»·ÏÔÊ¾
-void DisplayTIM_OO(u8 *set_task);//Ñ­»·ÏÔÊ¾
-void DisplaySOC_OO(u8 *set_task);//Ñ­»·ÏÔÊ¾
+void DisplayIN_OUT_OOOO(u8 *set_task);//å¾ªç¯æ˜¾ç¤º
+void DisplayTIM_OO(u8 *set_task);//å¾ªç¯æ˜¾ç¤º
+void DisplaySOC_OO(u8 *set_task);//å¾ªç¯æ˜¾ç¤º
 
 #endif  //boardDISPLAY_EN
 

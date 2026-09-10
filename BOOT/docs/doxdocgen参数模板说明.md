@@ -1,95 +1,95 @@
-# Doxdocgen ²ÎÊıÄ£°åÕ¼Î»·ûËµÃ÷
+# Doxdocgen å‚æ•°æ¨¡æ¿å ä½ç¬¦è¯´æ˜
 
-## ÒÑÍê³ÉµÄÅäÖÃ
+## å·²å®Œæˆçš„é…ç½®
 
-ÒÑÔÚ `settings.json` ÖĞÅäÖÃ²ÎÊıÄ£°å£º
+å·²åœ¨ `settings.json` ä¸­é…ç½®å‚æ•°æ¨¡æ¿ï¼š
 
 ```json
 "doxdocgen.generic.paramTemplate": "@param{indent:8}{param} {commentary}{indent:8}",
 "doxdocgen.generic.splitCasingSmartText": true,
 ```
 
-## Õ¼Î»·ûËµÃ÷
+## å ä½ç¬¦è¯´æ˜
 
-### ¿ÉÓÃµÄÕ¼Î»·û
+### å¯ç”¨çš„å ä½ç¬¦
 
-| Õ¼Î»·û | ËµÃ÷ | Ê¾Àı |
+| å ä½ç¬¦ | è¯´æ˜ | ç¤ºä¾‹ |
 |--------|------|------|
-| `{param}` | ²ÎÊıÃû | `obj` |
-| `{type}` | ²ÎÊıÀàĞÍ | `SwitchObject_E` |
-| `{name}` | ÖÇÄÜÎÄ±¾£¨ÍÕ·å²ğ·Ö£© | `switch object e` |
-| `{commentary}` | ÖÇÄÜÉú³ÉµÄÃèÊö | `the obj` »ò `the switch object e` |
+| `{param}` | å‚æ•°å | `obj` |
+| `{type}` | å‚æ•°ç±»å‹ | `SwitchObject_E` |
+| `{name}` | æ™ºèƒ½æ–‡æœ¬ï¼ˆé©¼å³°æ‹†åˆ†ï¼‰ | `switch object e` |
+| `{commentary}` | æ™ºèƒ½ç”Ÿæˆçš„æè¿° | `the obj` æˆ– `the switch object e` |
 
-### µ±Ç°ÅäÖÃĞ§¹û
+### å½“å‰é…ç½®æ•ˆæœ
 
-¶ÔÓÚº¯Êı£º
+å¯¹äºå‡½æ•°ï¼š
 ```c
 s8 cBms_Switch(SwitchObject_E obj, SwitchType_E type)
 ```
 
-Éú³ÉµÄ×¢ÊÍÎª£º
+ç”Ÿæˆçš„æ³¨é‡Šä¸ºï¼š
 ```c
 ----- @param obj the obj 
 ----- @param type the type 
 ```
 
-## ÓÅ»¯½¨Òé
+## ä¼˜åŒ–å»ºè®®
 
-### ·½°¸1£ºÊ¹ÓÃ {name} Õ¼Î»·û£¨¸üÖÇÄÜ£©
+### æ–¹æ¡ˆ1ï¼šä½¿ç”¨ {name} å ä½ç¬¦ï¼ˆæ›´æ™ºèƒ½ï¼‰
 
-ĞŞ¸ÄÅäÖÃÎª£º
+ä¿®æ”¹é…ç½®ä¸ºï¼š
 ```json
 "doxdocgen.generic.paramTemplate": "@param{indent:8}{param} the {name}{indent:8}",
 ```
 
-**Éú³ÉĞ§¹û£º**
+**ç”Ÿæˆæ•ˆæœï¼š**
 ```c
 ----- @param obj the switch object e 
 ----- @param type the switch type e 
 ```
 
-### ·½°¸2£ºÊ¹ÓÃ {type} Õ¼Î»·û£¨ÏÔÊ¾ÀàĞÍ£©
+### æ–¹æ¡ˆ2ï¼šä½¿ç”¨ {type} å ä½ç¬¦ï¼ˆæ˜¾ç¤ºç±»å‹ï¼‰
 
-ĞŞ¸ÄÅäÖÃÎª£º
+ä¿®æ”¹é…ç½®ä¸ºï¼š
 ```json
 "doxdocgen.generic.paramTemplate": "@param{indent:8}{param} ({type}){indent:8}",
 ```
 
-**Éú³ÉĞ§¹û£º**
+**ç”Ÿæˆæ•ˆæœï¼š**
 ```c
 ----- @param obj (SwitchObject_E)
 ----- @param type (SwitchType_E)
 ```
 
-### ·½°¸3£º»ìºÏÊ¹ÓÃ£¨ÍÆ¼ö£©
+### æ–¹æ¡ˆ3ï¼šæ··åˆä½¿ç”¨ï¼ˆæ¨èï¼‰
 
-ĞŞ¸ÄÅäÖÃÎª£º
+ä¿®æ”¹é…ç½®ä¸ºï¼š
 ```json
 "doxdocgen.generic.paramTemplate": "@param{indent:8}{param} {type} {commentary}{indent:8}",
 ```
 
-**Éú³ÉĞ§¹û£º**
+**ç”Ÿæˆæ•ˆæœï¼š**
 ```c
 ----- @param obj SwitchObject_E the obj 
 ----- @param type SwitchType_E the type 
 ```
 
-### ·½°¸4£º¼ò½àÃ÷ÁË£¨×îÍÆ¼ö£©
+### æ–¹æ¡ˆ4ï¼šç®€æ´æ˜äº†ï¼ˆæœ€æ¨èï¼‰
 
-ĞŞ¸ÄÅäÖÃÎª£º
+ä¿®æ”¹é…ç½®ä¸ºï¼š
 ```json
 "doxdocgen.generic.paramTemplate": "@param{indent:8}{param} {name}{indent:8}",
 ```
 
-**Éú³ÉĞ§¹û£º**
+**ç”Ÿæˆæ•ˆæœï¼š**
 ```c
 ----- @param obj switch object e 
 ----- @param type switch type e 
 ```
 
-## ÍêÕûÅäÖÃÊ¾Àı
+## å®Œæ•´é…ç½®ç¤ºä¾‹
 
-### ÍÆ¼öÅäÖÃ£¨·½°¸4£©
+### æ¨èé…ç½®ï¼ˆæ–¹æ¡ˆ4ï¼‰
 
 ```json
 {
@@ -98,14 +98,14 @@ s8 cBms_Switch(SwitchObject_E obj, SwitchType_E type)
 }
 ```
 
-### ÍêÕû×¢ÊÍĞ§¹û
+### å®Œæ•´æ³¨é‡Šæ•ˆæœ
 
-¶ÔÓÚº¯Êı£º
+å¯¹äºå‡½æ•°ï¼š
 ```c
 s8 cBms_Switch(SwitchObject_E obj, SwitchType_E type)
 ```
 
-Éú³É£º
+ç”Ÿæˆï¼š
 ```c
 /*********************************************************************************************************************
 ----- @brief 
@@ -117,22 +117,22 @@ s8 cBms_Switch(SwitchObject_E obj, SwitchType_E type)
 ******************************************************************************************************************/
 ```
 
-### ÊÖ¶¯Ìí¼ÓÃ¶¾ÙÖµËµÃ÷
+### æ‰‹åŠ¨æ·»åŠ æšä¸¾å€¼è¯´æ˜
 
-ÔÚÉú³ÉµÄ»ù´¡ÉÏ£¬ÊÖ¶¯±à¼­Ìí¼ÓÃ¶¾ÙÖµ£º
+åœ¨ç”Ÿæˆçš„åŸºç¡€ä¸Šï¼Œæ‰‹åŠ¨ç¼–è¾‘æ·»åŠ æšä¸¾å€¼ï¼š
 
 ```c
 /*********************************************************************************************************************
------ @brief ¿ª¹Ø¿ØÖÆº¯Êı
+----- @brief å¼€å…³æ§åˆ¶å‡½æ•°
 ----- 
 ----- @param[in] obj switch object e
------                  - SO_KEY:   °´¼ü¿ØÖÆ
------                  - SO_CONSOLE: Ãæ°å¿ØÖÆ
------                  - SO_PARA:   ²¢»ú¿ØÖÆ
+-----                  - SO_KEY:   æŒ‰é”®æ§åˆ¶
+-----                  - SO_CONSOLE: é¢æ¿æ§åˆ¶
+-----                  - SO_PARA:   å¹¶æœºæ§åˆ¶
 ----- @param[in] type switch type e
------                  - ST_NULL:  È¡·´
------                  - ST_ON:    ´ò¿ª
------                  - ST_OFF:   ¹Ø±Õ
+-----                  - ST_NULL:  å–å
+-----                  - ST_ON:    æ‰“å¼€
+-----                  - ST_OFF:   å…³é—­
 ----- @return s8 
 ----- 
 ----- @author LJD (291483914@qq.com)
@@ -140,17 +140,17 @@ s8 cBms_Switch(SwitchObject_E obj, SwitchType_E type)
 ******************************************************************************************************************/
 ```
 
-## Á¢¼´²âÊÔ
+## ç«‹å³æµ‹è¯•
 
-ÇëÔÚ VS Code ÖĞÖØĞÂ¼ÓÔØÅäÖÃ£¨Ctrl+Shift+P -> "Reload Window"£©£¬È»ºóÔÚ `cBms_Switch` º¯ÊıÉÏ·½°´ `/` ¼ü²âÊÔ¡£
+è¯·åœ¨ VS Code ä¸­é‡æ–°åŠ è½½é…ç½®ï¼ˆCtrl+Shift+P -> "Reload Window"ï¼‰ï¼Œç„¶ååœ¨ `cBms_Switch` å‡½æ•°ä¸Šæ–¹æŒ‰ `/` é”®æµ‹è¯•ã€‚
 
-## ÅäÖÃ¶Ô±È
+## é…ç½®å¯¹æ¯”
 
-| ÅäÖÃ | Éú³ÉĞ§¹û | ÓÅµã | È±µã |
+| é…ç½® | ç”Ÿæˆæ•ˆæœ | ä¼˜ç‚¹ | ç¼ºç‚¹ |
 |------|----------|------|------|
-| `{param} {commentary}` | `obj the obj` | ¼òµ¥ | ÃèÊö²»¹»ÏêÏ¸ |
-| `{param} the {name}` | `obj the switch object e` | ÖÇÄÜ²ğ·Ö | ÉÔÏÔÈßÓà |
-| `{param} ({type})` | `obj (SwitchObject_E)` | ÏÔÊ¾ÀàĞÍ | ÎŞÃèÊö |
-| `{param} {name}` | `obj switch object e` | ¼ò½àÖÇÄÜ | ĞèÒªÀí½âÍÕ·å |
+| `{param} {commentary}` | `obj the obj` | ç®€å• | æè¿°ä¸å¤Ÿè¯¦ç»† |
+| `{param} the {name}` | `obj the switch object e` | æ™ºèƒ½æ‹†åˆ† | ç¨æ˜¾å†—ä½™ |
+| `{param} ({type})` | `obj (SwitchObject_E)` | æ˜¾ç¤ºç±»å‹ | æ— æè¿° |
+| `{param} {name}` | `obj switch object e` | ç®€æ´æ™ºèƒ½ | éœ€è¦ç†è§£é©¼å³° |
 
-**½¨ÒéÊ¹ÓÃ£º** `{param} {name}` £¨·½°¸4£©
+**å»ºè®®ä½¿ç”¨ï¼š** `{param} {name}` ï¼ˆæ–¹æ¡ˆ4ï¼‰

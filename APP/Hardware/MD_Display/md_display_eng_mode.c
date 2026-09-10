@@ -1,6 +1,6 @@
 /*****************************************************************************************************************
 *                                                                                                                *
- *                                         ÏÔÊ¾¹¤³ÌÄ£Ê½                                                          *
+ *                                         æ˜¾ç¤ºå·¥ç¨‹æ¨¡å¼                                                          *
 *                                                                                                                *
 ******************************************************************************************************************/
 #include "MD_Display/md_display_eng_mode.h"
@@ -57,23 +57,23 @@
 #endif
 
 
-//****************************************************²ÎÊı³õÊ¼»¯**************************************************//
+//****************************************************å‚æ•°åˆå§‹åŒ–**************************************************//
 #if(boardDISPLAY_EN)
 static vu8 S_ucHighLightTemp = 0;
 static vu8 S_ucLowLightTemp = 0;
 static vu16 S_usBLOffTimeTemp = 0;
 #endif
 
-//****************************************************º¯ÊıÉùÃ÷****************************************************//
+//****************************************************å‡½æ•°å£°æ˜****************************************************//
 void Display_EngModeObj(u16 obj, u8 index);
 void Display_Time1(uint16_t min);
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ¹¤³ÌÄ£Ê½ÏÔÊ¾º¯Êı
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    å·¥ç¨‹æ¨¡å¼æ˜¾ç¤ºå‡½æ•°
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 void vDisp_EnginModeDis(void)
 {
@@ -88,14 +88,14 @@ void vDisp_EnginModeDis(void)
 		
 		case EMS_SYS:
 		{
-			if(tEngMode.ucEngModeItem == 0)  //ÏÔÊ¾°æ±¾
+			if(tEngMode.ucEngModeItem == 0)  //æ˜¾ç¤ºç‰ˆæœ¬
 			{
 				temp = (tAppMemParam.tVerInfo.saVersion[10] - 0x30) * 1000 +
 						(tAppMemParam.tVerInfo.saVersion[12] - 0x30) * 100 +
 						(tAppMemParam.tVerInfo.saVersion[14] - 0x30) * 10 +
 						(tAppMemParam.tVerInfo.saVersion[16] - 0x30);
 			}
-			else if(tEngMode.ucEngModeItem == 1)  //¿ØÖÆ·çÉÈ
+			else if(tEngMode.ucEngModeItem == 1)  //æ§åˆ¶é£æ‰‡
 				temp = tEngMode.cEngModeState;
 			else if(tEngMode.ucEngModeItem == 2)
 				temp = tAppMemParam.tSYS.usAutoOffTime;
@@ -155,7 +155,7 @@ void vDisp_EnginModeDis(void)
 		#if(boardMPPT_EN)
 		case EMS_MPPT:
 		{
-			//MPPT×´Ì¬ÏÔÊ¾
+			//MPPTçŠ¶æ€æ˜¾ç¤º
 			Display_IconDcIn();
 			
 			if(tEngMode.ucEngModeItem == 1)
@@ -174,7 +174,7 @@ void vDisp_EnginModeDis(void)
 		#if(boardDCAC_EN)
 		case EMS_DCAC:
 		{
-			//DCAC×´Ì¬ÏÔÊ¾
+			//DCACçŠ¶æ€æ˜¾ç¤º
 			Display_IconAcIn();
 			
 			if(tEngMode.ucEngModeItem == 0)
@@ -221,7 +221,7 @@ void vDisp_EnginModeDis(void)
 		#if(boardUSB_EN)
 		case EMS_USB:
 		{
-			//USB×´Ì¬ÏÔÊ¾
+			//USBçŠ¶æ€æ˜¾ç¤º
 			Display_IconUsbOut();
 			
 			if(tEngMode.ucEngModeItem == 0)
@@ -240,7 +240,7 @@ void vDisp_EnginModeDis(void)
 		#if(boardDC_EN)
 		case EMS_DC:
 		{
-			//DC×´Ì¬ÏÔÊ¾
+			//DCçŠ¶æ€æ˜¾ç¤º
 			Display_IconDcOut();
 			
 			if(tEngMode.ucEngModeItem == 0)
@@ -261,19 +261,19 @@ void vDisp_EnginModeDis(void)
 		#if(boardLIGHT_EN)
 		case EMS_LIGHT:
 		{
-			//ÕÕÃ÷×´Ì¬ÏÔÊ¾
+			//ç…§æ˜çŠ¶æ€æ˜¾ç¤º
 			Display_IconLight();
 		}break;
 		#endif
 		
 		case EMS_SET:
 		{
-			// if(tEngMode.ucEngModeItem == 0)  //±£´æ
+			// if(tEngMode.ucEngModeItem == 0)  //ä¿å­˜
 			// 	Display_Save();
-			// else if(tEngMode.ucEngModeItem == 1)  //ÖØÖÃ
+			// else if(tEngMode.ucEngModeItem == 1)  //é‡ç½®
 			// 	Display_IconSysErr();
-			// else if(tEngMode.ucEngModeItem == 2)  //Éı¼¶
-			// 	Display_IconUpdata();
+			// else if(tEngMode.ucEngModeItem == 2)  //å‡çº§
+			// 	Display_IconUpdate();
 		}break;
 
 		default:
@@ -285,7 +285,7 @@ void vDisp_EnginModeDis(void)
 	
 	Display_Time1(tpSysTask->usTaskWaitCnt/10);
 	
-	//É¢ÈÈ¿ªÆô
+	//æ•£çƒ­å¼€å¯
 	if(eFan_GetWorkMode() > FWM_OFF)
 		Display_IconFan();
 	
@@ -296,7 +296,7 @@ void vDisp_EnginModeDis(void)
 }
 
 
-void Display_EngModeObj(u16 obj, u8 index)//In½çÃæ
+void Display_EngModeObj(u16 obj, u8 index)//Inç•Œé¢
 {
 	switch(obj)
 	{
@@ -414,7 +414,7 @@ void Display_EngModeObj(u16 obj, u8 index)//In½çÃæ
 }
 
 //min:0-5999
-void Display_Time1(uint16_t min)//Ê±¼ä½çÃæÏÔÊ¾
+void Display_Time1(uint16_t min)//æ—¶é—´ç•Œé¢æ˜¾ç¤º
 {
 	uint8_t ten_H,units_H;
 	
@@ -427,11 +427,11 @@ void Display_Time1(uint16_t min)//Ê±¼ä½çÃæÏÔÊ¾
 
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ÉèÖÃÁÁ¶È
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    en:true ¿ªÊ¼ÉèÖÃÁÁ¶È   ·´Ö® false
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    è®¾ç½®äº®åº¦
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    en:true å¼€å§‹è®¾ç½®äº®åº¦   åä¹‹ false
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 *****************************************************************************************************************/
 void bDisp_SetLightness(void)
 {
@@ -441,11 +441,11 @@ void bDisp_SetLightness(void)
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    Ñ¡ÔñÉèÖÃµÄÀàĞÍ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    é€‰æ‹©è®¾ç½®çš„ç±»å‹
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 *****************************************************************************************************************/
 void vDisp_TypeSelect(void)
 {
@@ -455,11 +455,11 @@ void vDisp_TypeSelect(void)
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ÉèÖÃ¼ÇÒä²ÎÊı
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    add:true Ôö¼Ó   false:¼õÉÙ
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    è®¾ç½®è®°å¿†å‚æ•°
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    add:true å¢åŠ    false:å‡å°‘
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 *****************************************************************************************************************/
 void vDisp_MemParamSet(bool add)
 {
@@ -501,18 +501,18 @@ void vDisp_MemParamSet(bool add)
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ÍË³öÁÁ¶ÈÉèÖÃ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      true:ÉèÖÃ³É¹¦   ·´Ö®:false
+-----å‡½æ•°åŠŸèƒ½    é€€å‡ºäº®åº¦è®¾ç½®
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      true:è®¾ç½®æˆåŠŸ   åä¹‹:false
 *****************************************************************************************************************/
 bool bDisp_ExitSetLightness(void)
 {
 	tAppMemParam.tDISP.ucHighLightValue = S_ucHighLightTemp;
 	tAppMemParam.tDISP.ucLowLightValue = S_ucLowLightTemp;
 	tAppMemParam.tDISP.usAutoOffTime = S_usBLOffTimeTemp;
-//	bApp_MemParamUpdata(NULL,NULL,false);  //Ğ´ÈëAPP_INFO_FLASH
+//	bApp_MemParamUpdate(NULL,NULL,false);  //å†™å…¥APP_INFO_FLASH
 	return true;
 }
 #endif  //boardDISPLAY_EN  && boardENG_MODE_EN

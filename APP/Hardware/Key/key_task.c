@@ -1,14 +1,30 @@
-/*****************************************************************************************************************
-*                                                                                                                *
- *                                         °´¼ü´¦ÀíÈÎÎñ                                                          *
-*                                                                                                                *
-******************************************************************************************************************/
+/*******************************************************************************************************************************
+ * Project : APP
+ * Module  : G:\1-Baiku_Projects\24-P36\1.software\P3601\APP\Hardware\Key
+ * File    : key_task.c
+ * Date    : 2026-09-10
+ * Author  : LJD(291483914@qq.com)
+ * Desc    : æŒ‰é”®ä»»åŠ¡åŠä¸­é—´ä»¶é›†æˆèƒ¶æ°´å±‚
+ *           1. ç¡¬ä»¶å±‚(key_iface.c/.h): è´Ÿè´£GPIOå¼•è„š/æ¨¡å¼/ææ€§é…ç½®ä¸ç”µå¹³è¯»å–(ææ€§å½’ä¸€åŒ–)
+ *           2. ä¸­é—´ä»¶(Middlewares/MultiFuncKey): è´Ÿè´£çŠ¶æ€æœº/å»æŠ–/é•¿çŸ­æŒ‰/è¶…é•¿æŒ‰/ç»„åˆé”®æ—¶åº
+ *           3. ä»»åŠ¡èƒ¶æ°´å±‚(æœ¬æ–‡ä»¶): ç»„è£…ä¸­é—´ä»¶é…ç½®ã€ä»»åŠ¡è°ƒåº¦ä¸ç³»ç»ŸçŠ¶æ€è”åŠ¨
+ * -------------------------------------------------------
+ * todo    :
+ * 1. none
+ * -------------------------------------------------------
+ * Copyright (c) 2026 -inc
+ *******************************************************************************************************************************/
+
+//****************************************************Includes******************************************************************//
 #include "Key/key_task.h"
 
 #if(boardKEY_EN)
+#include "Key/key_iface.h"
 #include "Key/key_func.h"
 #include "Sys/sys_task.h"
 #include "Print/print_task.h"
+
+#include "mf_key.h"
 
 #if(boardUSE_OS)
 #include "freertos.h"
@@ -23,172 +39,107 @@
 #include "MD_Display/md_display_task.h"
 #endif  //boardDISPLAY_EN
 
-
-//****************************************************ÈÎÎñ³õÊ¼»¯**************************************************//
+//****************************************************ä»»åŠ¡åˆå§‹åŒ–*******************************************************//
 #if(boardUSE_OS)
-#define       	KEY_TASK_PRIO                  			2     	//ÈÎÎñÓÅÏÈ¼¶ 
-#define        	KEY_TASK_STK_SIZE              			256   	//ÈÎÎñ¶ÑÕ»  Êµ¼Ê×Ö½ÚÊı *4
-TaskHandle_t    tKeyTaskHandler = NULL; 
-void          	vKey_Task(void *pvParameters);
+#define 		KEY_TASK_PRIO                  			2     //ä»»åŠ¡ä¼˜å…ˆçº§
+#define 		KEY_TASK_STK_SIZE              			256     //ä»»åŠ¡å †æ ˆ
+TaskHandle_t 	tKeyTaskHandler = NULL;
+void 			vKey_Task(void *pvParameters);
 #endif  //boardUSE_OS
 
-//****************************************************²ÎÊı³õÊ¼»¯**************************************************//
-KeyHandler_t 	tKeyPower;
+//****************************************************å‚æ•°åˆå§‹åŒ–*******************************************************//
+static bool b_key_lock = false;   /* å¼€æœºé•¿æŒ‰é”å®šæ ‡å¿— */
 
-#if(boardDCAC_EN)
-KeyHandler_t 	tKeyAC;
-#endif  //boardDCAC_EN
+//****************************************************å‡½æ•°å£°æ˜*********************************************************//
+static bool b_key_event_pre_proc(u8 uc_idx, bool b_long);
+static void v_key_on_super_long(u8 uc_idx);
+static void v_key_on_any_press(void);
 
-#if(boardLIGHT_EN)
-KeyHandler_t 	tKeyLight;
-#endif  //boardLIGHT_EN
-
-#if(boardUSB_EN)
-KeyHandler_t 	tKeyUSB;
-#endif  //boardUSB_EN
-
-#if(boardDC_EN)
-KeyHandler_t 	tKeyDC;
-#endif  //boardDC_EN
-
-u8 Key_TriTypeBuff[ keyGROUP_NUM ] = {0};      	//°´¼ü¹¦ÄÜ
-vu16 Key_UnPressTim = 0 , Key_TriTypeCnt = 0;
-
-
-//****************************************************º¯ÊıÉùÃ÷**************************************************//
-static void v_key_gpio_init(void);
-static void v_key_shot_press(KeyHandler_t* keyHandler);
-static void v_key_long_press(KeyHandler_t* keyHandler);
-//static void v_key_super_long_press(KeyHandler_t* keyHandler);
-static bool v_key_check_other_is_tri(void);
-
-/***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    µÇ¼Ç°´¼üĞÅÏ¢
------ËµÃ÷(±¸×¢)  ´Ë×¢²áÓĞÎÊÌâ,»áµ¼ÖÂNum³¬¹ı×î´óÖµ,Êı¾İÒç³ö
------´«Èë²ÎÊı    °´¼ü½á¹¹Ìå
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
-************************************************************************************************************************/
-static KeyHandler_t* KeyHandlerList[keyNUM];
-static vu8 KeyHandlerListNum = 0;
-static void v_key_register(KeyHandler_t* keyHandler)
+//****************************************************æŒ‰é”®è¡¨**********************************************************//
+/* ä¸­é—´ä»¶æŒ‰é”®é…ç½®è¡¨: äº‹ä»¶ç æ˜ å°„ + è§¦å‘æ–¹å¼é…ç½®(è¡¨åºä¸ KeyId_E ä¸¥æ ¼ä¸€è‡´) */
+static const MfKeyItemCfg_T S_tKeyMwKeyCfg[] =
 {
-    KeyHandlerList[KeyHandlerListNum] = keyHandler;
-	
-    keyHandler->sOnPressCnt = 0;
-	
-    KeyHandlerListNum++;
-}
+	/* çŸ­æŒ‰äº‹ä»¶           é•¿æŒ‰äº‹ä»¶          å¤šåŠŸèƒ½  é•¿æŒ‰ç´¯åŠ  */
+	[keyPOWER] = {KTE_POWER_SHORT,  KTE_POWER_LONG,  false,  false},
+
+	#if(boardDCAC_EN)
+	[keyAC]    = {KTE_AC_SHORT,     KTE_AC_LONG,     true,   false},
+	#endif  //boardDCAC_EN
+
+	#if(boardDC_EN)
+	[keyDC]    = {KTE_DC_SHORT,     KTE_DC_LONG,     false,  false},
+	#endif  //boardDC_EN
+};
+
+#define KEY_MW_KEY_TBL_NUM (sizeof(S_tKeyMwKeyCfg) / sizeof(S_tKeyMwKeyCfg[0]))
+
+/* ç¼–è¯‘æœŸæ ¡éªŒ: KeyId_E æšä¸¾åºå¿…é¡»ä¸ S_tKeyMwKeyCfg[] è¡¨åºä¸¥æ ¼ä¸€è‡´ */
+typedef char __key_mw_tbl_order_assert[(KEY_MW_KEY_TBL_NUM == keyNUM) ? 1 : -1];
+
+/* äº‹ä»¶åºåˆ—ç¼“å†²ä¸ä¸­é—´ä»¶å…¨å±€é…ç½® */
+static u8 S_ucKeySeqBuff[keyGROUP_NUM];
+
+static const MfKeyCfg_T S_tKeyMwCfg =
+{
+	/* ç¡¬ä»¶æ¥å£å›è°ƒ */
+	(bool (*)(u8))bKey_IsPressById,    /* æŸ¥è¡¨è¯»å–æŒ‰é”®æŒ‰ä¸‹ç”µå¹³(ææ€§å·²å½’ä¸€åŒ–) */
+	/* æ‰«ææ—¶åºå‚æ•°(å•ä½: keyTASK_CYCLE_TIME å‘¨æœŸæ•°) */
+	keySHORT_PRESS_TIME,               /* çŸ­æŒ‰æœ€å°æ—¶é—´ */
+	keyLONG_PRESS_TIME,                /* é•¿æŒ‰æœ€å°æ—¶é—´ */
+	keySUPER_LONG_PRESS_TIME,          /* è¶…é•¿æŒ‰æœ€å°æ—¶é—´ */
+	keyNUPRESS_MAX_TIME,               /* ç»„åˆé”®æœ€å¤§ç­‰å¾…æ—¶é—´ */
+	keyADD_SPACE_TIME,                 /* é•¿æŒ‰ç´¯åŠ é—´éš” */
+	/* äº‹ä»¶åºåˆ—ç¼“å†² */
+	S_ucKeySeqBuff,                    /* ç¼“å†²åœ°å€ */
+	keyGROUP_NUM,                      /* ç¼“å†²é•¿åº¦ */
+	KTE_FUN_NULL,                      /* åºåˆ—ç©ºé—²å¡«å……ç  */
+	/* ä¸šåŠ¡å›è°ƒ */
+	vKey_ProcKeyFunc,                   /* åºåˆ—å°±ç»ª -> ä¸šåŠ¡åŠ¨ä½œåˆ†å‘ */
+	b_key_event_pre_proc,              /* äº‹ä»¶å½•å…¥å‰é¢„å¤„ç†(æ¯å±å”¤é†’/è°ƒè¯•æ—¥å¿—) */
+	v_key_on_super_long,               /* è¶…é•¿æŒ‰æç¤º(æ‰“å°+èœ‚é¸£) */
+	v_key_on_any_press                 /* ä»»æ„é”®æŒ‰ä¸‹(æ¸…ä¼‘çœ è®¡æ•°) */
+};
+
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    °´¼üÈÎÎñ³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
-************************************************************************************************************************/
+ * å‡½æ•°åŠŸèƒ½    : æŒ‰é”®ä»»åŠ¡åˆå§‹åŒ– (åº•å±‚GPIOåˆå§‹åŒ– + ä¸­é—´ä»¶åˆå§‹åŒ– + åˆ›å»ºOSä»»åŠ¡)
+ * ä¼ å…¥å‚æ•°    : none
+ * è¿”å›å€¼      : none
+ ************************************************************************************************************************/
 void vKey_TaskInit(void)
 {
-	v_key_gpio_init();
-	
+	/* åº•å±‚ç¡¬ä»¶æ¥å£åˆå§‹åŒ– (RCU + GPIO) */
+	vKey_IfaceInit();
+
+	/* å¤šåŠŸèƒ½æŒ‰é”®ä¸­é—´ä»¶åˆå§‹åŒ– (æ—¶åº + å›è°ƒ + æŒ‰é”®è¡¨) */
+	vMfKey_Init(&S_tKeyMwCfg, S_tKeyMwKeyCfg, KEY_MW_KEY_TBL_NUM);
+
 	#if(boardUSE_OS)
-	xTaskCreate((TaskFunction_t )vKey_Task,				//ÈÎÎñº¯Êı
-                (const char* )"bKeyTask",				//ÈÎÎñÃû³Æ
-                (uint16_t ) KEY_TASK_STK_SIZE,          //ÈÎÎñ¶ÑÕ»´óĞ¡
-                (void* )NULL,							//´«µİ¸øÈÎÎñº¯ÊıµÄ²ÎÊı
-                (UBaseType_t ) KEY_TASK_PRIO,           //ÈÎÎñÓÅÏÈ¼¶
-                (TaskHandle_t*)&tKeyTaskHandler);      	//ÈÎÎñ¾ä±ú
+	xTaskCreate((TaskFunction_t )vKey_Task,
+	            (const char*    )"bKeyTask",
+	            (uint16_t       )KEY_TASK_STK_SIZE,
+	            (void*          )NULL,
+	            (UBaseType_t    )KEY_TASK_PRIO,
+	            (TaskHandle_t*  )&tKeyTaskHandler);
 	#endif  //boardUSE_OS
 }
 
-
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    °´¼ü³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
-************************************************************************************************************************/
-static void v_key_gpio_init(void)
-{
-	rcu_periph_clock_enable(keyGPIO_POWER_RCU);
-	gpio_init(keyGPIO_POWER_PORT,GPIO_MODE_IN_FLOATING,GPIO_OSPEED_2MHZ,keyGPIO_POWER_PIN);
-	
-	#if(boardDCAC_EN)
-	rcu_periph_clock_enable(keyGPIO_AC_RCU);
-	gpio_init(keyGPIO_AC_PORT,GPIO_MODE_IPU,GPIO_OSPEED_2MHZ,keyGPIO_AC_PIN);
-	#endif  //boardDCAC_EN
-
-//	#if(boardLIGHT_EN)
-//	rcu_periph_clock_enable(keyGPIO_LIGHT_RCU);
-//	gpio_init(keyGPIO_LIGHT_PORT,GPIO_MODE_IPU,GPIO_OSPEED_2MHZ,keyGPIO_LIGHT_PIN);
-//	#endif  //boardLIGHT_EN
-
-//	#if(boardUSB_EN)
-//	rcu_periph_clock_enable(keyGPIO_USB_RCU);
-//	gpio_init(keyGPIO_USB_PORT,GPIO_MODE_IPU,GPIO_OSPEED_2MHZ,keyGPIO_USB_PIN);
-//	#endif  //boardUSB_EN
-
-	#if(boardDC_EN)
-	rcu_periph_clock_enable(keyGPIO_DC_RCU);
-	gpio_init(keyGPIO_DC_PORT,GPIO_MODE_IPU,GPIO_OSPEED_2MHZ,keyGPIO_DC_PIN);
-	#endif  //boardDC_EN
-
-	//true:³¤°´ÀÛ¼Ó¹¦ÄÜ                 false:¹Ø±Õ
-	tKeyPower.bEnLongPressAdd = false;
-	//true:¶à¹¦ÄÜ°´¼ü:Ë«»÷µÈÇ°ºó´¥·¢µÄ   false:¿ÉÒÔÊ¹ÓÃÒ»Ö±³¤°´¿ÉÒÔ´¥·¢³¤°´¹¦ÄÜ,Ò²¿ÉÒÔÊ¶±ğÍ¬Ê±´¥·¢µÄ
-    tKeyPower.bEnMulitFunKey = true;
-    tKeyPower.IsPress = bKey_PowerIsPress;
-    v_key_register(&tKeyPower);
-   
-	#if(boardDCAC_EN)
-    tKeyAC.bEnLongPressAdd = false;
-    tKeyAC.bEnMulitFunKey = true;
-    tKeyAC.IsPress = bKey_AcIsPress;
-    v_key_register(&tKeyAC);
-	#endif  //boardDCAC_EN
-
-//	#if(boardLIGHT_EN)
-//	tKeyLight.bEnLongPressAdd = false;
-//    tKeyLight.bEnMulitFunKey = false;
-//    tKeyLight.IsPress = bKey_LightIsPress;
-//    v_key_register(&tKeyLight);
-//	#endif  //boardLIGHT_EN
-
-//	#if(boardUSB_EN)
-//	tKeyUSB.bEnLongPressAdd = false;
-//    tKeyUSB.bEnMulitFunKey = false;
-//    tKeyUSB.IsPress = bKey_UsbIsPress;
-//    v_key_register(&tKeyUSB);
-//	#endif  //boardUSB_EN
-
-	#if(boardDC_EN)
-	tKeyDC.bEnLongPressAdd = false;
-    tKeyDC.bEnMulitFunKey = false;
-    tKeyDC.IsPress = bKey_DcIsPress;
-    v_key_register(&tKeyDC);
-	#endif  //boardDC_EN
-}
-
-
-/***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    °´¼üÑ­»·ÈÎÎñ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
-************************************************************************************************************************/
+ * å‡½æ•°åŠŸèƒ½    : æŒ‰é”®å¾ªç¯æ‰«æä»»åŠ¡ (èƒ¶æ°´å±‚: ä»»åŠ¡è°ƒåº¦ + ç”µæºé”®è§¦å‘æ–¹å¼ç­–ç•¥ + ä¸­é—´ä»¶æ‰«æ)
+ * ä¼ å…¥å‚æ•°    : pvParameters
+ * è¿”å›å€¼      : none
+ ************************************************************************************************************************/
 void vKey_Task(void *pvParameters)
 {
-    static vu8 Currkey = 0;
-	
 	#if(boardUSE_OS)
 	for(;;)
 	#endif  //boardUSE_OS
-    {
-		//GPIO³õÊ¼»¯Î´Íê³É
+	{
+		//GPIOåˆå§‹åŒ–æœªå®Œæˆ (é•¿æŒ‰å¼€æœºé”å®š)
 		if(tSysInfo.uInit.tFinish.bIF_Gpio == 0)
 		{
+			b_key_lock = bKey_IsPressById(keyPOWER);
+
 			#if(boardUSE_OS)
 			vTaskDelay(500);
 			continue;
@@ -196,127 +147,31 @@ void vKey_Task(void *pvParameters)
 			return;
 			#endif
 		}
-		
-		//¸ü¸Ä°´¼ü´¥·¢·½Ê½
-		#if(boardENG_MODE_EN)
-		if((tSysInfo.eDevState == DS_SHUT_DOWN || 
-			tSysInfo.eDevState == DS_ENG_MODE))
-		{
-			tKeyPower.bEnMulitFunKey = false;
-		}
-		#else
-		if(tSysInfo.eDevState == DS_SHUT_DOWN)
-		{
-			tKeyPower.bEnMulitFunKey = false;
-		}
-		#endif
-		else 
-		{
-			tKeyPower.bEnMulitFunKey = true;
-		}
-		
-	
-		for(Currkey = 0; Currkey < KeyHandlerListNum; Currkey++)
-		{
-			//******************************************°´¼ü °´ÏÂ×´Ì¬***********************************************
-            if(KeyHandlerList[Currkey]->IsPress())        
-            {
-				//¼ÇÂ¼°´ÏÂµÄÊ±¼ä--------------------------------------------------------------------------
-                if(KeyHandlerList[Currkey]->sOnPressCnt < 0xfff && 
-				    KeyHandlerList[Currkey]->sOnPressCnt >= 0 )
-					{
-						KeyHandlerList[Currkey]->sOnPressCnt++;
-					}
-				
-				//Ê¹ÄÜ³¤°´ÀÛ¼Ó°´¼ü-----------------------------------------------------------------------
-                if( KeyHandlerList[Currkey]->bEnLongPressAdd == true )  
-				{
-					if( KeyHandlerList[Currkey]->sOnPressCnt >= keyLONG_PRESS_TIME) //Âú×ã³¤°´Ê±³¤
-					{
-						v_key_shot_press(KeyHandlerList[Currkey]);
-						
-						vKey_ProcKeyFunc(Key_TriTypeBuff); //Á¢¿Ì´¦Àí
-						
-						KeyHandlerList[Currkey]->sOnPressCnt = keyLONG_PRESS_TIME - keyADD_SPACE_TIME;
-					}
-				}
-				//²»Ê¹ÄÜ×éºÏ°´¼ü--------------------------------------------------------------------------
-				else if( KeyHandlerList[Currkey]->bEnMulitFunKey == false )  
-				{				
-					if( KeyHandlerList[Currkey]->sOnPressCnt >= keyLONG_PRESS_TIME)   //Âú×ã³¤°´ÊÂ¼ş,¼ÇÂ¼ 
-					{
-						v_key_long_press(KeyHandlerList[Currkey]);     //Ö´ĞĞ ³¤°´ ÊÂ¼ş
 
-						if(v_key_check_other_is_tri() == true)
-						{
-							continue;  //½áÊø±¾´ÎÑ­»·
-						}
-						
-						vKey_ProcKeyFunc(Key_TriTypeBuff);  //Á¢¿Ì´¦Àí
-					}
-				}
-				else
-				{
-					if( KeyHandlerList[Currkey]->sOnPressCnt >= keySUPER_LONG_PRESS_TIME ) //Âú×ã³¬³¤°´ÊÂ¼ş,ÌáÊ¾
-					{
-						if(uPrint.tFlag.bKeyTask)
-							sMyPrint("Key_Task:´¥·¢³¤°´ÊÂ¼ş\r\n");
-						
-//						v_key_super_long_press(KeyHandlerList[Currkey]);  //¼ÇÂ¼³¤°´ÊÂ¼ş 
-//						
-//						vKey_ProcKeyFunc(Key_TriTypeBuff);  //Á¢¿Ì´¦Àí
-						
-						v_key_long_press(KeyHandlerList[Currkey]);  //¼ÇÂ¼³¤°´ÊÂ¼ş 
-						
-						#if(boardBUZ_EN)
-						bBuz_Tweet(SHORT_1);
-						#endif  //boardBUZ_EN
-					}
-				}
-				Key_UnPressTim = 0;	
-				tSysInfo.usNeedSleepCnt = 0;
-            }
-			//****************************************************°´¼ü ·Å¿ª×´Ì¬*******************************************
-            else                                   
-            { 
-				//°´¼üÒÑ¾­ËÉ¿ª,¼ÇÂ¼µ±Ç°°´¼üÊÂ¼ş,²¢µÈ´ıÊÇ·ñ»¹ÓĞ×éºÏ°´¼ü´¥·¢------------------------------------------------
-				 if( Key_UnPressTim < keyNUPRESS_MAX_TIME && Key_UnPressTim >= 4) 
-				 {
-					 //¶Ì°´  :°´ÏÂÊ±¼äÔÚ keySHORT_PRESS_TIME ~ KeyLongPressTime Ö®¼ä
-					 if(RANGE( KeyHandlerList[Currkey]->sOnPressCnt,  keySHORT_PRESS_TIME,
-						 ( keyLONG_PRESS_TIME - keyADD_SPACE_TIME -1 )))   
-					 {  
-						 v_key_shot_press(KeyHandlerList[Currkey]);
-						 if(KeyHandlerList[Currkey]->bEnMulitFunKey == false) //Ã»ÓĞÊ¹ÄÜ¶à¹¦ÄÜ°´¼ü,¾Í²»ĞèÒªµÈ´ı,Ö±½Ó´¥·¢°´¼ü
-							goto KeyTri;
-					 }
-					 else if( KeyHandlerList[Currkey]->sOnPressCnt >= keyLONG_PRESS_TIME)  //³¤°´
-					 {
-						 v_key_long_press(KeyHandlerList[Currkey]);	
-						 if(KeyHandlerList[Currkey]->bEnMulitFunKey == false) //Ã»ÓĞÊ¹ÄÜ¶à¹¦ÄÜ°´¼ü,¾Í²»ĞèÒªµÈ´ı,Ö±½Ó´¥·¢°´¼ü
-							goto KeyTri;
-					 }
-				 }
-				 //ÒÑ¾­´¦ÀíÍê--------------------------------------------------------------------------------------------
-				 else  if( Key_UnPressTim == keyNUPRESS_MAX_TIME) 
-				 {
-					 KeyTri:
-				     vKey_ProcKeyFunc(Key_TriTypeBuff);
-				 }
-				 
-				 
-				 //Ã¿±éÀúÒ»´Î---------------------------------------------------------------------------------------------
-				 if(Currkey == 0)  
-				 {
-					 //°´¼üËÉ¿ª¼ÆÊ±
-					 if( Key_UnPressTim < 0xffff) 
-						 Key_UnPressTim ++ ; 
-				 }
-				 
-				 if(Key_UnPressTim ==5)
-					KeyHandlerList[Currkey]->sOnPressCnt = 0;
-            }
-        }
+		//é•¿æŒ‰å¼€å¯ä¸æ¾å¼€
+		if(b_key_lock == true && bKey_IsPressById(keyPOWER) == true)
+		{
+			#if(boardUSE_OS)
+			vTaskDelay(keyTASK_CYCLE_TIME);
+			continue;
+			#else
+			return;
+			#endif
+		}
+
+		b_key_lock = false;
+
+		//åŠ¨æ€é…ç½®ç”µæºé”®å¤šåŠŸèƒ½è§¦å‘æ–¹å¼(ä¿æŒåŸéšè”½è¯­ä¹‰:
+		//ENGæ¨¡å¼ä½¿èƒ½æ—¶ä»»ä½•çŠ¶æ€æ’ä¸ºtrue; å¦åˆ™ä»…å…³æœºæ€ä¸ºfalse)
+		#if(boardENG_MODE_EN)
+		vMfKey_SetMultiKeyEn(keyPOWER, true);
+		#else
+		vMfKey_SetMultiKeyEn(keyPOWER, (tSysInfo.eDevState != DS_SHUT_DOWN));
+		#endif
+
+		//æŒ‰é”®æ‰«æ(ä¸­é—´ä»¶: å»æŠ–/é•¿çŸ­æŒ‰/è¶…é•¿æŒ‰/ç»„åˆé”®æ—¶åºçŠ¶æ€æœº)
+		vMfKey_Scan();
+
 		#if(boardUSE_OS)
 		vTaskDelay(keyTASK_CYCLE_TIME);
 		#endif
@@ -324,310 +179,180 @@ void vKey_Task(void *pvParameters)
 }
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ¼ì²éÆäËû°´¼üÊÇ·ñ°´ÏÂ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      true:»¹ÓĞÆäËû°´¼ü°´ÏÂÃ»ÓĞ´¥·¢,·´Ö®false
-************************************************************************************************************************/
-static bool v_key_check_other_is_tri(void)
+ * å‡½æ•°åŠŸèƒ½    : ç”µæºæŒ‰é”®å·²ç»è¢«å¤–éƒ¨å¤„ç† (é˜²æ­¢å…¨å±€æŒ‰é”®é‡å¤è§¦å‘)
+ * ä¼ å…¥å‚æ•°    : none
+ * è¿”å›å€¼      : none
+ ************************************************************************************************************************/
+void vKey_PowerIsTri(void)
 {
-	vu8 Currkey = 0;	  
-    for(Currkey = 0; Currkey < KeyHandlerListNum; Currkey++)
+	vMfKey_MarkProcessed(keyPOWER);
+}
+
+/***********************************************************************************************************************
+ * å‡½æ•°åŠŸèƒ½    : æŒ‰é”®å‚æ•°åˆå§‹åŒ–/æ¸…ç©ºäº‹ä»¶ç¼“å†²åŒº
+ * ä¼ å…¥å‚æ•°    : none
+ * è¿”å›å€¼      : none
+ ************************************************************************************************************************/
+void vKey_ParamInit(void)
+{
+	vMfKey_ClearSeq();
+}
+
+/***********************************************************************************************************************
+ * å‡½æ•°åŠŸèƒ½    : æ£€æŸ¥æ˜¯å¦æœ‰ä»»æ„æŒ‰é”®æŒ‰ä¸‹
+ * ä¼ å…¥å‚æ•°    : none
+ * è¿”å›å€¼      : true: å­˜åœ¨æŒ‰é”®æŒ‰ä¸‹, false: æ— æŒ‰é”®æŒ‰ä¸‹
+ ************************************************************************************************************************/
+bool bKey_IsAnyPress(void)
+{
+	uint8_t i;
+	for(i = 0; i < keyNUM; i++)
 	{
-		if(KeyHandlerList[Currkey]->sOnPressCnt > 0)
-			return true ;
+		if(bKey_IsPressById((KeyId_E)i) == true)
+		{
+			return true;
+		}
 	}
 	return false;
 }
 
-
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    Â¼Èë¶Ì°´°´¼üÊÂ¼ş
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    °´¼ü½á¹¹Ìå
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
-************************************************************************************************************************/
-static void v_key_shot_press(KeyHandler_t* keyHandler)
+ * å‡½æ•°åŠŸèƒ½    : å·¥å‚æ¨¡å¼ç»„åˆæŒ‰é”®æ£€æµ‹ (Power + DC æŒ‰ä¸‹, å…¶ä»–æŒ‰é”®æœªæŒ‰ä¸‹)
+ * è¯´æ˜(å¤‡æ³¨)  : åŸé€»è¾‘ bKey_UsbIsPress()/bKey_LightIsPress() ä¸ºç¡¬ä»¶ä¸å­˜åœ¨çš„æŒ‰é”®(æ’false),
+ *               ç°æŒ‰é”®è¡¨æ— è¯¥é”®, è¡Œä¸ºç­‰ä»·
+ * ä¼ å…¥å‚æ•°    : none
+ * è¿”å›å€¼      : true: æ»¡è¶³å·¥å‚æ¨¡å¼ç»„åˆé”®, false: ä¸æ»¡è¶³
+ ************************************************************************************************************************/
+bool bKey_IsFactoryModePress(void)
 {
-	#if(boardDISPLAY_EN)
-	if(!tDisp.bLight && bSys_IsWorkState() == true)   //Ï¢ÆÁµÚÒ»¸ö¹¦ÄÜ²»Ö´ĞĞ
-	{
-		bDisp_Switch(ST_ON, false);
-		keyHandler->sOnPressCnt = -1;
-		if(uPrint.tFlag.bKeyTask)
-			sMyPrint("Key_Task:µ±Ç°Ï¢ÆÁ,°´¼ü¹¦ÄÜÍË³ö\r\n");
-		return;
-	}
-	#endif  //boardDISPLAY_EN
-	
-	if(keyHandler == &tKeyPower)
-	{
-		Key_TriTypeBuff[Key_TriTypeCnt] = KTE_POWER_SHORT ;  
-		if((keyGROUP_NUM - 1) > Key_TriTypeCnt) Key_TriTypeCnt ++;
-		
-		keyHandler->sOnPressCnt = -1;
-		
-		if(uPrint.tFlag.bKeyTask)
-			sMyPrint("Key_Task:µçÔ´¶Ì°´\r\n");
-	}
-	
-	#if(boardDCAC_EN)	
-	else if(keyHandler == &tKeyAC) 
-	{
-		Key_TriTypeBuff[Key_TriTypeCnt] = KTE_AC_SHORT ; 
-		if((keyGROUP_NUM - 1) > Key_TriTypeCnt) Key_TriTypeCnt ++;
-		
-		keyHandler->sOnPressCnt = -1;
-		
-		if(uPrint.tFlag.bKeyTask)
-			sMyPrint("Key_Task:AC¶Ì°´\r\n");
-	}
-	#endif  //boardDCAC_EN
-
-	#if(boardLIGHT_EN)
-	else if(keyHandler == &tKeyLight) 
-	{
-		Key_TriTypeBuff[Key_TriTypeCnt] = KTE_LIGHT_SHORT ; 
-		if((keyGROUP_NUM - 1) > Key_TriTypeCnt) Key_TriTypeCnt ++;
-		
-		keyHandler->sOnPressCnt = -1;
-		
-		if(uPrint.tFlag.bKeyTask)
-			sMyPrint("Key_Task:Light¶Ì°´\r\n");
-	}
-	#endif  //boardLIGHT_EN
-
-	#if(boardUSB_EN)
-	else if(keyHandler == &tKeyUSB) 
-	{
-		Key_TriTypeBuff[Key_TriTypeCnt] = KTE_USB_SHORT ; 
-		if((keyGROUP_NUM - 1) > Key_TriTypeCnt) Key_TriTypeCnt ++;
-		
-		keyHandler->sOnPressCnt = -1;
-		
-		if(uPrint.tFlag.bKeyTask)
-			sMyPrint("Key_Task:USB¶Ì°´\r\n");
-	}
-	#endif  //boardUSB_EN
-
 	#if(boardDC_EN)
-	else if(keyHandler == &tKeyDC) 
-	{
-		Key_TriTypeBuff[Key_TriTypeCnt] = KTE_DC_SHORT ; 
-		if((keyGROUP_NUM - 1) > Key_TriTypeCnt) Key_TriTypeCnt ++;
-		
-		keyHandler->sOnPressCnt = -1;
-		
-		if(uPrint.tFlag.bKeyTask)
-			sMyPrint("Key_Task:DC¶Ì°´\r\n");
-	}
-	#endif  //boardDC_EN
+	return (bKey_IsPressById(keyPOWER)
+		&& bKey_IsPressById(keyDC)
+		#if(boardDCAC_EN)
+		&& !bKey_IsPressById(keyAC)
+		#endif
+	);
+	#else
+	return false;
+	#endif
 }
 
-
-
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    Â¼Èë³¤°´°´¼üÊÂ¼ş
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    °´¼ü½á¹¹Ìå
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
-************************************************************************************************************************/
-static void v_key_long_press(KeyHandler_t* keyHandler)
+ * å‡½æ•°åŠŸèƒ½    : å·¥ç¨‹æ¨¡å¼ç»„åˆæŒ‰é”®æ£€æµ‹ (Power + DC æŒ‰ä¸‹, å…¶ä»–æŒ‰é”®æœªæŒ‰ä¸‹)
+ * è¯´æ˜(å¤‡æ³¨)  : åŸé€»è¾‘å·¥å‚æ¨¡å¼ä¸å·¥ç¨‹æ¨¡å¼åˆ¤æ–­æ¡ä»¶ç›¸åŒ(æ­»åˆ†æ”¯), ä¿æŒç­‰ä»·
+ * ä¼ å…¥å‚æ•°    : none
+ * è¿”å›å€¼      : true: æ»¡è¶³å·¥ç¨‹æ¨¡å¼ç»„åˆé”®, false: ä¸æ»¡è¶³
+ ************************************************************************************************************************/
+bool bKey_IsEngModePress(void)
 {
-	#if(boardDISPLAY_EN)
-	if(!tDisp.bLight && bSys_IsWorkState() == true)   //·Ç¹Ø»ú×´Ì¬ÏÂ,Ï¢ÆÁµÚÒ»¸ö¹¦ÄÜ²»Ö´ĞĞ
-	{
-		bDisp_Switch(ST_ON, false);
-		keyHandler->sOnPressCnt = -1;
-		if(uPrint.tFlag.bKeyTask)
-			sMyPrint("Key_Task:µ±Ç°Ï¢ÆÁ,°´¼ü¹¦ÄÜÍË³ö\r\n");
-		return;
-	}
-	#endif  //boardDISPLAY_EN
-	
-	if(keyHandler == &tKeyPower) 
-	{
-		Key_TriTypeBuff[Key_TriTypeCnt] = KTE_POWER_LONG ;  
-		if((keyGROUP_NUM - 1) > Key_TriTypeCnt) Key_TriTypeCnt ++;
-		
-		keyHandler->sOnPressCnt = -1;
-		
-		if(uPrint.tFlag.bKeyTask)
-			sMyPrint("Key_Task:µçÔ´³¤°´\r\n");
-		
-	}
-
-	#if(boardDCAC_EN)
-	else if(keyHandler == &tKeyAC) 
-	{
-		Key_TriTypeBuff[Key_TriTypeCnt] = KTE_AC_LONG ; 
-		if((keyGROUP_NUM-1)>Key_TriTypeCnt) Key_TriTypeCnt ++;
-		
-		keyHandler->sOnPressCnt = -1;
-		
-		if(uPrint.tFlag.bKeyTask)
-			sMyPrint("Key_Task:AC³¤°´\r\n");
-	}
-	#endif  //boardDCAC_EN
-
-	#if(boardLIGHT_EN)
-	else if(keyHandler == &tKeyLight) 
-	{
-		Key_TriTypeBuff[Key_TriTypeCnt] = KTE_LIGHT_LONG ; 
-		if((keyGROUP_NUM - 1) > Key_TriTypeCnt) Key_TriTypeCnt ++;
-		
-		keyHandler->sOnPressCnt = -1;
-		
-		if(uPrint.tFlag.bKeyTask)
-			sMyPrint("Key_Task:Light³¤°´\r\n");
-	}
-	#endif  //boardLIGHT_EN
-
-	#if(boardUSB_EN)
-	else if(keyHandler == &tKeyUSB) 
-	{
-		Key_TriTypeBuff[Key_TriTypeCnt] = KTE_USB_LONG ; 
-		if((keyGROUP_NUM - 1) > Key_TriTypeCnt) Key_TriTypeCnt ++;
-		
-		keyHandler->sOnPressCnt = -1;
-		
-		if(uPrint.tFlag.bKeyTask)
-			sMyPrint("Key_Task:USB³¤°´\r\n");
-	}
-	#endif  //boardUSB_EN
-
 	#if(boardDC_EN)
-	else if(keyHandler == &tKeyDC) 
-	{
-		Key_TriTypeBuff[Key_TriTypeCnt] = KTE_DC_LONG ; 
-		if((keyGROUP_NUM - 1) > Key_TriTypeCnt) Key_TriTypeCnt ++;
-		
-		keyHandler->sOnPressCnt = -1;
-		
-		if(uPrint.tFlag.bKeyTask)
-			sMyPrint("Key_Task:DC³¤°´\r\n");
-	}
-	#endif  //boardDC_EN
+	return (bKey_IsPressById(keyPOWER)
+			&& bKey_IsPressById(keyDC)
+			#if(boardDCAC_EN)
+			&& !bKey_IsPressById(keyAC)
+			#endif
+	);
+	#else
+	return false;
+	#endif
 }
-
-/***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    Â¼Èë³¬³¤°´°´¼üÊÂ¼ş
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    °´¼ü½á¹¹Ìå
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
-************************************************************************************************************************/
-//static void v_key_super_long_press(KeyHandler_t* keyHandler)
-//{
-//	if(!tLCD.bLight && bSys_IsShutDownState() == false)   //·Ç¹Ø»ú×´Ì¬ÏÂ,Ï¢ÆÁµÚÒ»¸ö¹¦ÄÜ²»Ö´ĞĞ
-//	{
-//		vLCD_RefreshDisplayParam();
-//		keyHandler->sOnPressCnt = -1;
-//		if(uPrint.tFlag.bKeyTask)
-//			sMyPrint("Key_Task:µ±Ç°Ï¢ÆÁ,°´¼ü¹¦ÄÜÍË³ö\r\n");
-//		return;
-//	}
-	
-//	if(keyHandler == &tKeyPower) 
-//	{
-//		Key_TriTypeBuff[Key_TriTypeCnt] = KTE_POWER_SUPER_LONG ;  
-//		if((keyGROUP_NUM - 1) > Key_TriTypeCnt) Key_TriTypeCnt ++;
-//		
-//		keyHandler->sOnPressCnt = -1;
-//		
-//		if(uPrint.tFlag.bKeyTask)
-//			sMyPrint("Key_Task:µçÔ´³¬³¤°´\r\n");
-//		
-//	}
-//}
-
-
-/***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    µçÔ´°´¼üÒÑ¾­±»´¥·¢
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
-************************************************************************************************************************/
-void vKey_PowerIsTri(void)
-{
-	tKeyPower.sOnPressCnt = -1;
-}
-
-/*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ²ÎÊı³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
-******************************************************************************************************************/
-void vKey_ParamInit(void )
-{
-	Key_TriTypeCnt = 0;
-	memset (Key_TriTypeBuff, KTE_FUN_NULL, sizeof( Key_TriTypeBuff));  //°´¼üÊÂ¼şBuffÇåÁã
-}
-	
 
 #if(boardLOW_POWER)
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    °´¼ü½øÈëµÍ¹¦ºÄ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
-************************************************************************************************************************/
+ * å‡½æ•°åŠŸèƒ½    : æŒ‰é”®è¿›å…¥ä½åŠŸè€—
+ * ä¼ å…¥å‚æ•°    : none
+ * è¿”å›å€¼      : none
+ ************************************************************************************************************************/
 void vKey_EnterLowPower(void)
 {
-	rcu_periph_clock_enable(RCU_PMU);
-	rcu_periph_clock_enable(keyGPIO_POWER_RCU);
-	rcu_periph_clock_enable(keyGPIO_WP_RCU);
-	rcu_periph_clock_enable(RCU_AF);
-	
-	gpio_init(keyGPIO_POWER_PORT,GPIO_MODE_IN_FLOATING,GPIO_OSPEED_2MHZ,keyGPIO_POWER_PIN);
-	gpio_init(keyGPIO_WP_GPIO,GPIO_MODE_IN_FLOATING,GPIO_OSPEED_2MHZ,keyGPIO_WP_PIN);
-	gpio_init(keyGPIO_AC_PORT,GPIO_MODE_AIN,GPIO_OSPEED_2MHZ,keyGPIO_AC_PIN);
-	
-	/* enable and set key EXTI interrupt to the lowest priority */
-	nvic_irq_enable(EXTI10_15_IRQn, 2U, 0U);
-	nvic_irq_enable(EXTI0_IRQn, 2U, 0U);
+	vKey_IoEnterLowPower();
 
-	/* connect key EXTI line to key GPIO pin */
-	gpio_exti_source_select(GPIO_PORT_SOURCE_GPIOC, GPIO_PIN_SOURCE_13); //PC13
-	gpio_exti_source_select(GPIO_PORT_SOURCE_GPIOA, GPIO_PIN_SOURCE_0); //PA0
-
-	/* configure key EXTI line */
-	exti_init(EXTI_13, EXTI_INTERRUPT, EXTI_TRIG_FALLING); //ÏÂ½µÑØ´¥·¢
-	exti_init(EXTI_0, EXTI_INTERRUPT, EXTI_TRIG_RISING); //ÉÏÉıÑØ´¥·¢
-	exti_interrupt_flag_clear(EXTI_13);
-	exti_interrupt_flag_clear(EXTI_0);
-	
-	vTaskSuspend(tKeyTaskHandler);  //¹ÒÆğÈÎÎñ
+	#if(boardUSE_OS)
+	vTaskSuspend(tKeyTaskHandler);
+	#endif  //boardUSE_OS
 }
 
-
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    °´¼üÍË³öµÍ¹¦ºÄ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
-************************************************************************************************************************/
+ * å‡½æ•°åŠŸèƒ½    : æŒ‰é”®é€€å‡ºä½åŠŸè€—
+ * ä¼ å…¥å‚æ•°    : none
+ * è¿”å›å€¼      : none
+ ************************************************************************************************************************/
 void vKey_ExitLowPower(void)
 {
-	rcu_periph_clock_enable(keyGPIO_POWER_RCU);
-	rcu_periph_clock_enable(keyGPIO_AC_RCU);
-	
-	gpio_init(keyGPIO_POWER_PORT,GPIO_MODE_IPU,GPIO_OSPEED_2MHZ,keyGPIO_POWER_PIN);
-	gpio_init(keyGPIO_AC_PORT,GPIO_MODE_IPU,GPIO_OSPEED_2MHZ,keyGPIO_AC_PIN);
-	gpio_init(keyGPIO_LIGHT_PORT,GPIO_MODE_IPU,GPIO_OSPEED_2MHZ,keyGPIO_LIGHT_PIN);
-	gpio_init(keyGPIO_USB_PORT,GPIO_MODE_IPU,GPIO_OSPEED_2MHZ,keyGPIO_USB_PIN);
+	vKey_IoExitLowPower();
 
-	vTaskResume(tKeyTaskHandler);  //»Ö¸´ÈÎÎñ
+	#if(boardUSE_OS)
+	vTaskResume(tKeyTaskHandler);
+	#endif  //boardUSE_OS
 }
 #endif  //boardLOW_POWER
 
-#endif  //boardKEY_EN
 
+//****************************************************Business Callbacks (ä¸­é—´ä»¶é’©å­)*****************************************//
+/***********************************************************************************************************************
+ * å‡½æ•°åŠŸèƒ½    : äº‹ä»¶å½•å…¥å‰é¢„å¤„ç†å›è°ƒ: æ¯å±å”¤é†’åæ‰é¦–ä¸ªäº‹ä»¶; æ­£å¸¸äº‹ä»¶æ‰“å°è°ƒè¯•æ—¥å¿—
+ * ä¼ å…¥å‚æ•°    : uc_idx: æŒ‰é”®ç´¢å¼•, b_long: æ˜¯å¦ä¸ºé•¿æŒ‰
+ * è¿”å›å€¼      : false: åæ‰è¯¥äº‹ä»¶, true: æ­£å¸¸å½•å…¥
+ ************************************************************************************************************************/
+static bool b_key_event_pre_proc(u8 uc_idx, bool b_long)
+{
+	#if(boardDISPLAY_EN)
+	if(!tDisp.bLight && bSys_IsWorkState() == true) //éå…³æœºçŠ¶æ€ä¸‹,æ¯å±ç¬¬ä¸€ä¸ªåŠŸèƒ½ä¸æ‰§è¡Œ
+	{
+		bDisp_Switch(ST_ON, false);
+		if(uPrint.tFlag.bKeyTask)
+		{
+			sMyPrint("Key_Task:å½“å‰æ¯å±,æŒ‰é”®åŠŸèƒ½é€€å‡º\r\n");
+		}
+		return false;
+	}
+	#endif  //boardDISPLAY_EN
+
+	if(uPrint.tFlag.bKeyTask)
+	{
+		static const char * const S_pKeyNames[] =
+		{
+			"Power",
+			#if(boardDCAC_EN)
+			"AC",
+			#endif
+			#if(boardDC_EN)
+			"DC",
+			#endif
+		};
+		const char *p_name = (uc_idx < KEY_MW_KEY_TBL_NUM) ? S_pKeyNames[uc_idx] : "Unknown";
+		sMyPrint("Key_Task:%s%s\r\n", p_name, b_long ? "é•¿æŒ‰" : "çŸ­æŒ‰");
+	}
+
+	return true;
+}
+
+/***********************************************************************************************************************
+ * å‡½æ•°åŠŸèƒ½    : è¶…é•¿æŒ‰æç¤ºå›è°ƒ: æ‰“å° + èœ‚é¸£
+ * ä¼ å…¥å‚æ•°    : uc_idx: æŒ‰é”®ç´¢å¼•
+ * è¿”å›å€¼      : none
+ ************************************************************************************************************************/
+static void v_key_on_super_long(u8 uc_idx)
+{
+	(void)uc_idx;
+
+	if(uPrint.tFlag.bKeyTask)
+	{
+		sMyPrint("Key_Task:è§¦å‘é•¿æŒ‰äº‹ä»¶\r\n");
+	}
+
+	#if(boardBUZ_EN)
+	bBuz_Tweet(SHORT_1);
+	#endif  //boardBUZ_EN
+}
+
+/***********************************************************************************************************************
+ * å‡½æ•°åŠŸèƒ½    : ä»»æ„æŒ‰é”®æŒ‰ä¸‹å›è°ƒ: æ¸…ä¼‘çœ è®¡æ•°
+ * ä¼ å…¥å‚æ•°    : none
+ * è¿”å›å€¼      : none
+ ************************************************************************************************************************/
+static void v_key_on_any_press(void)
+{
+	tSysInfo.usNeedSleepCnt = 0;
+}
+#endif  //boardKEY_EN

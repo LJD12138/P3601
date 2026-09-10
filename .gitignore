@@ -1,14 +1,14 @@
+build/
+Objects/
+Listings/
+RTE/
+
+*.txt
 *.bin
 *.hex
-build/
-
-Projects.uvguix.*
-*.txt
-compile_commands.json
-Listings/
-Objects/
-RTE/
 *.jac
 *.PC
+Projects.uvguix.*
+compile_commands.json
 
 

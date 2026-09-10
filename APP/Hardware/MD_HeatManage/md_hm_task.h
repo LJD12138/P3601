@@ -3,9 +3,9 @@
 
 #include "main.h"
 
-#define   		fanSIMPLE_MODE      					1   //0:¼òµ¥Ä£Ê½   1:È«¹¦ÄÜ
+#define   		fanSIMPLE_MODE      					1   //0:ç®€å•æ¨¡å¼   1:å…¨åŠŸèƒ½
 
-//¹¤×÷Ä£Ê½
+//å·¥ä½œæ¨¡å¼
 typedef enum 
 {   
     FWM_OFF = 0,
@@ -18,6 +18,7 @@ typedef enum
 typedef struct
 {
     vu16              	usValue;
+	vs16				sMaxTemp;
     FanWorkMode_E    	eWordMode;
 }HM_T;              
 extern HM_T			tHM;

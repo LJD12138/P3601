@@ -1,6 +1,6 @@
 /*****************************************************************************************************************
 *                                                                                                                *
- *                                         ¶ÓÁĞº¯Êı                                                  			*
+ *                                         é˜Ÿåˆ—å‡½æ•°                                                  			*
 *                                                                                                                *
 ******************************************************************************************************************/
 #include "MD_Dcac/md_dcac_queue_task.h"
@@ -14,22 +14,52 @@
 
 #define       	dcacTASK_INIT_CYCLE_TIME               		100
 
-//****************************************************º¯ÊıÉùÃ÷****************************************************//
-
+//****************************************************å‡½æ•°å£°æ˜****************************************************//
+static s8 c_dcac_info_init(void);
 
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ÈÎÎñº¯Êı:³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    ä»»åŠ¡å‡½æ•°:åˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
 void v_dcac_queue_task_init(Task_T *tp_task)
 {
+	s8 c_ret = 0;
+
 	switch (tp_task->ucStep)
     {
 		case 0:
+		{
+			//ç­‰å¾…è·å–APPä¿¡æ¯
+			if(tSysInfo.uInit.tFinish.bIF_AppInfo == false)
+				break;
+			
+			static bool b_ret = true;
+			c_ret = c_dcac_info_init();
+			if(c_ret > 0)
+			{
+				if((uPrint.tFlag.bDcacTask || uPrint.tFlag.bImportant) && b_ret == false)
+					log_w("bDcacTask:tDCACè·å–é”™è¯¯æ¸…é™¤");
+				
+				b_ret = true;
+			}
+			else
+			{
+				if((uPrint.tFlag.bDcacTask || uPrint.tFlag.bImportant) && b_ret == true)
+				{
+					log_w("bDcacTask:tDCACåˆå§‹åŒ–å¤±è´¥ ä»£ç %d",c_ret);
+					b_ret = false;
+				}
+				break;
+			}
+			cQueue_GotoStep(tp_task, STEP_NEXT);
+		}
+		break;
+
+		case 1:
         {
 			if(b_dcac_cs_init() == true)
 				cQueue_GotoStep(tp_task, STEP_NEXT);
@@ -39,11 +69,11 @@ void v_dcac_queue_task_init(Task_T *tp_task)
 				break;
 			}
         }
-		
-		case 1:
+
+		case 2:
 		{
-			if(b_dcac_cs_set_chg_pwr(tAppMemParam.tDCAC.usInPwrRating) == true)  //»ñÈ¡²ÎÊı
-				cQueue_GotoStep(tp_task, STEP_NEXT);  //ÏÂÒ»²½
+			if(b_dcac_cs_set_chg_pwr(tAppMemParam.tDCAC.usInPwrRating) == true)  //è·å–å‚æ•°
+				cQueue_GotoStep(tp_task, STEP_NEXT);  //ä¸‹ä¸€æ­¥
 			else
 			{
 				vTaskDelay(500);
@@ -51,32 +81,74 @@ void v_dcac_queue_task_init(Task_T *tp_task)
 			}
 		}
 
-		case 2:
+		case 3:
         {
 			tSysInfo.uInit.tFinish.bIF_DcacTask = 1;
 			bDcac_SetAcState(OO_ALL, IOS_SHUT_DOWN);
 			if(uPrint.tFlag.bDcacTask)
-				sMyPrint("bDcacTask:³õÊ¼»¯DCAC----³õÊ¼»¯Íê³É----\r\n");
+				sMyPrint("bDcacTask:åˆå§‹åŒ–DCAC----åˆå§‹åŒ–å®Œæˆ----\r\n");
 			
 			cQueue_GotoStep(tp_task, STEP_END);
         }
 		break;
 
 		default:
-			cQueue_GotoStep(tp_task, STEP_END);  //½áÊø
+			cQueue_GotoStep(tp_task, STEP_END);  //ç»“æŸ
 			break;
     }
 	
 	tp_task->usTaskWaitCnt++;
-	if(tp_task->usTaskWaitCnt > (3000 / dcacTASK_INIT_CYCLE_TIME))  //µÈ´ı³¬Ê±
+	if(tp_task->usTaskWaitCnt > (3000 / dcacTASK_INIT_CYCLE_TIME))  //ç­‰å¾…è¶…æ—¶
 	{
 		if(uPrint.tFlag.bDcacTask || uPrint.tFlag.bImportant)
-			log_w("bDcacTask:³õÊ¼»¯ÈÎÎñµÈ´ı³¬Ê±,²½Öè%d", tp_task->ucStep);
+			log_w("bDcacTask:åˆå§‹åŒ–ä»»åŠ¡ç­‰å¾…è¶…æ—¶,æ­¥éª¤%d", tp_task->ucStep);
 		
-		cQueue_GotoStep(tp_task, STEP_END);  //½áÊø
+		cQueue_GotoStep(tp_task, STEP_END);  //ç»“æŸ
 	}
 	
 	vTaskDelay(dcacTASK_INIT_CYCLE_TIME);
+}
+
+/*****************************************************************************************************************
+-----å‡½æ•°åŠŸèƒ½   åˆå§‹åŒ–DCACä¿¡æ¯
+-----è¯´æ˜(å¤‡æ³¨)	none
+-----ä¼ å…¥å‚æ•°	none
+-----è¾“å‡ºå‚æ•°	none
+-----è¿”å›å€¼		å°äº0:å¤±è´¥	
+				0:æœªå®Œæˆ
+				å¤§äº0:å®Œæˆ
+******************************************************************************************************************/
+static s8 c_dcac_info_init(void)
+{
+	s8 ret = 0;
+	const char* p_obj_str = tDcacMemParamStr;
+	static bool b_ret = true;
+	
+	//å·²ç»åˆå§‹åŒ–
+	if(tSysInfo.uInit.tFinish.bIF_SysInit == true)
+	{
+		ret = cApp_GetMemParam(p_obj_str);
+		if(ret > 0)//æˆåŠŸ
+			return 1;
+
+		if((uPrint.tFlag.bDcacTask || uPrint.tFlag.bImportant) && b_ret == true)
+		{
+			log_e("bDcacTask:å½“å‰ç³»ç»Ÿå·²ç»åˆå§‹åŒ–å®Œæˆ,ä½†æ˜¯tDCACè¯»å–ä¾æ—§ä¸ºç©º,å‡†å¤‡é‡ç½®");
+			b_ret = false;
+		}	
+	}
+	
+	//é‡æ–°åˆå§‹åŒ–
+	ret = cApp_MemParamInit(p_obj_str);
+	if(ret <= 0)//å¤±è´¥
+		return -1;
+	
+	ret = cApp_UpdateMemParam(p_obj_str);
+	if(ret <= 0)//å¤±è´¥
+		return -2;
+	
+	b_ret = true;
+	return 2;
 }
 
 #endif  //boardDCAC_EN

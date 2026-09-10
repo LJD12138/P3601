@@ -1,6 +1,6 @@
 /*****************************************************************************************************************
 *                                                                                                                *
- *                                         Äæ±ä½ÓÊÕÈÎÎñ                                                         *
+ *                                         é€†å˜æ¥æ”¶ä»»åŠ¡                                                         *
 *                                                                                                                *
 ******************************************************************************************************************/
 #include "MD_Dcac/md_dcac_rec_task.h"
@@ -14,44 +14,48 @@
 #include "Print/print_task.h"
 
 
+#if(boardUPDATE)
+#include "proto_update.h"
+#include "Sys/sys_queue_task_update.h"
+#include "MD_Dcac/md_dcac_queue_task_update.h"
+#endif  //boardUPDATE
 
-//#include "app_info.h"
 
-//****************************************************¾Ö²¿ºê¶¨Òå**************************************************//                                
+//****************************************************å±€éƒ¨å®å®šä¹‰**************************************************//                                
 
 
-//****************************************************ÈÎÎñ³õÊ¼»¯**************************************************//
+//****************************************************ä»»åŠ¡åˆå§‹åŒ–**************************************************//
 #if(boardUSE_OS)
-#define    		dcacREC_TASK_PRIO                		2       		//ÈÎÎñÓÅÏÈ¼¶receive 
-#define        	dcacREC_TASK_SIZE                		256     		//ÈÎÎñ¶ÑÕ»  Êµ¼Ê×Ö½ÚÊı *4
+#define    		dcacREC_TASK_PRIO                		2       		//ä»»åŠ¡ä¼˜å…ˆçº§receive 
+#define        	dcacREC_TASK_SIZE                		256     		//ä»»åŠ¡å †æ ˆ  å®é™…å­—èŠ‚æ•° *4
 TaskHandle_t    tDcacRecTaskHandle;
 void           	vDcac_RecTask(void *pvParameters);
 #endif  //boardUSE_OS
 
-//****************************************************²ÎÊı³õÊ¼»¯**************************************************//
+//****************************************************å‚æ•°åˆå§‹åŒ–**************************************************//
 DcacRx_T    	tDcacRx; 
 
 
-//****************************************************º¯ÊıÉùÃ÷****************************************************//
+//****************************************************å‡½æ•°å£°æ˜****************************************************//
 static u8 c_check_conn_state(void);
 
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ¸´Î»½ÓÊÕ²ÎÊıBUFF
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    å¤ä½æ¥æ”¶å‚æ•°BUFF
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 static void v_rec_task_param_init(void)
 {
 	memset(&tDcacRx, 0 ,sizeof(tDcacRx));
 	
-	//ÖØÖÃÏìÓ¦»º´æÆ÷
+	//é‡ç½®å“åº”ç¼“å­˜å™¨
 	if(tpDcacTask != NULL && tpDcacTask->tReplyBuff.buff != NULL)
 		lwrb_reset(&tpDcacTask->tReplyBuff);
 	
-	//ÖØÖÃ½ÓÊÕ»º³åÇø
+	//é‡ç½®æ¥æ”¶ç¼“å†²åŒº
 	if(tpDcacProtoRx != NULL)
 	{
 		cModbus_ResetRxBuff(tpDcacProtoRx);
@@ -62,34 +66,34 @@ static void v_rec_task_param_init(void)
 
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    Äæ±ä½ÓÊÕÈÎÎñ³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    é€†å˜æ¥æ”¶ä»»åŠ¡åˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 bool bDcac_RecTaskInit(void)
 {
-	//½Ó¿Ú³õÊ¼»¯
+	//æ¥å£åˆå§‹åŒ–
 	#if(boardDCAC_EN)
 	vDcac_IfaceInit();
 	#endif
 	
-	//½ÓÊÕĞ­Òé³õÊ¼»¯
+	//æ¥æ”¶åè®®åˆå§‹åŒ–
 	if(bDcac_RecProtInit() == false)
 		return false;
 	
-	//ÈÎÎñ²ÎÊı³õÊ¼»¯
+	//ä»»åŠ¡å‚æ•°åˆå§‹åŒ–
 	v_rec_task_param_init();
 	
-    //Êı¾İ½âÎöÈÎÎñ³õÊ¼»¯
+    //æ•°æ®è§£æä»»åŠ¡åˆå§‹åŒ–
 	#if(boardUSE_OS)
-    xTaskCreate((TaskFunction_t )vDcac_RecTask,        	//ÈÎÎñº¯Êı
-                (const char* )"DcacRecTask",			//ÈÎÎñÃû³Æ
-                (uint16_t ) dcacREC_TASK_SIZE,          //ÈÎÎñ¶ÑÕ»´óĞ¡
-                (void* )NULL,                           //´«µİ¸øÈÎÎñº¯ÊıµÄ²ÎÊı
-                (UBaseType_t ) dcacREC_TASK_PRIO,       //ÈÎÎñÓÅÏÈ¼¶
-                (TaskHandle_t*)&tDcacRecTaskHandle);    //ÈÎÎñ¾ä±ú
+    xTaskCreate((TaskFunction_t )vDcac_RecTask,        	//ä»»åŠ¡å‡½æ•°
+                (const char* )"DcacRecTask",			//ä»»åŠ¡åç§°
+                (uint16_t ) dcacREC_TASK_SIZE,          //ä»»åŠ¡å †æ ˆå¤§å°
+                (void* )NULL,                           //ä¼ é€’ç»™ä»»åŠ¡å‡½æ•°çš„å‚æ•°
+                (UBaseType_t ) dcacREC_TASK_PRIO,       //ä»»åŠ¡ä¼˜å…ˆçº§
+                (TaskHandle_t*)&tDcacRecTaskHandle);    //ä»»åŠ¡å¥æŸ„
 	#endif  //boardUSE_OS
 				
 	return true;
@@ -97,11 +101,11 @@ bool bDcac_RecTaskInit(void)
 
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    Äæ±ä½ÓÊÕÈÎÎñ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    é€†å˜æ¥æ”¶ä»»åŠ¡
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 void vDcac_RecTask(void *pvParameters)
 {
@@ -124,21 +128,48 @@ void vDcac_RecTask(void *pvParameters)
 			#endif
 		}
 		
-		//******************************************´¦Àí½ÓÊÕµÄÊı¾İ****************************************************
-        c_result = cModbus_ProtoCheck(tpDcacProtoRx);
+		//******************************************å¤„ç†æ¥æ”¶çš„æ•°æ®****************************************************
+		//åè®®è§£æ
+		#if(boardUPDATE)
+		if(tDcac.eDevState == DS_UPDATE_MODE || tpDcacTask->ucID == DTI_UPDATE)
+		{
+			c_result = cUpdate_ProtoCheck(&tpDcacProtoRx->tRxBuff);
+
+			// //åè®®é€‚é…
+			// if(c_result == PT_MEGMEET)
+			// 	cUpdate_ProtoSelect(tUpdate.eObj, (ProtoType_E)c_result);
+
+			if(c_result != PT_MEGMEET)
+				c_result = 0;
+		}
+		else
+		#endif  //boardUPDATE
+        	c_result = cModbus_ProtoCheck(tpDcacProtoRx);
+
+		//æ•°æ®å¤„ç†
 		if(c_result > 0)
         {
-			c_check_conn_state();
-			c_result = c_dcac_rec_proc_data(tpDcacProtoRx, tpDcacProtoTx);
-			vModbus_RecEnd(tpDcacProtoRx);
+			#if(boardUPDATE)
+			if(tDcac.eDevState == DS_UPDATE_MODE|| tpDcacTask->ucID == DTI_UPDATE)
+			{
+				c_result = c_dcac_rec_proc_megmeet_proto(tpDcacMegmeetProtoRx);
+			}
+			else
+			#endif  //boardUPDATE
+			{
+				c_check_conn_state();
+				c_result = c_dcac_rec_proc_data(tpDcacProtoRx, tpDcacProtoTx);
+				vModbus_RecEnd(tpDcacProtoRx);
+			}
+			
 			if(c_result <= 0)
 			{
 				if(uPrint.tFlag.bDcacRecTask || uPrint.tFlag.bImportant)
-					log_w("bDcacRecTask:×°ÔØµÄÊı¾İ´íÎó,´úÂë%d",c_result);
+					log_w("bDcacRecTask:è£…è½½çš„æ•°æ®é”™è¯¯,ä»£ç %d",c_result);
 			}
 			else
 			{
-				//Í¨Öª·¢ËÍÈÎÎñ
+				//é€šçŸ¥å‘é€ä»»åŠ¡
 				#if(boardUSE_OS)
 				xTaskNotifyGive(tDcacTaskHandler);
 				#endif  //boardUSE_OS
@@ -151,7 +182,7 @@ void vDcac_RecTask(void *pvParameters)
 			{
 				#if(boardUSE_OS)
 				if(lwrb_get_full(&tpDcacProtoRx->tRxBuff) ==0)
-					ulTaskNotifyTake(pdFALSE,portMAX_DELAY);//µÈ´ıÈÎÎñÍ¨Öª
+					ulTaskNotifyTake(pdFALSE,portMAX_DELAY);//ç­‰å¾…ä»»åŠ¡é€šçŸ¥
 				else
 					vTaskDelay(10);
 				#endif  //boardUSE_OS
@@ -159,7 +190,7 @@ void vDcac_RecTask(void *pvParameters)
 			else 
 			{
 				if(uPrint.tFlag.bDcacRecTask|| uPrint.tFlag.bImportant)
-					log_w("bDcacRecTask:Ğ­Òé½âÎö´íÎó,´úÂë%d",c_result);
+					log_w("bDcacRecTask:åè®®è§£æé”™è¯¯,ä»£ç %d",c_result);
 
 				#if(boardUSE_OS)
 				vTaskDelay(10);
@@ -170,24 +201,24 @@ void vDcac_RecTask(void *pvParameters)
 }
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ¼ì²âÉè±¸µÄÁ¬½Ó×´Ì¬
------ËµÃ÷(±¸×¢)  connection
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      0:Ã»ÓĞ´íÎó  ÆäËûÓĞ´íÎó
+-----å‡½æ•°åŠŸèƒ½    æ£€æµ‹è®¾å¤‡çš„è¿æ¥çŠ¶æ€
+-----è¯´æ˜(å¤‡æ³¨)  connection
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      0:æ²¡æœ‰é”™è¯¯  å…¶ä»–æœ‰é”™è¯¯
 ************************************************************************************************************************/
 static u8 c_check_conn_state(void)	
 {
-	//-----------------------¶ªÊ§ºóµÚÒ»´ÎÁ¬½Ó-----------------------------------------------
+	//-----------------------ä¸¢å¤±åç¬¬ä¸€æ¬¡è¿æ¥-----------------------------------------------
 	if(tDcac.eDevState == DS_LOST)
 	{
 		bDcac_SetErrCode(DEC_SYS_DEV_LOST,false);
 		
 		#if(boardSYS_DATA_UPADATA)
-		if(!BIT_GET(tSysInfo.Mod_Exist,OL_DCAC))//µÚÒ»´Î³õÊ¼»¯
+		if(!BIT_GET(tSysInfo.Mod_Exist,OL_DCAC))//ç¬¬ä¸€æ¬¡åˆå§‹åŒ–
 		{
 			STAT_SET(tSysInfo.Mod_Exist,OL_DCAC);
-			Sys_Updata_Element(AT_SYS_MODEXIST_ADDR, NULL, tSysInfo.Mod_Exist, true);
+			Sys_Update_Element(AT_SYS_MODEXIST_ADDR, NULL, tSysInfo.Mod_Exist, true);
 		}
 		#endif
 	}
@@ -200,23 +231,23 @@ static u8 c_check_conn_state(void)
 
 /************************************************************************************************************************
 *************************************************************************************************************************
-                                                  È«¾Öº¯Êı
+                                                  å…¨å±€å‡½æ•°
 *************************************************************************************************************************
 *************************************************************************************************************************/
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ¼ì²âÉè±¸µÄÁ¬½Ó×´Ì¬
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      0:Ã»ÓĞ´íÎó  ÆäËûÓĞ´íÎó
+-----å‡½æ•°åŠŸèƒ½    æ£€æµ‹è®¾å¤‡çš„è¿æ¥çŠ¶æ€
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      0:æ²¡æœ‰é”™è¯¯  å…¶ä»–æœ‰é”™è¯¯
 ************************************************************************************************************************/
 void vDcac_RecTickTimer(void)
 {
 	if(tpDcacProtoRx == NULL)
 		return;
 	
-	//******************************************Êı¾İÖ¡½ÓÊÕ³¬Ê±¼ÆËã***************************************************
+	//******************************************æ•°æ®å¸§æ¥æ”¶è¶…æ—¶è®¡ç®—***************************************************
 	if(tpDcacProtoRx->usRecOverTimeCnt > 0)
 	{    
 		tpDcacProtoRx->usRecOverTimeCnt--;
@@ -227,12 +258,12 @@ void vDcac_RecTickTimer(void)
 		}
 	}
 	
-	//******************************************Äæ±äÄ£¿éÁ¬½Ó³¬Ê±¼ÆËã*************************************************		
+	//******************************************é€†å˜æ¨¡å—è¿æ¥è¶…æ—¶è®¡ç®—*************************************************		
 	if(tpDcacProtoRx->usLostOverTimeCnt > 0 && bSys_IsWorkState() == true)
 	{    
 		tpDcacProtoRx->usLostOverTimeCnt--;
 	
-		if(tpDcacProtoRx->usLostOverTimeCnt == 0)      //Äæ±äÆ÷¶ªÊ§    
+		if(tpDcacProtoRx->usLostOverTimeCnt == 0)      //é€†å˜å™¨ä¸¢å¤±    
 		{
 			v_rec_task_param_init();
 			
@@ -248,11 +279,11 @@ void vDcac_RecTickTimer(void)
 
 #if(boardLOW_POWER)
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ½øÈëµÍ¹¦ºÄ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    è¿›å…¥ä½åŠŸè€—
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 void vDcac_EnterLowPower(void)
 {
@@ -263,11 +294,11 @@ void vDcac_EnterLowPower(void)
 
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ÍË³öµÍ¹¦ºÄ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    é€€å‡ºä½åŠŸè€—
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 void vDcac_ExitLowPower(void)
 {

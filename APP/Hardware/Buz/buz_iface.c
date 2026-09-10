@@ -1,43 +1,43 @@
 #include "Buz/buz_iface.h"
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ·äÃùÆ÷IO³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    èœ‚é¸£å™¨IOåˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 static void v_buz_gpio_init(void)
 {
-    rcu_periph_clock_enable(buzPWM_GPIO_RCU);    /*Ê¹ÄÜ¶Ë¿ÚÊ±ÖÓ*/
+    rcu_periph_clock_enable(buzPWM_GPIO_RCU);    /*ä½¿èƒ½ç«¯å£æ—¶é’Ÿ*/
 	
-	gpio_init(buzPWM_GPIO_PORT,GPIO_MODE_AF_PP,GPIO_OSPEED_50MHZ,buzPWM_GPIO_PIN);  //ÅäÖÃÎªÍâÉèÒı½Å
+	gpio_init(buzPWM_GPIO_PORT,GPIO_MODE_AF_PP,GPIO_OSPEED_50MHZ,buzPWM_GPIO_PIN);  //é…ç½®ä¸ºå¤–è®¾å¼•è„š
 }
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ·äÃùÆ÷¶¨Ê±Æ÷³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    èœ‚é¸£å™¨å®šæ—¶å™¨åˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 static void v_buz_timer_init(void)
 {
-    timer_oc_parameter_struct timer_ocinitpara;       /*ÉùÃ÷½á¹¹Ìå*/
-    timer_parameter_struct timer_initpara;            /*ÉùÃ÷½á¹¹Ìå*/
+    timer_oc_parameter_struct timer_ocinitpara;       /*å£°æ˜ç»“æ„ä½“*/
+    timer_parameter_struct timer_initpara;            /*å£°æ˜ç»“æ„ä½“*/
 
-    rcu_periph_clock_enable(buzTIMER_RCU);              /*Ê¹ÄÜÊ±ÖÓ*/
+    rcu_periph_clock_enable(buzTIMER_RCU);              /*ä½¿èƒ½æ—¶é’Ÿ*/
 
-    timer_deinit(buzTIMER);                             /*Ä¬ÈÏ¶¨Ê±Æ÷x*/
+    timer_deinit(buzTIMER);                             /*é»˜è®¤å®šæ—¶å™¨x*/
 
-    timer_struct_para_init(&timer_initpara);                 /*Ä¬ÈÏÖµ³õÊ¼»¯*/
+    timer_struct_para_init(&timer_initpara);                 /*é»˜è®¤å€¼åˆå§‹åŒ–*/
     /* TIMER0 configuration */
-    timer_initpara.prescaler         = 60;                   /*·ÖÆµÊı*/
-    timer_initpara.alignedmode       = TIMER_COUNTER_EDGE;   /*±ßÑØ¶ÔÆëÄ£Ê½*/
-    timer_initpara.counterdirection  = TIMER_COUNTER_UP;     /*ÏòÉÏ¼ÆÊ±*/
-    timer_initpara.period            = 999;                  /*ÖØ×°Öµ*/
-    timer_initpara.clockdivision     = TIMER_CKDIV_DIV1;     /*·ÖÆµÏµÊı*/
-    timer_initpara.repetitioncounter = 0;                    /*³õÊ¼¼ÆÊıÆ÷Öµ*/
+    timer_initpara.prescaler         = 60;                   /*åˆ†é¢‘æ•°*/
+    timer_initpara.alignedmode       = TIMER_COUNTER_EDGE;   /*è¾¹æ²¿å¯¹é½æ¨¡å¼*/
+    timer_initpara.counterdirection  = TIMER_COUNTER_UP;     /*å‘ä¸Šè®¡æ—¶*/
+    timer_initpara.period            = 999;                  /*é‡è£…å€¼*/
+    timer_initpara.clockdivision     = TIMER_CKDIV_DIV1;     /*åˆ†é¢‘ç³»æ•°*/
+    timer_initpara.repetitioncounter = 0;                    /*åˆå§‹è®¡æ•°å™¨å€¼*/
     timer_init(buzTIMER, &timer_initpara);
 
 	
@@ -66,11 +66,11 @@ static void v_buz_timer_init(void)
 }
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ·äÃùÆ÷³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    èœ‚é¸£å™¨åˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 void vBuz_Init(void)
 {    
@@ -80,16 +80,16 @@ void vBuz_Init(void)
 
 #if(boardLOW_POWER)
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    °´¼üÈÎÎñ³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    æŒ‰é”®ä»»åŠ¡åˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 void vBuz_IoEnterLowPower(void)
 {
-	rcu_periph_clock_enable(buzPWM_GPIO_RCU);    /*Ê¹ÄÜ¶Ë¿ÚÊ±ÖÓ*/
-	gpio_init(buzPWM_GPIO_PORT,GPIO_MODE_AIN,GPIO_OSPEED_2MHZ,buzPWM_GPIO_PIN);  //ÅäÖÃÎªÍâÉèÒı½Å
+	rcu_periph_clock_enable(buzPWM_GPIO_RCU);    /*ä½¿èƒ½ç«¯å£æ—¶é’Ÿ*/
+	gpio_init(buzPWM_GPIO_PORT,GPIO_MODE_AIN,GPIO_OSPEED_2MHZ,buzPWM_GPIO_PIN);  //é…ç½®ä¸ºå¤–è®¾å¼•è„š
 	
 	rcu_periph_clock_disable(buzTIMER_RCU); 
 	

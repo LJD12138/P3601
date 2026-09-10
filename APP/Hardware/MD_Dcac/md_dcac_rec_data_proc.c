@@ -2,21 +2,33 @@
 
 #if(boardDCAC_EN)
 #include "MD_Dcac/md_dcac_rec_task.h"
+#include "MD_Dcac/md_dcac_iface.h"
 #include "MD_Dcac/md_dcac_prot_frame.h"
 #include "MD_Dcac/md_dcac_task.h"
+#include "MD_Mppt/md_mppt_rec_task.h"
+#include "Print/print_prot_frame.h"
 #include "Print/print_task.h"
 
+
 #include "function.h"
+#include "check.h"
+#include "app_info.h"
+#include <string.h>
 
-//****************************************************������ʼ��**************************************************//   
+#if(boardUPDATE)
+#include "Sys/sys_queue_task_update.h"
+#include "MD_Dcac/md_dcac_queue_task_update.h"
+#endif  //boardUPDATE
 
+//****************************************************函数声明****************************************************//
 
+  
 /***********************************************************************************************************************
------��������    �������յ�������
------˵��(��ע)  none
------�������    none
------�������    none
------����ֵ      0:û�д���  �����д���
+-----函数功能    处理接收到的数据
+-----说明(备注)  none
+-----传入参数    none
+-----输出参数    none
+-----返回值      0:没有错误  其他有错误
 ************************************************************************************************************************/
 s8 c_dcac_rec_proc_data(ModbusProtoRx_t* proto_rx, ModbusProtoTx_t* proto_tx)
 {
@@ -31,11 +43,11 @@ s8 c_dcac_rec_proc_data(ModbusProtoRx_t* proto_rx, ModbusProtoTx_t* proto_tx)
 	u16 us_reg_data = 0;
 	
 	if(proto_rx == NULL || proto_tx == NULL)
-		return 0;
+		return -1;
 	
 	if(uPrint.tFlag.bDcacRecTask)
 	{
-		sMyPrint("\r\n bDcacRecTask:���յ�ַ%d:", proto_tx->usRegAddr);
+		sMyPrint("bDcacRecTask:接收地址%d:", proto_tx->usRegAddr);
 		for(int i = 0; i < proto_rx->ucValidLen; i++)
 			sMyPrint("%x ",proto_rx->ucpValidData[i]);
 		sMyPrint("\r\n");
@@ -45,7 +57,12 @@ s8 c_dcac_rec_proc_data(ModbusProtoRx_t* proto_rx, ModbusProtoTx_t* proto_tx)
 		proto_rx->ucCmd == modbusREAD_MULTI_BIT)
 	{
 		if(proto_rx->ucCharLen != proto_tx->ucCharLen)
+		{
+			if(uPrint.tFlag.bDcacRecTask || uPrint.tFlag.bImportant)
+				log_w("bDcacRecTask:迟到回复(期望长度%d,收到%d),当前等待寄存器%d",
+					proto_tx->ucCharLen, proto_rx->ucCharLen, proto_tx->usRegAddr);
 			return -1;
+		}
 		if(proto_rx->ucValidLen != proto_rx->ucCharLen || proto_rx->ucpValidData == NULL)
 			return -7;
 	}
@@ -76,9 +93,9 @@ s8 c_dcac_rec_proc_data(ModbusProtoRx_t* proto_rx, ModbusProtoTx_t* proto_tx)
 			if(proto_rx->ucCharLen != sizeof(tParam1))
 				return -4;
 			
-			//װ�ز���
+			//装载参数
 			bFunc_SwapU16Array((u8*)&tParam1, proto_rx->ucpValidData, proto_rx->ucCharLen / 2);
-			//��������
+			//更新数据
 			tDcacRx.usOutVolt = tParam1.usOutVolt;
 
 			//G3604 0.1A     G2404 0.01A
@@ -87,7 +104,7 @@ s8 c_dcac_rec_proc_data(ModbusProtoRx_t* proto_rx, ModbusProtoTx_t* proto_tx)
 			else
 				tDcacRx.usOutCurr = LIMIT_MIN(tParam1.sOutCurr / 10, 0);
 			
-			if(tParam1.usOutPwr > 2)
+			if(tParam1.usOutPwr > 5)
 				tDcacRx.usOutPwr = tParam1.usOutPwr;
 			else
 				tDcacRx.usOutPwr = 0;
@@ -95,19 +112,18 @@ s8 c_dcac_rec_proc_data(ModbusProtoRx_t* proto_rx, ModbusProtoTx_t* proto_tx)
 			tDcacRx.usOutFreq = tParam1.usOutFreq / 10;
 			tDcacRx.uState.usState = tParam1.usState;
 
-			s16 fan_temp = 25;
 			if(tParam1.usFan > 10 && tParam1.usFan <25 )
-				fan_temp = 40;
+				sMpptMaxTemp = 40;
 			else if(tParam1.usFan > 25 && tParam1.usFan < 50)
-				fan_temp = 43;
+				sMpptMaxTemp = 43;
 			else if(tParam1.usFan > 50 && tParam1.usFan < 75)
-				fan_temp = 50;
+				sMpptMaxTemp = 50;
 			else if(tParam1.usFan > 75)
-				fan_temp = 55;
+				sMpptMaxTemp = 55;
 			
 			s16 temp = MAX3(tParam1.sTemp1, tParam1.sTemp2, tParam1.sTemp3);
 			temp = temp / 10;
-			tDcacRx.sMaxTemp = MAX2(temp, fan_temp);
+			tDcacRx.sMaxTemp = temp;
 			
 			temp = MIN3(tParam1.sTemp1, tParam1.sTemp2, tParam1.sTemp3);
 			tDcacRx.sMinTemp = temp / 10;
@@ -121,12 +137,19 @@ s8 c_dcac_rec_proc_data(ModbusProtoRx_t* proto_rx, ModbusProtoTx_t* proto_tx)
 			if(proto_rx->ucCharLen != sizeof(tParam2))
 				return -5;
 
-			//װ�ز���
+			//装载参数
 			bFunc_SwapU16Array((u8*)&tParam2, proto_rx->ucpValidData, proto_rx->ucCharLen/2);
-			//��������
-			tDcacRx.uErrCode.usCode[0] = tParam2.uDcErrCode;
+			//更新数据
+			// if(tMppt.eDevState > DS_BOOTING && tDcac.eChgState == DS_SHUT_DOWN)
+				/* bit0:待机状态标志,非故障,屏蔽 */
+				// tDcacRx.uErrCode.usCode[0] = tParam2.uDcErrCode & (~0x0001);
+			// else
+				 tDcacRx.uErrCode.usCode[0] = tParam2.uDcErrCode;
+
 			tDcacRx.uErrCode.usCode[1] = tParam2.uAcErrCode;
-			tDcacRx.uErrCode.usCode[2] = tParam2.uInErrCode & (~0x140);
+			/* bit2:输入欠压保护(非故障),bit8:输入缓启动中(非故障),均屏蔽 */
+			tDcacRx.uErrCode.usCode[2] = tParam2.uInErrCode & (~0x0140);
+			/* bit0:系统运行状态标志,仅保留 */
 			tDcacRx.uErrCode.usCode[3] = tParam2.usSysErr & 0x01;
 		}
 		break;
@@ -138,14 +161,16 @@ s8 c_dcac_rec_proc_data(ModbusProtoRx_t* proto_rx, ModbusProtoTx_t* proto_tx)
 			if(proto_rx->ucCharLen != sizeof(tParam3))
 				return -6;
 
-			//װ�ز���
+			//装载参数
 			bFunc_SwapU16Array((u8*)&tParam3, proto_rx->ucpValidData, proto_rx->ucCharLen/2);
-			//��������
+			//更新数据
 			tDcacRx.usInVolt = tParam3.usAcInVolt;
-			tDcacRx.usInCurr = LIMIT_MIN(tParam3.sAcInCurr, 0);
 			tDcacRx.usInPwr = LIMIT_MIN(tParam3.sAcInPwr, 0);
 			tDcacRx.usInChgPwr = LIMIT_MIN(tParam3.sAcChgPwr, 0);
 			tDcacRx.usChgPwr = LIMIT_MIN(tParam3.sBatInPwr, 0);
+
+			if(tDcacRx.usInVolt < tAppMemParam.tDCAC.usMinInVolt)
+				tParam3.sAcInCurr = 0;
 
 			//G3604 0.1A     G2404 0.01A
 			if(strstr(boardSOFTWARE_VERSION, "G3604") != NULL)
@@ -169,4 +194,289 @@ s8 c_dcac_rec_proc_data(ModbusProtoRx_t* proto_rx, ModbusProtoTx_t* proto_tx)
 	}
     return 1;
 }
+
+
+/***********************************************************************************************************************
+-----函数功能    处理Megmeet协议数据
+-----说明(备注)  DCAC升级期只解析从机回复并更新升级状态，baiku回传由Print升级任务统一组帧。
+************************************************************************************************************************/
+#if(boardUPDATE)
+s8 c_dcac_rec_proc_megmeet_proto(MegmeetProtoRx_t* tp_proto_rx)
+{
+	UpdateFrame_t* tp_frame = NULL;
+//	s8 c_result = 1;
+
+	if(tp_proto_rx == NULL)
+		return -1;
+
+	tp_frame = &tp_proto_rx->tFrame;
+	if(tp_frame->ucpFrame == NULL || tp_frame->usFrameLen < MEGMEET_FRAME_MIN_FRAME_LEN)
+		return -2;
+
+	if(tp_frame->usPayloadLen > 0 && tp_frame->ucpPayload == NULL)
+		return -3;
+
+	if(tpDcacTask->tReplyBuff.buff == NULL)
+		return -4;
+
+	switch(tp_frame->ucCmd)
+	{
+		//F1 回复请求升级
+		case MEGMEET_CMD_REQ_UPDATE_REPLY:
+		{
+			if(tp_frame->usPayloadLen != 1 || tp_frame->ucpPayload == NULL)
+				return -10;
+
+			if(eDcacPrepStage != DPS_WAIT_F1)
+				return 0;
+
+			vUpdate_ResetRecTimeout(true);
+
+			u8 u_reply_param = tp_frame->ucpPayload[0];
+
+			if(u_reply_param != 0x01)
+			{
+				bUpdate_SetErrCode(UEF_DR_F1_CHECK_FAIL);
+				return -3;
+			}
+			
+			bDcac_SetPrepStage(tpDcacTask, DPS_SEND_F2);
+		}
+		break;
+
+		//F3 回复切换波特率
+		case MEGMEET_CMD_SET_BAUD_REPLY:
+		{
+			if(tp_frame->usPayloadLen != 1 || tp_frame->ucpPayload == NULL)
+				return -20;
+
+			if(eDcacPrepStage != DPS_WAIT_F3)
+				return 0;
+
+			vUpdate_ResetRecTimeout(true);
+
+			u8 u_reply_param = tp_frame->ucpPayload[0];
+
+			/* 0xFF表示无对应波特率 */
+			if(u_reply_param == MEGMEET_BAUD_INVALID)
+			{
+				bUpdate_SetErrCode(UEF_DR_F3_BAUD_INVALID);
+				return -8;
+			}
+
+			/* 0x00表示成功切换 */
+			if(u_reply_param != MEGMEET_BAUD_OK)
+			{
+				bUpdate_SetErrCode(UEF_DR_F3_CHECK_FAIL);
+				return -9;
+			}
+
+			if(bDcac_IfaceSetBaud(tUpdate.ulBaud) == false)
+			{
+				bUpdate_SetErrCode(UEF_DR_F3_SET_BAUD_FAIL);
+				return -10;
+			}
+
+			/* 从机已确认波特率切换，本地串口已在接收中断中完成切换 */
+			
+			bDcac_SetDevState(DS_UPDATE_MODE);
+			bDcac_SetPrepStage(tpDcacTask, DPS_WAIT_PRINT_UPDATE_REQ);
+		}
+		break;
+
+		//F7 回复跳转 Boot
+		case MEGMEET_CMD_JUMP_BOOT_REPLY:
+		{
+			if(eDcacPrepStage != DPS_WAIT_F7)
+				return 0;
+
+			if(tp_frame->usPayloadLen != 0)
+			{
+				bUpdate_SetErrCode(UEF_DR_F7_CHECK_FAIL);
+				return -60;
+			}
+			vUpdate_ResetRecTimeout(true);
+			bDcac_SetPrepStage(tpDcacTask,DPS_BOOT_DELAY);
+		}
+		break;
+
+		// A2 文件头回复
+		case MEGMEET_CMD_FILE_HEAD_REPLY:
+		{
+			if(tp_frame->usPayloadLen != 1 || tp_frame->ucpPayload == NULL)
+				return -30;
+
+			if(eDcacPrepStage != DPS_WAIT_A2)
+				return -31;
+
+			vUpdate_ResetRecTimeout(true);
+
+			//读取数据
+			u8 u_reply_param = tp_frame->ucpPayload[0];
+
+			if(u_reply_param != MEGMEET_A2_OK &&
+				u_reply_param != MEGMEET_A2_VER_LATEST)
+			{
+				bUpdate_SetErrCode(UEF_DR_A2_REPLY_ERR);
+				break;
+			}
+
+			/* A2校验通过后清空缓冲区,避免影响后续A3/A4重发 */
+			b_dcac_update_buf_reset(tpDcacTask);
+
+			/* A2 已经是最新版本 */
+			if(u_reply_param == MEGMEET_A2_VER_LATEST)
+			{
+				bUpdate_SetResult(URT_SLAVE, UTR_LATEST);
+				cQueue_GotoStep(tpDcacTask, DUS_STEP_FINISH_CLEANUP);
+				break;
+			}
+			
+			bDcac_SetPrepStage(tpDcacTask, DPS_FINISH_CLEANUP);
+		}
+		break;
+
+		//A4 固件数据回复
+		case MEGMEET_CMD_FIRMWARE_DATA_REPLY:
+		{
+			//读取数据
+			#pragma pack(1)
+			struct {
+				u16 usSeqNum;
+				u8  ucStatus;
+			} u_reply_param;
+			#pragma pack()
+
+			if(tp_frame->usPayloadLen != sizeof(u_reply_param) || tp_frame->ucpPayload == NULL)
+				return -40;
+
+			memcpy(&u_reply_param, tp_frame->ucpPayload, tp_frame->usPayloadLen);
+
+			/* 校验包序号是否匹配 */
+			if(u_reply_param.usSeqNum != tUpdate.usRecFrameCnt)
+			{
+				bUpdate_SetErrCode(UEF_DR_A4_SEQ_MISMATCH);
+				return -41;
+			}
+
+			if(u_reply_param.ucStatus != MEGMEET_A4_OK &&
+			   u_reply_param.ucStatus != MEGMEET_A4_ALL_OK)
+			{
+				bUpdate_SetErrCode(UEF_DR_A4_REPLY_ERR);
+				return -42;
+			}
+
+			/* 校验通过后再重置超时和缓冲区,避免无效数据掩盖超时 */
+			vUpdate_ResetTimeout();
+			vUpdate_ResetRecTimeout(true);
+			b_dcac_update_buf_reset(tpDcacTask);
+
+			#if(boardUSE_OS)
+			taskENTER_CRITICAL();
+			#endif
+			u16 us_pending_len = tUpdate.usPendPacketLen;
+			u32 ul_pend_crc = tUpdate.ulFwPendCrc32;
+			tUpdate.usPendPacketLen = 0;
+			#if(boardUSE_OS)
+			taskEXIT_CRITICAL();
+			#endif
+
+			if(us_pending_len == 0)
+				return 0;
+
+			tUpdate.ulFwCalcCrc32 = ul_pend_crc;
+			tUpdate.ulRxSize += us_pending_len;
+
+			/* A4 已经全部完成 */
+			if(u_reply_param.ucStatus == MEGMEET_A4_ALL_OK)
+			{
+				/* 升级完成 */
+				bUpdate_SetResult(URT_SLAVE, UTR_OK);
+				bDcac_SetFwTransStage(tpDcacTask, DFTS_FINISH_CLEANUP);
+				break;
+			}
+
+			//Print已经结束
+			if(tUpdate.eHostResult == UTR_OK || tUpdate.eHostResult == UTR_CANCEL)
+			{
+				bDcac_SetFwTransStage(tpDcacTask, DFTS_QUERY_SLAVE_RESULT);
+				break;
+			}
+
+			/* 通知Print请求下一包数据 */
+			bDcac_SetFwTransStage(tpDcacTask, DFTS_HOST_REQ_DATA);
+		}
+		break;
+
+		// A6 查询结果回复
+		case MEGMEET_CMD_QUERY_RESULT_REPLY:
+		{
+			//读取数据
+                #pragma pack(1)
+                struct {
+                    u8  ucStatus;
+                    u8  ucSlaveAddr;
+                    u8  ucChipId;
+                } u_reply_param;
+                #pragma pack()
+
+			if(tp_frame->usPayloadLen != sizeof(u_reply_param) || tp_frame->ucpPayload == NULL)
+				return -50;
+
+			vUpdate_ResetRecTimeout(true);
+
+			memcpy(&u_reply_param, tp_frame->ucpPayload, tp_frame->usPayloadLen);
+
+			/* 校验从机地址和芯片ID */
+			if(u_reply_param.ucSlaveAddr != ucDcac_GetUpdateSlaveAddr(tUpdate.eObj) || 
+			u_reply_param.ucChipId != ucDcac_GetUpdateIcType(tUpdate.eObj))
+			{
+				bUpdate_SetErrCode(UEF_DR_A6_CHECK_FAIL);
+				return -51;
+			}
+
+			//回复错误
+			if(u_reply_param.ucStatus > 100 &&
+			   u_reply_param.ucStatus != MEGMEET_A6_VER_LATEST)
+			{
+				bUpdate_SetErrCode(UEF_DR_A6_REPLY_ERR);
+				return -52;
+			}
+
+			//回复未升级完成,报错
+			if(u_reply_param.ucStatus < 100)
+			{
+				bUpdate_SetErrCode(UEF_DR_A6_NOT_COMPLETE);
+				return -53;
+			}
+
+			/* A6 已经是最新 */
+			if(u_reply_param.ucStatus == MEGMEET_A6_VER_LATEST)
+				bUpdate_SetResult(URT_SLAVE, UTR_LATEST);
+			else
+				bUpdate_SetResult(URT_SLAVE, UTR_OK);
+
+			/* 升级完成 */
+			bDcac_SetFwTransStage(tpDcacTask, DFTS_FINISH_CLEANUP);
+		}
+		break;
+
+		// 0xFF 错误回复
+		case MEGMEET_CMD_ERR_REPLY:
+		{
+			if(tp_frame->usPayloadLen < 1)
+				return -8;
+
+			bUpdate_SetErrCode(UEF_DR_ERR_FRAME);
+		}
+		break;
+
+		default:
+			return -99;
+	}
+
+	return 1;
+}
+#endif  //boardUPDATE
 #endif  //boardDCAC_EN
+

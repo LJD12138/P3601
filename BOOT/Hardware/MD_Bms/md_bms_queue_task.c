@@ -1,6 +1,6 @@
 /*****************************************************************************************************************
 *                                                                                                                *
- *                                         ÏµÍ³×ÜÈÎÎñµÄ¶ÓÁĞº¯Êı                                                  *
+ *                                         ç³»ç»Ÿæ€»ä»»åŠ¡çš„é˜Ÿåˆ—å‡½æ•°                                                  *
 *                                                                                                                *
 ******************************************************************************************************************/
 #include "MD_Bms/md_bms_queue_task.h"
@@ -12,39 +12,39 @@
 #include "Print/print_task.h"
 
 
-//****************************************************²ÎÊı³õÊ¼»¯**************************************************//
-__ALIGNED(4) 	Task_T *tpBmsTask = NULL;  	//¶ÓÁĞÈÎÎñ
+//****************************************************å‚æ•°åˆå§‹åŒ–**************************************************//
+__ALIGNED(4) 	Task_T *tpBmsTask = NULL;  	//é˜Ÿåˆ—ä»»åŠ¡
 
 
-//****************************************************º¯ÊıÉùÃ÷****************************************************//
+//****************************************************å‡½æ•°å£°æ˜****************************************************//
 static bool b_task_manage_func_cb(Task_T *tp_task);
 static void v_add_task_return_func_cb(Task_T *tp_task, u8 num);
 
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ¶ÓÁĞ³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    é˜Ÿåˆ—åˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 bool bBms_QueueInit(void)
 {
 	s8 c_result = 1;
 	
-	//ÈÎÎñ¶ÓÁĞ³õÊ¼»¯£¬¶ÓÁĞ´óĞ¡Îª8£¬»Ø¸´»º´æÆ÷´óĞ¡Îª0
+	//ä»»åŠ¡é˜Ÿåˆ—åˆå§‹åŒ–ï¼Œé˜Ÿåˆ—å¤§å°ä¸º8ï¼Œå›å¤ç¼“å­˜å™¨å¤§å°ä¸º0
 	c_result = cQueue_TaskInit(&tpBmsTask, 8, 0, b_task_manage_func_cb, v_add_task_return_func_cb);
 	if(c_result <= 0)
 	{
 		if(uPrint.tFlag.bBmsTask || uPrint.tFlag.bImportant)
-			log_e("bBmsTask:tpBmsTaskÈÎÎñ¶ÔÏó³õÊ¼»¯Ê§°Ü,´úÂë&d",c_result);
+			log_e("bBmsTask:tpBmsTaskä»»åŠ¡å¯¹è±¡åˆå§‹åŒ–å¤±è´¥,ä»£ç &d",c_result);
 		
 		return false;
 	}
 	else if(tpBmsTask == NULL)
 	{
 		if(uPrint.tFlag.bBmsTask || uPrint.tFlag.bImportant)
-			log_e("bBmsTask:tpBmsTaskÈÎÎñ¶ÔÏó´´½¨Ê§°Ü");
+			log_e("bBmsTask:tpBmsTaskä»»åŠ¡å¯¹è±¡åˆ›å»ºå¤±è´¥");
 		
 		return false;
 	}
@@ -54,11 +54,11 @@ bool bBms_QueueInit(void)
 
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ×°ÔØÈÎÎñº¯Êı
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      true:³É¹¦   false:Ê§°Ü 
+-----å‡½æ•°åŠŸèƒ½    è£…è½½ä»»åŠ¡å‡½æ•°
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      true:æˆåŠŸ   false:å¤±è´¥ 
 ******************************************************************************************************************/
 static bool b_task_manage_func_cb(Task_T *tp_task)
 {
@@ -77,7 +77,7 @@ static bool b_task_manage_func_cb(Task_T *tp_task)
 	if(uc_temp%3 != 0 && uc_temp != 0)
 	{
 		if(uPrint.tFlag.bBmsTask || uPrint.tFlag.bImportant)
-			log_e("bBmsTask:ÈÎÎñ¶ÓÁĞ³¤¶ÈÒì³£ ³¤¶È%d",uc_temp);
+			log_e("bBmsTask:ä»»åŠ¡é˜Ÿåˆ—é•¿åº¦å¼‚å¸¸ é•¿åº¦%d",uc_temp);
 		lwrb_reset(&tp_task->tQueueBuff);
 		return false;
 	}
@@ -87,9 +87,16 @@ static bool b_task_manage_func_cb(Task_T *tp_task)
         lwrb_read(&tp_task->tQueueBuff, (u8*)&tp_task->ucID, 1);
 		lwrb_read(&tp_task->tQueueBuff, (u8*)&tp_task->usInParam, 2);
     }
-    else
+	#if(boardUPDATE)
+    else if(tpSysTask->ucID == STI_UPDATE)
     {
-		tp_task->ucID = BTI_MAIN;
+		tp_task->ucID = BTI_UPDATE;
+		tp_task->usInParam = 0;
+    }
+	#endif  //boardUPDATE
+	else
+    {
+		tp_task->ucID = BTI_NULL;
 		tp_task->usInParam = 0;
     }
     
@@ -99,7 +106,14 @@ static bool b_task_manage_func_cb(Task_T *tp_task)
         {			
             tp_task->vp_func = v_bms_queue_task_main;
 			if(uPrint.tFlag.bBmsTask)
-				sMyPrint("bBmsTask:----×°ÔØÖ÷ÈÎÎñ----\r\n");
+				sMyPrint("bBmsTask:----è£…è½½ä¸»ä»»åŠ¡----\r\n");
+        }break; 
+
+        case BTI_UPDATE:
+        {			
+            tp_task->vp_func = v_bms_queue_task_update;
+			if(uPrint.tFlag.bBmsTask)
+				sMyPrint("bBmsTask:----è£…è½½æ›´æ–°ä»»åŠ¡----\r\n");
         }break; 
         
 		case BTI_NULL:
@@ -116,7 +130,7 @@ static void v_add_task_return_func_cb(Task_T *tp_task, u8 num)
 {
 	switch(num)
 	{
-		//Ìí¼ÓÁËÈÎÎñ
+		//æ·»åŠ äº†ä»»åŠ¡
 		case 2:
 		{
 			#if(boardUSE_OS)

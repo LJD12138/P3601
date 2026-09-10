@@ -1,6 +1,6 @@
 /*****************************************************************************************************************
 *                                                                                                                *
- *                                         ÏµÍ³³õÊ¼»¯ÈÎÎñ                                                        *
+ *                                         ç³»ç»Ÿåˆå§‹åŒ–ä»»åŠ¡                                                        *
 *                                                                                                                *
 ******************************************************************************************************************/
 #include "board_config.h"
@@ -89,9 +89,9 @@
 #include "MD_Display/md_display_task.h"
 #endif  //boardDISPLAY_EN
 
-#if(boardUPDATA)
-#include "Sys/sys_queue_task_updata.h"
-#endif  //boardUPDATA
+#if(boardUPDATE)
+#include "Sys/sys_queue_task_update.h"
+#endif  //boardUPDATE
 
 
 void SysParamInit(void)
@@ -99,12 +99,12 @@ void SysParamInit(void)
 	#if(boardPRINT_IFACE)
 	uPrint.tFlag.bImportant = 1;
 	uPrint.tFlag.bAppInfo   = 1;
-	uPrint.tFlag.bSysTask   = 1;
+	uPrint.tFlag.bSysTask   = 0;
 	uPrint.tFlag.bKeyTask   = 1;
 	uPrint.tFlag.bBmsRecTask= 0;
 	uPrint.tFlag.bBmsTask   = 0;
-	uPrint.tFlag.bDcacTask  = 1;
-	uPrint.tFlag.bDcacRecTask= 1;
+	uPrint.tFlag.bDcacTask  = 0;
+	uPrint.tFlag.bDcacRecTask= 0;
 	uPrint.tFlag.bMpptTask  = 0;
 	uPrint.tFlag.bMpptRecTask= 0;
 	uPrint.tFlag.bUsbTask   = 0;
@@ -120,11 +120,11 @@ void SysParamInit(void)
 
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ³õÊ¼»¯ÈÎÎñµÄÈÎÎñ²ÎÊı    µÚÒ»²½
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    åˆå§‹åŒ–ä»»åŠ¡çš„ä»»åŠ¡å‚æ•°    ç¬¬ä¸€æ­¥
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 void vBoard_SysInit(void)
 {
@@ -141,8 +141,8 @@ void vBoard_SysInit(void)
 	#endif  //boardPRINT_IFACE
 	
 	#if boardSEGGER
-	SEGGER_RTT_Init();      //³õÊ¼»¯Seeger RTT Êä³ö 
-	SEGGER_SYSVIEW_Conf();  //SystemView ³õÊ¼»¯
+	SEGGER_RTT_Init();      //åˆå§‹åŒ–Seeger RTT è¾“å‡º 
+	SEGGER_SYSVIEW_Conf();  //SystemView åˆå§‹åŒ–
 	#endif  //boardSEGGER
 	
 	#if(boardCM_BACKTRACE)
@@ -159,7 +159,7 @@ void vBoard_SysInit(void)
 		printf("EasyFlash init fail, EfErrCode = %d.r\n", ret);
 	#endif  //boardEASY_FLASH
 	
-	SysParamInit();        //³õÊ¼»¯ÏµÍ³²ÎÊı
+	SysParamInit();        //åˆå§‹åŒ–ç³»ç»Ÿå‚æ•°
 }
 
 
@@ -167,11 +167,11 @@ void vBoard_SysInit(void)
 
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ³õÊ¼»¯ÈÎÎñµÄÈÎÎñ    µÚ¶ş²½
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    åˆå§‹åŒ–ä»»åŠ¡çš„ä»»åŠ¡    ç¬¬äºŒæ­¥
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 void vBoard_StartTask(void *pvParameters)
 {
@@ -179,70 +179,70 @@ void vBoard_StartTask(void *pvParameters)
     taskENTER_CRITICAL();
 	#endif  //boardUSE_OS
 	
-	vSys_TaskInit();            //ÏµÍ³×ÜÈÎÎñ
+	vSys_TaskInit();            //ç³»ç»Ÿæ€»ä»»åŠ¡
 	
 	#if(boardPRINT_IFACE)
 	if(bPrint_TaskInit() == false)
-		uPrint.ulFlag = 0;	//¹Ø±ÕËùÓĞµ÷ÊÔ
+		uPrint.ulFlag = 0;	//å…³é—­æ‰€æœ‰è°ƒè¯•
 	#endif
 
 	#if(boardADC_EN)
-	vAdc_TaskInit();             //ADC´¦ÀíÈÎÎñ
+	vAdc_TaskInit();             //ADCå¤„ç†ä»»åŠ¡
 	#endif  //boardADC_EN
 	
 	#if(boardDISPLAY_EN)
-	bDisp_TaskInit();             //ÏÔÊ¾ÈÎÎñ
+	bDisp_TaskInit();             //æ˜¾ç¤ºä»»åŠ¡
 	#endif  //boardDISPLAY_EN
 	
 	#if(boardBUZ_EN)
-    bBuz_TaskInit();            //·äÃùÆ÷ÈÎÎñ
+    bBuz_TaskInit();            //èœ‚é¸£å™¨ä»»åŠ¡
 	#endif  //boardBUZ_EN
 	
 	#if(boardKEY_EN)
-    vKey_TaskInit();             //°´¼üÈÎÎñ
+    vKey_TaskInit();             //æŒ‰é”®ä»»åŠ¡
 	#endif  //boardKEY_EN
 	
 	#if(boardLED_EN)
-	vLed_TaskInit();             //Ö¸Ê¾µÆÈÎÎñ
+	vLed_TaskInit();             //æŒ‡ç¤ºç¯ä»»åŠ¡
 	#endif  //boardLED_EN
 	
 	#if(boardLIGHT_EN)
-	vLight_TaskInit();           //ÕÕÃ÷µÆÈÎÎñ
+	vLight_TaskInit();           //ç…§æ˜ç¯ä»»åŠ¡
 	#endif  //boardLIGHT_EN
 	
 	#if(boardHEAT_MANAGE_EN)
-	bHM_TaskInit();             //·çÉÈÉ¢ÈÈÈÎÎñ
+	bHM_TaskInit();             //é£æ‰‡æ•£çƒ­ä»»åŠ¡
 	#endif  //boardHEAT_MANAGE_EN
 	
 	#if(boardUSB_EN)
-	bUsb_TaskInit();             //USBÈÎÎñ
+	bUsb_TaskInit();             //USBä»»åŠ¡
 	#endif  //boardUSB_EN
 	
 	#if(boardDC_EN)
-	vDc_TaskInit();              //DCÈÎÎñ
+	vDc_TaskInit();              //DCä»»åŠ¡
 	#endif  //boardDC_EN
 	
 	#if(boardDCAC_EN)
-	bDcac_TaskInit();           //Äæ±äÆ÷·¢ËÍÈÎÎñ
-	bDcac_RecTaskInit();        //Äæ±äÆ÷½ÓÊÕÈÎÎñ
-	#endif
+	bDcac_TaskInit();           //é€†å˜å™¨å‘é€ä»»åŠ¡
+	bDcac_RecTaskInit();        //é€†å˜å™¨æ¥æ”¶ä»»åŠ¡
+	#endif  //boardDCAC_EN
 	
 	#if(boardBMS_EN)
-	bBms_TaskInit();            //BMS·¢ËÍÈÎÎñ
-	bBms_RecTaskInit();         //BMS½ÓÊÕÈÎÎñ
-	#endif
+	bBms_TaskInit();            //BMSå‘é€ä»»åŠ¡
+	bBms_RecTaskInit();         //BMSæ¥æ”¶ä»»åŠ¡
+	#endif  //boardBMS_EN
 	
 	#if(boardMPPT_EN)
-	bMppt_TaskInit();           //MPPT·¢ËÍÈÎÎñ
-	bMppt_RecTaskInit();        //MPPT½ÓÊÕÈÎÎñ
-	#endif
+	bMppt_TaskInit();           //MPPTå‘é€ä»»åŠ¡
+	bMppt_RecTaskInit();        //MPPTæ¥æ”¶ä»»åŠ¡
+	#endif  //boardMPPT_EN
 	
 	#if(boardWIFI_IFACE)
-	vWifi_TaskInit();           //WiFi·¢ËÍÈÎÎñ
-	vWiFi_RecTaskInit();        //WiFi½ÓÊÕÈÎÎñ
-	#endif
+	vWifi_TaskInit();           //WiFiå‘é€ä»»åŠ¡
+	vWiFi_RecTaskInit();        //WiFiæ¥æ”¶ä»»åŠ¡
+	#endif  //boardWIFI_IFACE
 	
-	vTimer_TaskInit();           //ÏµÍ³¼ÆÊ±
+	vTimer_TaskInit();           //ç³»ç»Ÿè®¡æ—¶
 
     #if(boardUSE_OS)
     vTaskDelete(NULL);   
@@ -251,16 +251,15 @@ void vBoard_StartTask(void *pvParameters)
 }
 
 
-
 /*
-1.Ö´ĞĞÒ»Ğ©µÍÓÅÏÈ¼¶µÄ¡¢ºóÌ¨µÄ¡¢ĞèÒªÁ¬ĞøÖ´ĞĞµÄº¯Êı
-2.²âÁ¿ÏµÍ³µÄ¿ÕÏĞÊ±¼ä£º¿ÕÏĞÈÎÎñÄÜ±»Ö´ĞĞ¾ÍÒâÎ¶×ÅËùÓĞµÄ¸ßÓÅÏÈ¼¶ÈÎÎñ¶¼Í£Ö¹ÁË£¬ËùÒÔ²âÁ¿¿ÕÏĞÈÎ
-ÎñÕ¼¾İµÄÊ±¼ä£¬¾Í¿ÉÒÔËã³ö´¦ÀíÆ÷Õ¼ÓÃÂÊ¡£
-3.ÈÃÏµÍ³½øÈëÊ¡µçÄ£Ê½£º¿ÕÏĞÈÎÎñÄÜ±»Ö´ĞĞ¾ÍÒâÎ¶×ÅÃ»ÓĞÖØÒªµÄÊÂÇéÒª×ö£¬µ±È»¿ÉÒÔ½øÈëÊ¡µçÄ£Ê½
-ÁË¡£
-4.¹³×Óº¯Êı²»¿ÉÒÔµ÷ÓÃ»áÒıÆğ¿ÕÏĞÈÎÎñ×èÈûµÄ API º¯Êı£¨ÀıÈç£ºvTaskDelay()¡¢´øÓĞ×èÈûÊ±¼äµÄ¶ÓÁĞºÍĞÅºÅÁ¿º¯Êı£©
+1.æ‰§è¡Œä¸€äº›ä½ä¼˜å…ˆçº§çš„ã€åå°çš„ã€éœ€è¦è¿ç»­æ‰§è¡Œçš„å‡½æ•°
+2.æµ‹é‡ç³»ç»Ÿçš„ç©ºé—²æ—¶é—´ï¼šç©ºé—²ä»»åŠ¡èƒ½è¢«æ‰§è¡Œå°±æ„å‘³ç€æ‰€æœ‰çš„é«˜ä¼˜å…ˆçº§ä»»åŠ¡éƒ½åœæ­¢äº†ï¼Œæ‰€ä»¥æµ‹é‡ç©ºé—²ä»»
+åŠ¡å æ®çš„æ—¶é—´ï¼Œå°±å¯ä»¥ç®—å‡ºå¤„ç†å™¨å ç”¨ç‡ã€‚
+3.è®©ç³»ç»Ÿè¿›å…¥çœç”µæ¨¡å¼ï¼šç©ºé—²ä»»åŠ¡èƒ½è¢«æ‰§è¡Œå°±æ„å‘³ç€æ²¡æœ‰é‡è¦çš„äº‹æƒ…è¦åšï¼Œå½“ç„¶å¯ä»¥è¿›å…¥çœç”µæ¨¡å¼
+äº†ã€‚
+4.é’©å­å‡½æ•°ä¸å¯ä»¥è°ƒç”¨ä¼šå¼•èµ·ç©ºé—²ä»»åŠ¡é˜»å¡çš„ API å‡½æ•°ï¼ˆä¾‹å¦‚ï¼švTaskDelay()ã€å¸¦æœ‰é˜»å¡æ—¶é—´çš„é˜Ÿåˆ—å’Œä¿¡å·é‡å‡½æ•°ï¼‰
 */
-void vApplicationIdleHook( void )  //¹³×Óº¯Êı
+void vApplicationIdleHook( void )  //é’©å­å‡½æ•°
 {
     
 }

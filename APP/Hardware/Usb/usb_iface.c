@@ -5,11 +5,11 @@ I2cObj_T  		tUSB_IC1_I2C;
 I2cObj_T  		tUSB_IC2_I2C;
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    DCÏà¹ØIO³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    DCç›¸å…³IOåˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
 
 static void v_usb_gpio_init(void)
@@ -26,7 +26,7 @@ static void v_usb_gpio_init(void)
 	gpio_init(usbA_EN_PORT, GPIO_MODE_OUT_PP, GPIO_OSPEED_2MHZ,usbA_EN_PIN);
     usbA_EN_OFF();
 
-	//PD100W   IIC³õÊ¼»¯
+	//PD100W   IICåˆå§‹åŒ–
 	rcu_periph_clock_enable(usbIC1_SCL_RCU);
 	rcu_periph_clock_enable(usbIC1_SDA_RCU);
 	tUSB_IC1_I2C.ulGPIO_PORT_SCL = usbIC1_SCL_PORT;
@@ -38,7 +38,7 @@ static void v_usb_gpio_init(void)
     tUSB_IC1_I2C.usDelay = 70;
     vI2C_ObjInit(&tUSB_IC1_I2C);
 	
-//	//USB³äµç IIC³õÊ¼»¯
+//	//USBå……ç”µ IICåˆå§‹åŒ–
 	// rcu_periph_clock_enable(usbIC2_SCL_RCU);
 	// rcu_periph_clock_enable(usbIC2_SDA_RCU);
 	// tUSB_IC2_I2C.ulGPIO_PORT_SCL = usbIC2_SCL_PORT;
@@ -53,11 +53,11 @@ static void v_usb_gpio_init(void)
 
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    LED³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    LEDåˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 void vUsb_IfaceInit(void)
 {

@@ -1,6 +1,6 @@
 /*****************************************************************************************************************
 *                                                                                                                *
- *                                         µç³Ø°ü·¢ËÍÈÎÎñ                                                          *
+ *                                         ç”µæ± åŒ…å‘é€ä»»åŠ¡                                                          *
 *                                                                                                                *
 ******************************************************************************************************************/
 #include "MD_Bms/md_bms_task.h"
@@ -18,33 +18,33 @@
 #include "Buz/buz_task.h"
 #endif  //boardBUZ_EN
 
-#if(boardUPDATA)
-#include "Sys/sys_queue_task_updata.h"
-#endif  //boardUPDATA
+#if(boardUPDATE)
+#include "Sys/sys_queue_task_update.h"
+#endif  //boardUPDATE
 
-//****************************************************ÈÎÎñ²ÎÊý³õÊ¼»¯**********************************************//
+//****************************************************ä»»åŠ¡å‚æ•°åˆå§‹åŒ–**********************************************//
 #if(boardUSE_OS)
-#define        	BMS_TASK_PRIO                         	2                       	//ÈÎÎñÓÅÏÈ¼¶ 
-#define        	BMS_TASK_SIZE                         	256                      	//ÈÎÎñ¶ÑÕ»  Êµ¼Ê×Ö½ÚÊý *4
+#define        	BMS_TASK_PRIO                         	2                       	//ä»»åŠ¡ä¼˜å…ˆçº§ 
+#define        	BMS_TASK_SIZE                         	256                      	//ä»»åŠ¡å †æ ˆ  å®žé™…å­—èŠ‚æ•° *4
 TaskHandle_t    tBmsTaskHandler = NULL; 
 void            vBms_Task(void *pvParameters);
 #endif  //boardUSE_OS
 
-//****************************************************²ÎÊý³õÊ¼»¯**************************************************//
-//½á¹¹Ìå
-__ALIGNED(4)	Bms_T tBms;			//ÈÎÎñ
+//****************************************************å‚æ•°åˆå§‹åŒ–**************************************************//
+//ç»“æž„ä½“
+__ALIGNED(4)	Bms_T tBms;			//ä»»åŠ¡
 static Task_T	*tp_task = NULL;
 
 
-//****************************************************º¯ÊýÉùÃ÷****************************************************//
+//****************************************************å‡½æ•°å£°æ˜Ž****************************************************//
 
 
 /*****************************************************************************************************************
------º¯Êý¹¦ÄÜ    µç³Ø°üÈÎÎñ²ÎÊý³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    none
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    ç”µæ± åŒ…ä»»åŠ¡å‚æ•°åˆå§‹åŒ–
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      none
 ******************************************************************************************************************/
 bool b_bms_task_param_init(void)
 {
@@ -62,34 +62,34 @@ bool b_bms_task_param_init(void)
 
 
 /*****************************************************************************************************************
------º¯Êý¹¦ÄÜ    µç³Ø°üÈÎÎñ³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    none
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    ç”µæ± åŒ…ä»»åŠ¡åˆå§‹åŒ–
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      none
 ******************************************************************************************************************/
 bool bBms_TaskInit(void)
 { 
-	//·¢ËÍÐ­Òé³õÊ¼»¯
+	//å‘é€åè®®åˆå§‹åŒ–
 	if(bBms_SendProtInit() == false)
 		return false;
 	
-	//ÈÎÎñ¶ÓÁÐ³õÊ¼»¯
+	//ä»»åŠ¡é˜Ÿåˆ—åˆå§‹åŒ–
 	if(bBms_QueueInit() == false)
 		return false;
 	
-	//ÈÎÎñ²ÎÊý³õÊ¼»¯
+	//ä»»åŠ¡å‚æ•°åˆå§‹åŒ–
 	if(b_bms_task_param_init() == false)
 		return false;
 	
-	//ÈÎÎñ³õÊ¼»¯
+	//ä»»åŠ¡åˆå§‹åŒ–
 	#if(boardUSE_OS)
-    xTaskCreate((TaskFunction_t )vBms_Task,            	//ÈÎÎñº¯Êý
-                (const char* )"BmsTask",              	//ÈÎÎñÃû³Æ
-                (uint16_t ) BMS_TASK_SIZE,              //ÈÎÎñ¶ÑÕ»´óÐ¡
-                (void* )NULL,                           //´«µÝ¸øÈÎÎñº¯ÊýµÄ²ÎÊý
-                (UBaseType_t ) BMS_TASK_PRIO,           //ÈÎÎñÓÅÏÈ¼¶
-                (TaskHandle_t*)&tBmsTaskHandler);       //ÈÎÎñ¾ä±ú
+    xTaskCreate((TaskFunction_t )vBms_Task,            	//ä»»åŠ¡å‡½æ•°
+                (const char* )"BmsTask",              	//ä»»åŠ¡åç§°
+                (uint16_t ) BMS_TASK_SIZE,              //ä»»åŠ¡å †æ ˆå¤§å°
+                (void* )NULL,                           //ä¼ é€’ç»™ä»»åŠ¡å‡½æ•°çš„å‚æ•°
+                (UBaseType_t ) BMS_TASK_PRIO,           //ä»»åŠ¡ä¼˜å…ˆçº§
+                (TaskHandle_t*)&tBmsTaskHandler);       //ä»»åŠ¡å¥æŸ„
 	#endif  //boardUSE_OS
 				
 	return true;
@@ -98,11 +98,11 @@ bool bBms_TaskInit(void)
 
 
 /*****************************************************************************************************************
------º¯Êý¹¦ÄÜ    µç³Ø°üÈÎÎñ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    none
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    ç”µæ± åŒ…ä»»åŠ¡
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      none
 ******************************************************************************************************************/
 void vBms_Task(void *pvParameters)
 {
@@ -111,9 +111,9 @@ void vBms_Task(void *pvParameters)
 	#endif  //boardUSE_OS
     {
 		if(tp_task == NULL
-			#if(boardUPDATA)
-			|| (tSysInfo.eDevState == DS_UPDATA_MODE && tUpdata.eObj != UO_BMS)
-			#endif  //boardUPDATA
+//			#if(boardUPDATE)
+//			|| (tSysInfo.eDevState == DS_UPDATE_MODE && tUpdate.eObj != MO_BMS)
+//			#endif  //boardUPDATE
 		)
 		{
 			if(tp_task == NULL)
@@ -133,7 +133,7 @@ void vBms_Task(void *pvParameters)
 		{
 			#if(boardUSE_OS)
 			if(lwrb_get_full(&tp_task->tQueueBuff) == 0)
-				ulTaskNotifyTake(pdFALSE, bmsTASK_CYCLE_TIME);//pdFALSE:ÈÎÎñÍ¨Öª¶àÉÙ´Î¾ÍÖ´ÐÐ¶àÉÙ´Î
+				ulTaskNotifyTake(pdFALSE, bmsTASK_CYCLE_TIME);//pdFALSE:ä»»åŠ¡é€šçŸ¥å¤šå°‘æ¬¡å°±æ‰§è¡Œå¤šå°‘æ¬¡
 			#endif  //boardUSE_OS
 			
 			if(tp_task->bp_task_manage_func != NULL)
@@ -147,23 +147,19 @@ void vBms_Task(void *pvParameters)
 
 /************************************************************************************************************************
 *************************************************************************************************************************
-                                                  È«¾Öº¯Êý
+                                                  å…¨å±€å‡½æ•°
 *************************************************************************************************************************
 *************************************************************************************************************************/
 /*****************************************************************************************************************
------º¯Êý¹¦ÄÜ    »ñÈ¡µç³Ø°üµÄ³äµç×´Ì¬
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    none
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      true:³äµç   false:·Åµç
+-----å‡½æ•°åŠŸèƒ½    èŽ·å–ç”µæ± åŒ…çš„å……ç”µçŠ¶æ€
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      true:å……ç”µ   false:æ”¾ç”µ
 ******************************************************************************************************************/
 bool bBms_GetBmsChgState(void)  
 {
-//	if(tBms.eWorkState == BWS_CHG)
-//		return true;
-//	else 
-//		return false;
-	if(bSys_IsChgState())
+	if(cSys_IsChgState())
 		return true;
 	else 
 		return false;
@@ -171,17 +167,17 @@ bool bBms_GetBmsChgState(void)
 
 
 /***********************************************************************************************************************
------º¯Êý¹¦ÄÜ    ÉèÖÃÉè±¸×´Ì¬
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    DevState_E 
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      true:Ã»ÓÐ´íÎó  false:ÓÐ´íÎó
+-----å‡½æ•°åŠŸèƒ½    è®¾ç½®è®¾å¤‡çŠ¶æ€
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    DevState_E 
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      true:æ²¡æœ‰é”™è¯¯  false:æœ‰é”™è¯¯
 ************************************************************************************************************************/
 bool bBms_SetDevState(DevState_E state)
 {
-	if(tBms.eDevState != state)  //×´Ì¬·¢Éú±ä»¯
+	if(tBms.eDevState != state)  //çŠ¶æ€å‘ç”Ÿå˜åŒ–
 	{
-		if(state == DS_LOST) //¶ªÊ§
+		if(state == DS_LOST) //ä¸¢å¤±
 		{   
 			cQueue_AddQueueTask(tpBmsTask, BTI_NULL, 0, false);
 			
@@ -189,7 +185,7 @@ bool bBms_SetDevState(DevState_E state)
 			STAT_CLR(tSysInfo.Mod_Exist,OL_BMS);
 			#endif
 		}
-		else                 //Á¬ÉÏ
+		else                 //è¿žä¸Š
 		{
 			#if(boardSYS_DATA_UPADATA)
 			STAT_SET(tSysInfo.Mod_Exist,OL_BMS);
@@ -203,18 +199,18 @@ bool bBms_SetDevState(DevState_E state)
 
 
 /***********************************************************************************************************************
------º¯Êý¹¦ÄÜ    ÉèÖÃÉè±¸´íÎó´úÂë
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    ERR_CODE
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      true:Ìí¼ÓÁËÈÎÎñ,²¢Á¢¼´Ö´ÐÐ  false:Ã»ÓÐÌí¼ÓÈÎÎñ,»òÌí¼ÓÁËÈÎÎñ²»Ö´ÐÐ
+-----å‡½æ•°åŠŸèƒ½    è®¾ç½®è®¾å¤‡é”™è¯¯ä»£ç 
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    ERR_CODE
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      true:æ·»åŠ äº†ä»»åŠ¡,å¹¶ç«‹å³æ‰§è¡Œ  false:æ²¡æœ‰æ·»åŠ ä»»åŠ¡,æˆ–æ·»åŠ äº†ä»»åŠ¡ä¸æ‰§è¡Œ
 ************************************************************************************************************************/
 bool bBms_SetErrCode(BmsErrCode_E code, bool set)
 {
 	static BmsErrCode_E e_next_code;
 	static bool b_next_set;
 	
-	//µÚÒ»´ÎÁ¬½Ó
+	//ç¬¬ä¸€æ¬¡è¿žæŽ¥
 	if(code == BEC_SYS_DEV_LOST)
 	{
 		if(set == false && tBms.uErrCode.tCode.bSysDevLost == 0)
@@ -225,72 +221,72 @@ bool bBms_SetErrCode(BmsErrCode_E code, bool set)
 		}
 	}
 	
-	//±ê¼Ç´íÎó×´Ì¬
+	//æ ‡è®°é”™è¯¯çŠ¶æ€
 	if(uPrint.tFlag.bBmsTask || uPrint.tFlag.bImportant)
 	{
 		if(e_next_code != code || b_next_set != set)
 		{
-			log_e("bBmsTask:ÈÎÎñ´íÎó ´úÂë%d ÀàÐÍ%d",code, set);
+			log_e("bBmsTask:ä»»åŠ¡é”™è¯¯ ä»£ç %d ç±»åž‹%d",code, set);
 			e_next_code = code;
 			b_next_set = set;
 		}
 	}
 	
-	//ÓÐ´íÎó
+	//æœ‰é”™è¯¯
 	if(code > BEC_CLEAR_ALL)
 	{
-		//ÉÏ±¨µÄ´íÎó
+		//ä¸ŠæŠ¥çš„é”™è¯¯
 		if(code == BEC_BMS_ERR)
 		{
-			tBms.uErrCode.ulCode &=0xFFFF0000;//È¥³ýµÍÎ»
+			tBms.uErrCode.ullCode &=0xFFFFFFFF00000000;//åŽ»é™¤ä½Žä½
 			if(set == true)
 			{
-				tBms.uErrCode.ulCode |= tBmsRx.usErrCode;
+				tBms.uErrCode.ullCode |= ulBmsRxErrCode;
 				if(uPrint.tFlag.bBmsTask || uPrint.tFlag.bImportant)
-					log_e("bBmsTask:Éè±¸ÉÏ±¨´íÎó,´úÂë:0x%x",
-				              tBmsRx.usErrCode);
+					log_e("bBmsTask:è®¾å¤‡ä¸ŠæŠ¥é”™è¯¯,ä»£ç :0x%x",
+				              ulBmsRxErrCode);
 			}
 		}
-		//ÏµÍ³ÅÐ¶ÏµÄ´íÎó
+		//ç³»ç»Ÿåˆ¤æ–­çš„é”™è¯¯
 		else 
 		{
-			//ÏµÍ³´íÎó:¶ªÊ§
+			//ç³»ç»Ÿé”™è¯¯:ä¸¢å¤±
 			if(code == BEC_SYS_DEV_LOST)
 			{
-				tBms.uErrCode.ulCode = 0;
-				tBmsRx.usErrCode = 0;
+				tBms.uErrCode.ullCode = 0;
+				ulBmsRxErrCode = 0;
 				if(set)
 				{
 					b_bms_task_param_init();
 					
-					ERR_SET(tBms.uErrCode.ulCode, (code - 2));
+					ERR_SET(tBms.uErrCode.ullCode, (code - 2));
 					
 					if(uPrint.tFlag.bBmsTask || uPrint.tFlag.bImportant)
-						log_e("bBmsTask:ÈÎÎñ´íÎó_BMSÄ£¿é¶ªÊ§");
+						log_e("bBmsTask:ä»»åŠ¡é”™è¯¯_BMSæ¨¡å—ä¸¢å¤±");
 					
 					bBms_SetPerm(BPO_ALL, false);
 				}
 				else
 					bBms_SetDevState(DS_SHUT_DOWN);
 			}
-			//ÆäËûÏµÍ³´íÎó
+			//å…¶ä»–ç³»ç»Ÿé”™è¯¯
 			else 
 			{
-				//ÉèÖÃÇå³ý´íÎóÎ»
+				//è®¾ç½®æ¸…é™¤é”™è¯¯ä½
 				if(set)
-					ERR_SET(tBms.uErrCode.ulCode, (code - 2));
+					ERR_SET(tBms.uErrCode.ullCode, (code - 2));
 				else
-					ERR_CLR(tBms.uErrCode.ulCode, (code - 2));
+					ERR_CLR(tBms.uErrCode.ullCode, (code - 2));
 			}
 		}
 	}
 	else
 	{
-		tBms.uErrCode.ulCode = 0;
-		tBmsRx.usErrCode = 0;
+		tBms.uErrCode.ullCode = 0;
+		ulBmsRxErrCode = 0;
 	}
 	
-	if(tBms.uErrCode.ulCode)
+	if(tBms.uErrCode.ullCode)
 	{
 		if(set == true)
 		{
@@ -303,17 +299,17 @@ bool bBms_SetErrCode(BmsErrCode_E code, bool set)
 	}
 	else 
 	{
-		//Çå³ý´íÎó,ÖØÐÂÆô¶¯
+		//æ¸…é™¤é”™è¯¯,é‡æ–°å¯åŠ¨
 		if(tBms.eDevState == DS_ERR)
 		{
 			bBms_SetDevState(DS_WORK);
 			
-			//****************************************¾¯¸æ,²»¿ÉÒÔÔÚº¯ÊýÖÐµ÷ÓÃ×Ô¼º*********************************************************//
-			//cBms_SwitchÖÐÍ¨¹ýbBms_SetErrCodeµ÷ÓÃ×Ô¼ºcBms_Switch
+			//****************************************è­¦å‘Š,ä¸å¯ä»¥åœ¨å‡½æ•°ä¸­è°ƒç”¨è‡ªå·±*********************************************************//
+			//cBms_Switchä¸­é€šè¿‡bBms_SetErrCodeè°ƒç”¨è‡ªå·±cBms_Switch
 			
 //			cBms_Switch(SO_KEY, ST_ON);
 //			if(uPrint.tFlag.bBmsTask || uPrint.tFlag.bImportant)
-//				sMyPrint("bBmsTask:====Çå³ý´íÎó,ÖØÐÂ´ò¿ªBMS====\r\n");
+//				sMyPrint("bBmsTask:====æ¸…é™¤é”™è¯¯,é‡æ–°æ‰“å¼€BMS====\r\n");
 		}
 	}
 	
@@ -322,13 +318,13 @@ bool bBms_SetErrCode(BmsErrCode_E code, bool set)
 
 
 /*****************************************************************************************************************
------º¯Êý¹¦ÄÜ	¿ª¹ØBMS
------´«Èë²ÎÊý   obj
------´«Èë²ÎÊý   type
------´«Èë²ÎÊý   fore_en
------·µ»ØÖµ     s8	Ð¡ÓÚ0:²Ù×÷Ê§°Ü   µÈÓÚ0:Ã»²Ù×÷    ´óÓÚ0:²Ù×÷³É¹¦
------×÷Õß       LJD(291483914@qq.com)
------ÈÕÆÚ       2026-01-10
+-----å‡½æ•°åŠŸèƒ½	å¼€å…³BMS
+-----ä¼ å…¥å‚æ•°   obj
+-----ä¼ å…¥å‚æ•°   type
+-----ä¼ å…¥å‚æ•°   fore_en
+-----è¿”å›žå€¼     s8	å°äºŽ0:æ“ä½œå¤±è´¥   ç­‰äºŽ0:æ²¡æ“ä½œ    å¤§äºŽ0:æ“ä½œæˆåŠŸ
+-----ä½œè€…       LJD(291483914@qq.com)
+-----æ—¥æœŸ       2026-01-10
 ******************************************************************************************************************/
 s8 cBms_Switch(SwitchObject_E obj, SwitchType_E type, bool fore_en)
 {
@@ -345,7 +341,7 @@ s8 cBms_Switch(SwitchObject_E obj, SwitchType_E type, bool fore_en)
 				fore_en == false)
 			{
 				if(uPrint.tFlag.bBmsTask)
-				 sMyPrint("bBmsTask:µ±Ç°×´Ì¬Îª¹¤×÷,²»ÔÊÐí¿ª»ú.¶ÔÏó:%d \r\n",obj);
+				 sMyPrint("bBmsTask:å½“å‰çŠ¶æ€ä¸ºå·¥ä½œ,ä¸å…è®¸å¼€æœº.å¯¹è±¡:%d \r\n",obj);
 				
 				return 0;
 			}
@@ -359,7 +355,7 @@ s8 cBms_Switch(SwitchObject_E obj, SwitchType_E type, bool fore_en)
 				&& fore_en == false)
 			{
 				if(uPrint.tFlag.bBmsTask)
-				 sMyPrint("bBmsTask:µ±Ç°×´Ì¬Îª¹Ø±Õ,²»ÔÊÐí¹Ø»ú.¶ÔÏó:%d \r\n",obj);
+				 sMyPrint("bBmsTask:å½“å‰çŠ¶æ€ä¸ºå…³é—­,ä¸å…è®¸å…³æœº.å¯¹è±¡:%d \r\n",obj);
 				
 				return 0;
 			}
@@ -385,7 +381,7 @@ s8 cBms_Switch(SwitchObject_E obj, SwitchType_E type, bool fore_en)
 	}
 	
 	#if(boardSYS_DATA_UPADATA)
-	Sys_Updata_Mod(BMS_Mod,true );
+	Sys_Update_Mod(BMS_Mod,true );
 	#endif
 	
     return 1;
@@ -393,24 +389,36 @@ s8 cBms_Switch(SwitchObject_E obj, SwitchType_E type, bool fore_en)
 
 
 /***********************************************************************************************************************
------º¯Êý¹¦ÄÜ    »ñÈ¡SOC
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    none 
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      SOC
+-----å‡½æ•°åŠŸèƒ½    èŽ·å–SOC
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none 
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      SOC
 ************************************************************************************************************************/
 u8 ucBms_GetSoc(void)
 {
-	return (u8)tBmsRx.tParam.usSOC;	
+	return (u8)tBmsRx.usSOC;	
+}
+
+/***********************************************************************************************************************
+-----å‡½æ•°åŠŸèƒ½    èŽ·å–BMSè®¸å¯çš„æœ€å¤§å……ç”µåŠŸçŽ‡
+-----è¯´æ˜Ž(å¤‡æ³¨)  BMSä¸ŠæŠ¥çš„è®¸å¯åŠŸçŽ‡å·²åŒ…å«SOCå’Œæ¸©åº¦é™åˆ¶
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      è®¸å¯çš„æœ€å¤§å……ç”µåŠŸçŽ‡(W), 0è¡¨ç¤ºä¸å…è®¸å……ç”µ
+************************************************************************************************************************/
+u16 usBms_GetPermMaxChgPwr(void)
+{
+	return tBmsRx.usPermMaxChgPwr;
 }
 
 
 /*****************************************************************************************************************
------º¯Êý¹¦ÄÜ    ³õÊ¼»¯²ÎÊý
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    p_bms_mem : ¼ÇÒä²ÎÊý½á¹¹Ìå
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      true:ÉèÖÃ³É¹¦  ·´Ö®Ê§°Ü
+-----å‡½æ•°åŠŸèƒ½    åˆå§‹åŒ–å‚æ•°
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    p_bms_mem : è®°å¿†å‚æ•°ç»“æž„ä½“
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      true:è®¾ç½®æˆåŠŸ  åä¹‹å¤±è´¥
 *****************************************************************************************************************/
 bool bBms_MemParamInit(BmsMemParam_T* p_bms_mem)
 {
@@ -425,11 +433,11 @@ bool bBms_MemParamInit(BmsMemParam_T* p_bms_mem)
 }
 
 /*****************************************************************************************************************
------º¯Êý¹¦ÄÜ    ÉèÖÃ¼ÇÒä²ÎÊý
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    add:true Ôö¼Ó   false:¼õÉÙ
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    è®¾ç½®è®°å¿†å‚æ•°
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    add:true å¢žåŠ    false:å‡å°‘
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      none
 *****************************************************************************************************************/
 void vBms_MemParamSet(u8 item, bool add)
 {
@@ -493,15 +501,15 @@ void vBms_MemParamSet(u8 item, bool add)
 		}
 		else if(item == 4)
 		{
-			tAppMemParam.tBMS.usMaxVolt++;
+			tAppMemParam.tBMS.usMaxVolt--;
 		}
 		else if(item == 5)
 		{
-			tAppMemParam.tBMS.usMinVolt++;
+			tAppMemParam.tBMS.usMinVolt--;
 		}
 		else if(item == 6)
 		{
-			tAppMemParam.tBMS.usChgVolt++;
+			tAppMemParam.tBMS.usChgVolt--;
 		}
 	}
 }
@@ -510,11 +518,11 @@ void vBms_MemParamSet(u8 item, bool add)
 
 
 /*****************************************************************************************************************
------º¯Êý¹¦ÄÜ    ÉèÖÃ³ä·ÅµçÐí¿É
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    none
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      true:ÉèÖÃ³É¹¦  ·´Ö®Ê§°Ü
+-----å‡½æ•°åŠŸèƒ½    è®¾ç½®å……æ”¾ç”µè®¸å¯
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      true:è®¾ç½®æˆåŠŸ  åä¹‹å¤±è´¥
 ******************************************************************************************************************/
 bool bBms_SetPerm(BmsPermObject_E obj, bool en)  
 {
@@ -522,11 +530,11 @@ bool bBms_SetPerm(BmsPermObject_E obj, bool en)
 	{
 		case BPO_CHG:
 		{
-			//×´Ì¬±ä»¯
+			//çŠ¶æ€å˜åŒ–
 			if(en != tBms.uPerm.tPerm.bChgPerm)
 			{
 				if(uPrint.tFlag.bBmsTask)
-					sMyPrint("bBmsTask:³äµçÐí¿É ÉèÖÃ=%d µ±Ç°×´Ì¬=%d \r\n",en,tBms.uPerm.tPerm.bChgPerm);
+					sMyPrint("bBmsTask:å……ç”µè®¸å¯ è®¾ç½®=%d å½“å‰çŠ¶æ€=%d \r\n",en,tBms.uPerm.tPerm.bChgPerm);
 				
 				tBms.uPerm.tPerm.bChgPerm = en;
 			}
@@ -535,11 +543,11 @@ bool bBms_SetPerm(BmsPermObject_E obj, bool en)
 		
 		case BPO_DISCHG:
 		{
-			//×´Ì¬±ä»¯
+			//çŠ¶æ€å˜åŒ–
 			if(en != tBms.uPerm.tPerm.bDisChgPerm)
 			{
 				if(uPrint.tFlag.bBmsTask)
-					sMyPrint("bBmsTask:·ÅµçÐí¿É ÉèÖÃ=%d µ±Ç°×´Ì¬=%d \r\n",en,tBms.uPerm.tPerm.bDisChgPerm);
+					sMyPrint("bBmsTask:æ”¾ç”µè®¸å¯ è®¾ç½®=%d å½“å‰çŠ¶æ€=%d \r\n",en,tBms.uPerm.tPerm.bDisChgPerm);
 				
 				tBms.uPerm.tPerm.bDisChgPerm = en;
 			}
@@ -548,20 +556,20 @@ bool bBms_SetPerm(BmsPermObject_E obj, bool en)
 		
 		case BPO_ALL:
 		{
-			//×´Ì¬±ä»¯
+			//çŠ¶æ€å˜åŒ–
 			if(en != tBms.uPerm.tPerm.bChgPerm)
 			{
 				if(uPrint.tFlag.bBmsTask)
-					sMyPrint("bBmsTask:³äµçÐí¿É ÉèÖÃ=%d µ±Ç°×´Ì¬=%d \r\n",en,tBms.uPerm.tPerm.bChgPerm);
+					sMyPrint("bBmsTask:å……ç”µè®¸å¯ è®¾ç½®=%d å½“å‰çŠ¶æ€=%d \r\n",en,tBms.uPerm.tPerm.bChgPerm);
 				
 				tBms.uPerm.tPerm.bChgPerm = en;
 			}
 			
-			//×´Ì¬±ä»¯
+			//çŠ¶æ€å˜åŒ–
 			if(en != tBms.uPerm.tPerm.bDisChgPerm)
 			{
 				if(uPrint.tFlag.bBmsTask)
-					sMyPrint("bBmsTask:·ÅµçÐí¿É ÉèÖÃ=%d µ±Ç°×´Ì¬=%d \r\n",en,tBms.uPerm.tPerm.bDisChgPerm);
+					sMyPrint("bBmsTask:æ”¾ç”µè®¸å¯ è®¾ç½®=%d å½“å‰çŠ¶æ€=%d \r\n",en,tBms.uPerm.tPerm.bDisChgPerm);
 				
 				tBms.uPerm.tPerm.bDisChgPerm = en;
 			}
@@ -577,19 +585,19 @@ bool bBms_SetPerm(BmsPermObject_E obj, bool en)
 
 
 /*****************************************************************************************************************
------º¯Êý¹¦ÄÜ    »ñÈ¡²ÎÊý´¦Àí
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    none
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    èŽ·å–å‚æ•°å¤„ç†
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      none
 ******************************************************************************************************************/
 s8 cBms_CheckPerm(void)
 {
-	//----------------------------------Ðí¿É´¦Àí--------------------------------------
-	//·ÅµçÐí¿É
-	if(tBmsRx.tParam.tState.bImpermDisChg == 1		||	//²»Ðí¿É·Åµç
-		tBms.uErrCode.tCode.bSysDisChgUT == 1		||	//·ÅµçµÍÎÂ
-		tBms.uErrCode.tCode.bSysDisChgOT == 1		||	//·Åµç¸ßÎÂ
+	//----------------------------------è®¸å¯å¤„ç†--------------------------------------
+	//æ”¾ç”µè®¸å¯
+	if(tBmsRx.tState.bImpermDisChg == 1		||	//ä¸è®¸å¯æ”¾ç”µ
+		tBms.uErrCode.tCode.bSysDisChgUT == 1		||	//æ”¾ç”µä½Žæ¸©
+		tBms.uErrCode.tCode.bSysDisChgOT == 1		||	//æ”¾ç”µé«˜æ¸©
 		ucBms_GetSoc() == 0)
 	{
 		if(tBms.uPerm.tPerm.bDisChgPerm == true)
@@ -601,10 +609,10 @@ s8 cBms_CheckPerm(void)
 			bBms_SetPerm(BPO_DISCHG, true);
 	}
 	
-	//³äµçÐí¿É
-	if(tBmsRx.tParam.tState.bPermChg == 0			||	//²»Ðí¿É³äµç
-		tBms.uErrCode.tCode.bSysChgUT == 1        	|| 	//³äµçµÍÎÂ
-		tBms.uErrCode.tCode.bSysChgOT == 1       	||	//³äµç¸ßÎÂ
+	//å……ç”µè®¸å¯
+	if(tBmsRx.tState.bPermChg == 0			||	//ä¸è®¸å¯å……ç”µ
+		tBms.uErrCode.tCode.bSysChgUT == 1        	|| 	//å……ç”µä½Žæ¸©
+		tBms.uErrCode.tCode.bSysChgOT == 1       	||	//å……ç”µé«˜æ¸©
 		ucBms_GetSoc() == 100)
 	{
 		if(tBms.uPerm.tPerm.bChgPerm == true)
@@ -618,6 +626,37 @@ s8 cBms_CheckPerm(void)
 	
 	return 1;
 }
+
+#if(boardUPDATE)
+/***********************************************************************************************************************
+-----å‡½æ•°åŠŸèƒ½    èŽ·å–BMSå‡çº§é˜¶æ®µ
+-----è¯´æ˜Ž(å¤‡æ³¨)  ä»…è¿”å›žBMSå‡çº§é˜Ÿåˆ—å½“å‰é˜¶æ®µï¼Œæœ€ç»ˆç»“æžœä¸ç”±è¯¥æŽ¥å£æ‰¿è½½
+************************************************************************************************************************/
+s8 cBms_GetUpdateStage(void)
+{
+	if(tSysInfo.eDevState != DS_UPDATE_MODE ||
+	   tUpdate.eObj != MO_BMS ||
+	   tBms.eDevState != DS_UPDATE_MODE)
+		return -1;
+
+	if(tpBmsTask == NULL)
+		return -2;
+
+	if(tpBmsTask->ucID != BTI_UPDATE)
+		return -3;
+
+	if(tpBmsTask->ucStep == BMS_UPDATE_STEP_ERROR_CLEANUP)
+		return UPDATE_QUEUE_STAGE_ERR;
+
+	if(tpBmsTask->ucStep == BMS_UPDATE_STEP_END)
+		return UPDATE_QUEUE_STAGE_WAIT_RESTART;
+
+	if(tpBmsTask->ucStep > BMS_UPDATE_STEP_FINISH_CLEANUP)
+		return UPDATE_QUEUE_STAGE_FINISH;
+
+	return UPDATE_QUEUE_STAGE_RUNNING;
+}
+#endif  //boardUPDATE
 
 #endif  //boardBMS_EN
 

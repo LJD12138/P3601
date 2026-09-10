@@ -1,25 +1,27 @@
 #include "SEGGER_RTT.h" 
-#include "main.h"
-//±ê×¼¿âĞèÒªµÄÖ§³Öº¯Êı                 
+#include "board_config.h"
+
+#if (boardIC_TYPE == boardIC_GD32F30X)
+//æ ‡å‡†åº“éœ€è¦çš„æ”¯æŒå‡½æ•°(ARMCCç¼–è¯‘å™¨éœ€è¦,ARMClangå·²å†…ç½®å®šä¹‰)
 struct __FILE 
 { 
 	int handle; 
-
 }; 
 
 void _ttywrch(int ch)
 {
-ch = ch;
+    ch = ch;
 }
 
 FILE __stdout;       
-//¶¨Òå_sys_exit()ÒÔ±ÜÃâÊ¹ÓÃ°ëÖ÷»úÄ£Ê½    
+//å®šä¹‰_sys_exit()ä»¥é¿å…ä½¿ç”¨åŠä¸»æœºæ¨¡å¼    
 void _sys_exit(int x) 
 { 
-	x = x; 
-} 
+    x = x; 
+}
+#endif
 
-//ÖØ¶¨Òåfputcº¯Êı ////´®¿Ú1
+//é‡å®šä¹‰fputcå‡½æ•° ////ä¸²å£1
 /* retarget the C library printf function to the USART */
 int fputc(int ch, FILE *f)
 {

@@ -1,13 +1,13 @@
 /*****************************************************************************************************************
 *                                                                                                                *
- *                                         ÏµÍ³µÄ¶ÓÁĞº¯Êı                                                  		*
+ *                                         ç³»ç»Ÿçš„é˜Ÿåˆ—å‡½æ•°                                                  		*
 *                                                                                                                *
 ******************************************************************************************************************/
 #include "Print/print_queue_task.h"
 
 #if(boardPRINT_IFACE)
 #include "Sys/sys_task.h"
-#include "Sys/sys_queue_task_updata.h"
+#include "Sys/sys_queue_task_update.h"
 #include "Print/print_task.h"
 #include "Print/print_prot_frame.h"
 
@@ -15,40 +15,40 @@
 #define       	printTASK_PARAM_CYCLE_TIME               		50
 
 
-//****************************************************º¯ÊıÉùÃ÷****************************************************//
+//****************************************************å‡½æ•°å£°æ˜****************************************************//
 static s8 c_print_rec_proc_data(BaikuProtoRx_t* proto);
 
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ÈÎÎñº¯Êı:´íÎó´¦ÀíÈÎÎñ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    PRINT_ErrState_N:
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    ä»»åŠ¡å‡½æ•°:é”™è¯¯å¤„ç†ä»»åŠ¡
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    PRINT_ErrState_N:
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
 void v_print_queue_task_main(Task_T *tp_task)
 {
 	s8 c_ret = 0;
 
-	//¶ÓÁĞÀïÃæÓĞÈÎÎñ
+	//é˜Ÿåˆ—é‡Œé¢æœ‰ä»»åŠ¡
 	if(lwrb_get_full(&tp_task->tQueueBuff))  
 	{
-		cQueue_GotoStep( tp_task, STEP_END );  //½áÊø
+		cQueue_GotoStep( tp_task, STEP_END );  //ç»“æŸ
 		return;
 	}
 
-	//´¦Àí·¢ËÍµÄÊı¾İ
+	//å¤„ç†å‘é€çš„æ•°æ®
 	if(lwrb_get_full(&tPrintTxBuff))
 		bPrint_SendDataToUsart();
 
-	//´¦ÓÚÉı¼¶,²»´¦ÀíÊı¾İ
-	if(tpSysTask->ucID == STI_UPDATA && 
-		tUpdata.eChType == CT_PRINT) 
+	//å¤„äºå‡çº§,ä¸å¤„ç†æ•°æ®
+	if(tpSysTask->ucID == STI_UPDATE && 
+		tUpdate.eChType == CT_PRINT) 
 		return;
 	
 	c_cycle_relay_data();
 		
-	//´¦Àí½ÓÊÕµÄÊı¾İ
+	//å¤„ç†æ¥æ”¶çš„æ•°æ®
 	c_ret = cBaiku_ProtoCheck(tpPrintProtoRx);
 	if(c_ret > 0)
 		c_print_rec_proc_data(tpPrintProtoRx);
@@ -63,7 +63,7 @@ void v_print_queue_task_main(Task_T *tp_task)
         }break;
 
 		default:
-			cQueue_GotoStep(tp_task, STEP_END);  //½áÊø
+			cQueue_GotoStep(tp_task, STEP_END);  //ç»“æŸ
 			break;
     }
 	
@@ -73,11 +73,11 @@ void v_print_queue_task_main(Task_T *tp_task)
 }
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ´¦Àí½ÓÊÕµ½µÄÊı¾İ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      0:Ã»ÓĞ´íÎó  ÆäËûÓĞ´íÎó
+-----å‡½æ•°åŠŸèƒ½    å¤„ç†æ¥æ”¶åˆ°çš„æ•°æ®
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      0:æ²¡æœ‰é”™è¯¯  å…¶ä»–æœ‰é”™è¯¯
 ************************************************************************************************************************/
 __STATIC_INLINE s8 c_print_rec_proc_data(BaikuProtoRx_t* proto)
 {

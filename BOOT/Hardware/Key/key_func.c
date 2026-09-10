@@ -1,142 +1,147 @@
-/*****************************************************************************************************************
-*                                                                                                                *
- *                                         °´¼ü¹¦ÄÜ                                                             *
-*                                                                                                                *
-******************************************************************************************************************/
+/*******************************************************************************************************************************
+ * Project : BOOT
+ * Module  : G:\1-Baiku_Projects\24-P36\1.software\P3601\BOOT\Hardware\Key
+ * File    : key_func.c
+ * Date    : 2026-09-10
+ * Author  : LJD(291483914@qq.com)
+ * Desc    : æŒ‰é”®åŠŸèƒ½ä¸šåŠ¡åŠ¨ä½œåˆ†å‘å¤„ç†(è¡¨é©±åŠ¨æ–¹æ¡ˆ)
+ *           BOOTä¾§ä¸šåŠ¡è¯´æ˜: å¼•å¯¼ç¨‹åºæ— å¼€å…³æœº/å……æ”¾ä¿æŠ¤ç­‰ç³»ç»Ÿä¸šåŠ¡, "å¼€å…³æœº"åºåˆ—ä»…æ‰“å°æ—¥å¿—;
+ *           å·¥ä½œæ€åŠ¨ä½œè¡¨é¢„ç•™æ‰©å±•(ç³»ç»Ÿå‡çº§/é‡ç½®ç­‰ä¸šåŠ¡ç”±Update/ç³»ç»Ÿä»»åŠ¡æ¨¡å—å¤„ç†)
+ * -------------------------------------------------------
+ * todo    :
+ * 1. none
+ * -------------------------------------------------------
+ * Copyright (c) 2026 -inc
+ *******************************************************************************************************************************/
+
+//****************************************************Includes******************************************************************//
 #include "Key/key_func.h"
 
 #if(boardKEY_EN)
 #include "Key/key_task.h"
 #include "Sys/sys_task.h"
 #include "Print/print_task.h"
-
 #include "function.h"
-
-#if(boardUSB_EN)
-#include "Usb/usb_task.h"
-#endif  //boardUSB_EN
-
-#if(boardDC_EN)
-#include "Dc/dc_task.h"
-#endif  //boardDC_EN
-
-#if(boardLIGHT_EN)
-#include "MD_Light/md_light_task.h"
-#endif  //boardLIGHT_EN
-
-#if(boardDISPLAY_EN)
-#include "MD_Display/md_display_task.h"
-#endif  //boardDISPLAY_EN
-
-#if(boardBUZ_EN)
-#include "Buz/buz_task.h"
-#endif  //boardBUZ_EN
-
-#if(boardDCAC_EN)
-#include "MD_Dcac/md_dcac_task.h"
-#endif  //boardDCAC_EN
 
 #if(boardENG_MODE_EN)
 #include "key_func_eng.h"
 #endif  //boardENG_MODE_EN
 
-//****************************************************²ÎÊı³õÊ¼»¯**************************************************//
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////°´¼ü¹¦ÄÜÊı×éÒªÇó:²»ÂúÊ®¸ö´¥·¢ÀàĞÍµÄÒª¼ÓKTE_FUN_NULL×÷Îª½áÊø·û///////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#if(1)
+//****************************************************Macros & Types***********************************************************//
+typedef void (*fnKeyAction_T)(void);
 
-//³¤°´	¿ª¹Ø»ú
-u8 const KeyTriType_SysOnOffBuff[ 2 ] = { KTE_POWER_LONG, KTE_FUN_NULL};
-//µã°´	¿ª¹Ø»ú
-u8 const KeyTriType_SysOnOffBuff1[ 2 ] = { KTE_POWER_LONG, KTE_FUN_NULL};
-//Á¬»÷	¿ª¹Ø»ú
-u8 const KeyTriType_SysProteOnOffBuff[ 4 ] = { KTE_POWER_LONG, KTE_POWER_LONG, KTE_POWER_LONG,KTE_FUN_NULL};
+/* é€‚ç”¨ç³»ç»ŸçŠ¶æ€æ©ç  */
+#define KEY_MASK_ANY         0xFFFFFFFF
+#define KEY_MASK_WORK        (1U << DS_WORK)
+#define KEY_MASK_ERR         (1U << DS_ERR)
+#define KEY_MASK_NORMAL      (KEY_MASK_WORK | KEY_MASK_ERR)
 
+/* åŠ¨ä½œæ˜ å°„è¡¨é¡¹ */
+typedef struct
+{
+	const uint8_t   *pSeq;         /* è§¦å‘åºåˆ—ç‰¹å¾æ•°ç»„æŒ‡é’ˆ */
+	uint8_t          ucSeqLen;     /* åºåˆ—é•¿åº¦ (å­—èŠ‚æ•°) */
+	uint32_t         ulStateMask;  /* é€‚ç”¨çš„å·¥ä½œçŠ¶æ€æ©ç  */
+	fnKeyAction_T    pfAction;     /* ä¸šåŠ¡å¤„ç†å‡½æ•°æŒ‡é’ˆ */
+	const char      *pLog;         /* è°ƒè¯•æ‰“å°æ—¥å¿— */
+} KeyActionItem_T;
 
-#if(boardDCAC_EN)
-//µ¥»÷	¿ª¹ØAC
-u8 const KeyTriType_AcOnOffBuff[ 2 ] = { KTE_AC_SHORT, KTE_FUN_NULL};
-//³¤°´	¿ª¹ØAC
-u8 const KeyTriType_AcOnOffBuff1[ 2 ] = { KTE_AC_LONG, KTE_FUN_NULL};
-//Á¬»÷	¿ªÆôAC±£»¤
-u8 const KeyTriType_AcProteOnOffBuff[ 10 ] = { KTE_AC_SHORT, KTE_AC_SHORT, KTE_AC_SHORT, KTE_AC_SHORT, KTE_AC_SHORT, 
-                                                KTE_AC_SHORT, KTE_AC_SHORT, KTE_AC_SHORT, KTE_AC_SHORT, KTE_AC_SHORT };
-#endif  //boardDCAC_EN
-													
-#if(boardLIGHT_EN)
-//³¤°´	¿ª¹ØµÆ
-u8 const KeyTriType_LightOnOffBuff[ 2 ] = { KTE_LIGHT_LONG, KTE_FUN_NULL};  
-//µ¥»÷	ÇĞ»»µÆ
-u8 const KeyTriType_LightChargeBuff[ 2 ] = { KTE_LIGHT_SHORT, KTE_FUN_NULL}; 
-#endif  //boardLIGHT_EN
+/* ç¼–è¯‘æœŸä¿è¯ (1U << eDevState) ç§»ä½å®‰å…¨ */
+typedef char __ds_shift_safe[(DS_WORK < 32 && DS_ERR < 32) ? 1 : -1];
 
-#if(boardUSB_EN)
-//µ¥»÷	¿ª¹ØUSB
-u8 const KeyTriType_USBOnOffBuff[ 2 ] = { KTE_USB_SHORT, KTE_FUN_NULL}; 
-//³¤»÷	¿ª¹ØUSB
-u8 const KeyTriType_USBOnOffBuff1[ 2 ] = { KTE_USB_LONG, KTE_FUN_NULL};
-#endif  //boardUSB_EN
- 
-#if(boardDC_EN)
-//µ¥»÷	¿ª¹ØDC
-u8 const KeyTriType_DCOnOffBuff[ 2 ] = { KTE_DC_SHORT, KTE_FUN_NULL}; 
-//³¤»÷	¿ª¹ØDC
-u8 const KeyTriType_DCOnOffBuff1[ 2 ] = { KTE_DC_LONG, KTE_FUN_NULL};
-#endif  //boardDC_EN
+//****************************************************Sequence Buffers*********************************************************//
+/* é•¿æŒ‰ å¼€å…³æœº */
+static const u8 KeyTriType_SysOnOffBuff[2] = { KTE_POWER_LONG, KTE_FUN_NULL };
 
-#if(boardDISPLAY_EN)
-//µ¥»÷ 	¿ª¹Ø±³¹â
-u8 const KeyTriType_BLOnOffBuff[ 2 ] = { KTE_POWER_SHORT, KTE_FUN_NULL};
-//×éºÏ 	Ç¿ÖÆ¿ª¹Ø±³¹â
-u8 const KeyTriType_ForceOpenBLBuff1[ 3 ] = { KTE_DC_LONG, KTE_USB_LONG,KTE_FUN_NULL};
-u8 const KeyTriType_ForceOpenBLBuff2[ 3 ] = { KTE_USB_LONG,KTE_DC_LONG ,KTE_FUN_NULL};
-#endif  //boardDISPLAY_EN
+//****************************************************Local Action Functions***************************************************//
+/* æ³¨: BOOTä¸ºå¼•å¯¼ç¨‹åº, æ— ç³»ç»Ÿå¼€å…³æœºä¸šåŠ¡, "å¼€å…³æœº"åºåˆ—ä»…ä½œæ—¥å¿—æç¤º(åŠ¨ä½œNULL) */
 
+//****************************************************Action Tables***********************************************************//
+/* è·¨çŠ¶æ€åŠ¨ä½œè¡¨: åˆ¤åºæœ€é«˜, å…ˆäºå·¥ç¨‹æ¨¡å¼åˆ¤æ–­(ä¿æŒåŸåˆ¤åº) */
+static const KeyActionItem_T S_tKeyActionGlobal[] =
+{
+	/* åºåˆ—ç‰¹å¾                                  é•¿åº¦                                æœ‰æ•ˆç³»ç»ŸçŠ¶æ€   å›è°ƒå¤„ç†å‡½æ•°   æ—¥å¿— */
+	{KeyTriType_SysOnOffBuff,                  sizeof(KeyTriType_SysOnOffBuff),    KEY_MASK_ANY,  NULL,         "å¼€å…³æœº"},
+};
 
+#define KEY_ACTION_GLOBAL_NUM (sizeof(S_tKeyActionGlobal) / sizeof(S_tKeyActionGlobal[0]))
+
+/* å·¥ä½œæ€åŠ¨ä½œè¡¨: ä»…åœ¨ DS_WORK / DS_ERR ç”Ÿæ•ˆ, é¡ºåºä¸åŸ if-else çº§è”é¡ºåºä¸¥æ ¼ä¸€è‡´
+ * å½“å‰BOOTæ— å·¥ä½œæ€æŒ‰é”®ä¸šåŠ¡(å‡çº§/é‡ç½®ç­‰ç”±Updateæ¨¡å—å¤„ç†), é¢„ç•™æ‰©å±•:
+ * å“‘å…ƒå ä½é¡¹ ulStateMask=0 æ°¸ä¸åŒ¹é…, æ–°å¢ä¸šåŠ¡æŒ‰æ¨¡æ¿æ·»åŠ è¡¨é¡¹å³å¯ */
+static const KeyActionItem_T S_tKeyActionWork[] =
+{
+	{NULL,                                     0,                                  0,             NULL,         NULL},
+};
+
+#define KEY_ACTION_WORK_NUM (sizeof(S_tKeyActionWork) / sizeof(S_tKeyActionWork[0]))
+
+//****************************************************Functions***************************************************************//
+/***********************************************************************************************************************
+ * å‡½æ•°åŠŸèƒ½    : æŒ‰é”®åŠ¨ä½œæŸ¥è¡¨åˆ†å‘å†…æ ¸
+ * ä¼ å…¥å‚æ•°    : p_table: åŠ¨ä½œè¡¨æŒ‡é’ˆ, uc_num: è¡¨é¡¹æ•°é‡, p_buff: äº‹ä»¶åºåˆ—ç¼“å†²åŒº
+ * è¿”å›å€¼      : true: å‘½ä¸­å¹¶æ‰§è¡ŒåŠ¨ä½œ, false: æœªå‘½ä¸­
+ ************************************************************************************************************************/
+static bool b_key_dispatch(const KeyActionItem_T *p_table, uint8_t uc_num, u8 *p_buff)
+{
+	uint8_t i;
+	uint32_t ul_curr_state_mask = (1U << tSysInfo.eDevState);
+
+	for(i = 0; i < uc_num; i++)
+	{
+		/* 1. æ ¡éªŒå½“å‰ç³»ç»Ÿå·¥ä½œçŠ¶æ€æ˜¯å¦åŒ¹é…è¯¥æŒ‰é”®åŠ¨ä½œ */
+		if((p_table[i].ulStateMask & ul_curr_state_mask) != 0)
+		{
+			/* 2. æ¯”å¯¹æŒ‰é”®åºåˆ—ç‰¹å¾ */
+			if(bFun_DataCompare(p_buff, (u8*)p_table[i].pSeq, p_table[i].ucSeqLen))
+			{
+				if(p_table[i].pfAction != NULL)
+				{
+					p_table[i].pfAction();
+				}
+				if(uPrint.tFlag.bKeyTask && p_table[i].pLog != NULL)
+				{
+					sMyPrint("Key_Task:%s\r\n", p_table[i].pLog);
+				}
+				return true;
+			}
+		}
+	}
+	return false;
+}
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    °´¼ü¹¦ÄÜ´¦Àíº¯Êı
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
-************************************************************************************************************************/
-void vKey_ProcKeyFunc(u8* pKeyTriTypeBuff)
+ * å‡½æ•°åŠŸèƒ½    : æŒ‰é”®åŠŸèƒ½å¤„ç†å‡½æ•°
+ * è¯´æ˜(å¤‡æ³¨)  : æŸ¥è¡¨åˆ†å‘æŒ‰é”®äº‹ä»¶åºåˆ—
+ * ä¼ å…¥å‚æ•°    : pKeyTriTypeBuff: äº‹ä»¶åºåˆ—ç¼“å†²åŒº
+ * è¾“å‡ºå‚æ•°    : none
+ * è¿”å›å€¼      : none
+ ************************************************************************************************************************/
+void vKey_ProcKeyFunc(u8 *pKeyTriTypeBuff)
 {
-	//******************************************¿ª¹Ø»ú************************************************
-	if( bFun_DataCompare( pKeyTriTypeBuff, (u8*)&KeyTriType_SysOnOffBuff, sizeof(KeyTriType_SysOnOffBuff)))  
+	/* ç¬¬ä¸€ä¼˜å…ˆçº§: è·¨çŠ¶æ€åŠ¨ä½œ (åŸé€»è¾‘ä¸­"å¼€å…³æœº"ä¼˜å…ˆäºå·¥ç¨‹æ¨¡å¼åˆ¤æ–­, ä¿æŒä¸€è‡´) */
+	if(b_key_dispatch(S_tKeyActionGlobal, KEY_ACTION_GLOBAL_NUM, pKeyTriTypeBuff) == true)
 	{
-        if (uPrint.tFlag.bKeyTask)
-			sMyPrint("Key_Task:¿ª¹Ø»ú \r\n");
+		vKey_ParamInit();
+		return;
 	}
+
 	#if(boardENG_MODE_EN)
-	//******************************************¹¤³ÌÄ£Ê½************************************************************
-	else if(tSysInfo.eDevState == DS_ENG_MODE)
+	/* ç¬¬äºŒä¼˜å…ˆçº§: å·¥ç¨‹æ¨¡å¼å¤„ç† (ä¸åŸ else-if åˆ¤åºä¸€è‡´) */
+	if(tSysInfo.eDevState == DS_ENG_MODE)
 	{
-	
+		v_key_func_eng(pKeyTriTypeBuff);
+		vKey_ParamInit();
+		return;
 	}
-	#endif
-	//*****************************************************¹¤×÷×´Ì¬ÏÂ**************************************************//
-//	else if ( (tSysInfo.eDevState == DS_WORK || tSysInfo.eDevState == DS_ERR))
-//	{	
-//		if(bFun_DataCompare(pKeyTriTypeBuff, (u8*)&KeyTriType_UpdataOnOffBuff, sizeof(KeyTriType_UpdataOnOffBuff))) //Á¬»÷Power°´¼ü
-//		{
-//			vApp_JumpToBoot(mainUPDATA_FLAG);
-//			if(uPrint.tFlag.bKeyTask)
-//				sMyPrint("Key_Task:ÏµÍ³Éı¼¶\r\n");
-//		}
-//		else if(bFun_DataCompare(pKeyTriTypeBuff, (u8*)&KeyTriType_SysInitBuff, sizeof(KeyTriType_SysInitBuff))) //Á¬»÷Power°´¼ü
-//		{
-//			cSys_AddQueueTask(STI_RESET,NULL,true);
-//			if(uPrint.tFlag.bKeyTask)
-//				sMyPrint("Key_Task:ÏµÍ³ÖØÖÃ\r\n");
-//		}
-//		else if(bFun_DataCompare(pKeyTriTypeBuff, (u8*)&KeyTriType_ParaOnOffBuff, sizeof(KeyTriType_ParaOnOffBuff))) //Á¬»÷Power°´¼ü
-//		{
-//			
-//		}
-//	}
+	#endif  //boardENG_MODE_EN
+
+	/* ç¬¬ä¸‰ä¼˜å…ˆçº§: å·¥ä½œæ€/é”™è¯¯æ€åŠ¨ä½œ */
+	b_key_dispatch(S_tKeyActionWork, KEY_ACTION_WORK_NUM, pKeyTriTypeBuff);
+
 	vKey_ParamInit();
 }
-#endif  //boardKEY_EN
 
+#endif  //(1)
+#endif  //boardKEY_EN

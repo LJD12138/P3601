@@ -1,6 +1,6 @@
 #include "SEGGER_RTT.h" 
 #include "main.h"
-//标准库需要的支持函数                 
+//鏍囧噯搴撻渶瑕佺殑鏀寔鍑芥暟                 
 struct __FILE 
 { 
 	int handle; 
@@ -13,13 +13,13 @@ ch = ch;
 }
 
 FILE __stdout;       
-//定义_sys_exit()以避免使用半主机模式    
+//瀹氫箟_sys_exit()浠ラ伩鍏嶄娇鐢ㄥ崐涓绘満妯″紡    
 void _sys_exit(int x) 
 { 
 	x = x; 
 } 
 
-//重定义fputc函数 ////串口1
+//閲嶅畾涔塮putc鍑芥暟 ////涓插彛1
 /* retarget the C library printf function to the USART */
 int fputc(int ch, FILE *f)
 {

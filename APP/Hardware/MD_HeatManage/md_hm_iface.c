@@ -3,19 +3,19 @@
 #include "Led/led_iface.h"
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ÕÕÃ÷GPIO³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    ç…§æ˜GPIOåˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
 static void v_fan_gpio_init(void)
 {
-	rcu_periph_clock_enable(RCU_AF);//¿ªÆô¸´ÓÃÍâÉèÊ±ÖÓÊ¹ÄÜ
-	gpio_pin_remap_config(GPIO_TIMER2_FULL_REMAP,ENABLE);//ÖØÓ³ÉäT2_H1
+	rcu_periph_clock_enable(RCU_AF);//å¼€å¯å¤ç”¨å¤–è®¾æ—¶é’Ÿä½¿èƒ½
+	gpio_pin_remap_config(GPIO_TIMER2_FULL_REMAP,ENABLE);//é‡æ˜ å°„T2_H1
 
 	rcu_periph_clock_enable(fanPWM_GPIO_RCU);
-	gpio_init(fanPWM_GPIO_PORT,GPIO_MODE_AF_PP,GPIO_OSPEED_50MHZ,fanPWM_PIN);  //ÅäÖÃÎªÍâÉèÒı½Å
+	gpio_init(fanPWM_GPIO_PORT,GPIO_MODE_AF_PP,GPIO_OSPEED_50MHZ,fanPWM_PIN);  //é…ç½®ä¸ºå¤–è®¾å¼•è„š
 	
 	rcu_periph_clock_enable(ledPWR_SW_RCU);
 	gpio_init(ledPWR_SW_PORT,GPIO_MODE_AF_PP,GPIO_OSPEED_50MHZ,ledPWR_SW_PIN);
@@ -28,11 +28,11 @@ static void v_fan_gpio_init(void)
 
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ÕÕÃ÷¶¨Ê±Æ÷³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    ç…§æ˜å®šæ—¶å™¨åˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
 static void v_fan_timer_init(uint16_t arr,uint16_t psc)
 {
@@ -67,7 +67,7 @@ static void v_fan_timer_init(uint16_t arr,uint16_t psc)
    timer_ocintpara.ocnidlestate = TIMER_OCN_IDLE_STATE_LOW;
 
    timer_channel_output_config(fanTIMER, fanTIMER_CH, &timer_ocintpara);
-	timer_channel_output_config(fanTIMER, fanLED_TIMER_CH, &timer_ocintpara);
+   timer_channel_output_config(fanTIMER, fanLED_TIMER_CH, &timer_ocintpara);
 
    /*LED CH2 configuration in PWM mode1*/
    timer_channel_output_pulse_value_config(fanTIMER, fanTIMER_CH, 0);
@@ -86,31 +86,31 @@ static void v_fan_timer_init(uint16_t arr,uint16_t psc)
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ÕÕÃ÷³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    ç…§æ˜åˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
-void vFan_PwmInit(void)
+void vFan_IfaceInit(void)
 {    
 	v_fan_gpio_init();
 	v_fan_timer_init(fanPWM_MAX_VALUE-1,fanPWM_PSC-1);//SystemCoreClock / 120 / 1000 = 1KHz
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ÕÕÃ÷ÈÎÎñ³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    ç…§æ˜ä»»åŠ¡åˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
 #if(boardLOW_POWER)
 void vFan_IoEnterLowPower(void)
 {
 	//IO config
 	rcu_periph_clock_enable(fanPWM_GPIO_RCU);
-	gpio_init(fanPWM_GPIO_PORT,GPIO_MODE_AIN,GPIO_OSPEED_2MHZ,fanPWM_PIN);  //ÅäÖÃÎªÍâÉèÒı½Å
+	gpio_init(fanPWM_GPIO_PORT,GPIO_MODE_AIN,GPIO_OSPEED_2MHZ,fanPWM_PIN);  //é…ç½®ä¸ºå¤–è®¾å¼•è„š
 	
 	rcu_periph_clock_enable(fanPWM_EN_GPIO_RCU);
 	gpio_init(fanPWM_EN_GPIO_PORT,GPIO_MODE_AIN,GPIO_OSPEED_2MHZ,fanPWM_EN_PIN);

@@ -1,6 +1,6 @@
 /*****************************************************************************************************************
 *                                                                                                                *
- *                                         PD100WÈÎÎñ                                                           *
+ *                                         PD100Wä»»åŠ¡                                                           *
 *                                                                                                                *
 ******************************************************************************************************************/
 #include "Dc/dc_task.h"
@@ -30,22 +30,22 @@
 #define     	dcTASK_CYCLE_TIME         			200
 
 
-//****************************************************ÈÎÎñ³õÊ¼»¯**************************************************//
+//****************************************************ä»»åŠ¡åˆå§‹åŒ–**************************************************//
 #if(boardUSE_OS)
-#define     	DC_TASK_PRIO                 			1   	//ÈÎÎñÓÅÏÈ¼¶ 
-#define     	DC_TASK_SIZE                 			256   	//ÈÎÎñ¶ÑÕ»  Êµ¼Ê×Ö½ÚÊı *4
+#define     	DC_TASK_PRIO                 			1   	//ä»»åŠ¡ä¼˜å…ˆçº§ 
+#define     	DC_TASK_SIZE                 			256   	//ä»»åŠ¡å †æ ˆ  å®é™…å­—èŠ‚æ•° *4
 TaskHandle_t    tDcTaskHandler = NULL; 
 void          	vDc_Task(void *pvParameters);
 #endif  //boardUSE_OS
 
-//****************************************************²ÎÊı³õÊ¼»¯**************************************************//
+//****************************************************å‚æ•°åˆå§‹åŒ–**************************************************//
 __ALIGNED(4) 	Dc_T tDc;
-////PD100WÎÂ¶ÈÂË²¨Æ÷
+////PD100Wæ¸©åº¦æ»¤æ³¢å™¨
 //#define usbPD_TEMP_FILTER_BUFF_SIZE     10 
 //static vu16 usa_pd_temp_buff[usbPD_TEMP_FILTER_BUFF_SIZE];
 //FilterHandler_T    tAdc_PDTempFilterMadAvg = {usa_pd_temp_buff, usbPD_TEMP_FILTER_BUFF_SIZE, 0, 0, 0, 0, 0};
 
-//****************************************************º¯ÊıÉùÃ÷****************************************************//
+//****************************************************å‡½æ•°å£°æ˜****************************************************//
 static void v_dc_param_init(void );
 static void v_dc_set_work_state(DevState_E stat);
 static void v_dc_set_error_code(DcErrCode_E code ,bool set);
@@ -55,11 +55,11 @@ static s8 c_dc_check_out_volt(void);
 static s8 c_dc_check_in_volt(void);
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ²ÎÊı³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    å‚æ•°åˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
 static void v_dc_param_init(void )
 {
@@ -70,11 +70,11 @@ static void v_dc_param_init(void )
 
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ÏµÍ³ÈÎÎñ³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    ç³»ç»Ÿä»»åŠ¡åˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
 void vDc_TaskInit(void)
 {
@@ -83,21 +83,21 @@ void vDc_TaskInit(void)
 	v_dc_param_init();
 	
 	#if(boardUSE_OS)
-    xTaskCreate((TaskFunction_t )vDc_Task,              //ÈÎÎñº¯Êı
-                (const char* )"bDcTask",               //ÈÎÎñÃû³Æ
-                (uint16_t ) DC_TASK_SIZE,               //ÈÎÎñ¶ÑÕ»´óĞ¡
-                (void* )NULL,                           //´«µİ¸øÈÎÎñº¯ÊıµÄ²ÎÊı
-                (UBaseType_t ) DC_TASK_PRIO,            //ÈÎÎñÓÅÏÈ¼¶
-                (TaskHandle_t*)&tDcTaskHandler);        //ÈÎÎñ¾ä±ú  
+    xTaskCreate((TaskFunction_t )vDc_Task,              //ä»»åŠ¡å‡½æ•°
+                (const char* )"bDcTask",               //ä»»åŠ¡åç§°
+                (uint16_t ) DC_TASK_SIZE,               //ä»»åŠ¡å †æ ˆå¤§å°
+                (void* )NULL,                           //ä¼ é€’ç»™ä»»åŠ¡å‡½æ•°çš„å‚æ•°
+                (UBaseType_t ) DC_TASK_PRIO,            //ä»»åŠ¡ä¼˜å…ˆçº§
+                (TaskHandle_t*)&tDcTaskHandler);        //ä»»åŠ¡å¥æŸ„  
 	#endif  //boardUSE_OS
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    DCÈÎÎñ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    valueµ¥Î»ÊÇW
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    DCä»»åŠ¡
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    valueå•ä½æ˜¯W
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
 void vDc_Task(void *pvParameters)
 {
@@ -108,13 +108,13 @@ void vDc_Task(void *pvParameters)
     for(;;)
 	#endif  //boardUSE_OS
     {
-		//¹Ø»ú×´Ì¬ÏÂ
+		//å…³æœºçŠ¶æ€ä¸‹
 		if(tSysInfo.uPerm.tPerm.bDisChgPerm == false)
 		{
-			//USB´¦ÓÚ¿ª»ú
+			//USBå¤„äºå¼€æœº
 			if(tDc.eDevState >= DS_BOOTING)  
 			{
-				//¹Ø±ÕUSBÉè±¸
+				//å…³é—­USBè®¾å¤‡
 				v_dc_set_work_state(DS_CLOSING); 
 			}
 		}
@@ -133,7 +133,7 @@ void vDc_Task(void *pvParameters)
 			us_syn_cnt = 0;
 		
 		
-		//***********************************DC¹¤×÷×´Ì¬µÄÈÎÎñ*********************************************
+		//***********************************DCå·¥ä½œçŠ¶æ€çš„ä»»åŠ¡*********************************************
         switch (tDc.eDevState)
         {
 			case DS_INIT:
@@ -141,7 +141,7 @@ void vDc_Task(void *pvParameters)
 				v_dc_param_init();
 				dcPOWER_EN_OFF();
 				
-				//µÈ´ı»ñÈ¡APPĞÅÏ¢
+				//ç­‰å¾…è·å–APPä¿¡æ¯
 				if(tSysInfo.uInit.tFinish.bIF_AppInfo == false)
 					break;
 				
@@ -150,7 +150,7 @@ void vDc_Task(void *pvParameters)
 				if(c_ret > 0)
 				{
 					if((uPrint.tFlag.bDcTask || uPrint.tFlag.bImportant) && b_ret == false)
-						log_w("bDcTask:tDC»ñÈ¡´íÎóÇå³ı");
+						log_w("bDcTask:tDCè·å–é”™è¯¯æ¸…é™¤");
 					
 					b_ret = true;
 				}
@@ -158,7 +158,7 @@ void vDc_Task(void *pvParameters)
 				{
 					if((uPrint.tFlag.bDcTask || uPrint.tFlag.bImportant) && b_ret == true)
 					{
-						log_w("bDcTask:tDC³õÊ¼»¯Ê§°Ü ´úÂë%d",c_ret);
+						log_w("bDcTask:tDCåˆå§‹åŒ–å¤±è´¥ ä»£ç %d",c_ret);
 						b_ret = false;
 					}
 					break;
@@ -175,7 +175,7 @@ void vDc_Task(void *pvParameters)
             {
 				dcPOWER_EN_OFF();
 				
-				if(c_dc_check_out_volt() < 0)  //ÒÑ¾­¹Ø±Õ
+				if(c_dc_check_out_volt() < 0)  //å·²ç»å…³é—­
 				{
 					v_dc_param_init();
 					v_dc_set_work_state(DS_SHUT_DOWN);
@@ -190,7 +190,7 @@ void vDc_Task(void *pvParameters)
 				dcPOWER_EN_OFF();
 				
 				#if(boardUSE_OS)
-                ulTaskNotifyTake(pdTRUE, portMAX_DELAY); //µÈ´ıÈÎÎñÍ¨Öª  Ò»Ö±µÈ´ı,Ö±µ½ÊÍ·ÅÍ¨Öª
+                ulTaskNotifyTake(pdTRUE, portMAX_DELAY); //ç­‰å¾…ä»»åŠ¡é€šçŸ¥  ä¸€ç›´ç­‰å¾…,ç›´åˆ°é‡Šæ”¾é€šçŸ¥
 				#endif  //boardUSE_OS
             }
             break;
@@ -240,10 +240,10 @@ void vDc_Task(void *pvParameters)
 		tDc.usOutVolt = tAdcSamp.usDcOutVolt;
 		tDc.usOutCurr = tAdcSamp.fDcOutCurr * 10;//0.1A
 		
-		//*********************************¹¦ÂÊ**********************************
+		//*********************************åŠŸç‡**********************************
 		if( tDc.eDevState >= DS_BOOTING)
 		{
-			//¼ÆËãDC ×Ü¹¦ÂÊ
+			//è®¡ç®—DC æ€»åŠŸç‡
             tDc.usOutPwr = (tDc.usOutCurr * tDc.usOutVolt) / 100;
 			
 			if(tDc.usOutPwr > 2)
@@ -254,7 +254,7 @@ void vDc_Task(void *pvParameters)
 			if(us_pwr_exist_cnt < 3)
 				tDc.usOutPwr = 0;
 			
-			//ÓĞ¹¦ÂÊË¢ĞÂ¹Ø±ÕÊ±¼ä
+			//æœ‰åŠŸç‡åˆ·æ–°å…³é—­æ—¶é—´
 			if(tDc.usOutPwr > 2)
 				vDc_RefreshOffTime();
 		}
@@ -270,17 +270,17 @@ void vDc_Task(void *pvParameters)
 
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ¹¤×÷×´Ì¬ÉèÖÃ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    å·¥ä½œçŠ¶æ€è®¾ç½®
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
 static void v_dc_set_work_state(DevState_E stat)
 {
     tDc.eDevState = stat;
 	
-	//Æô¶¯ºÍ¹Ø±Õ¶¼Çå³ıÒ»´Î´íÎó
+	//å¯åŠ¨å’Œå…³é—­éƒ½æ¸…é™¤ä¸€æ¬¡é”™è¯¯
 	if(stat == DS_CLOSING || stat ==DS_BOOTING)
 	{
 		if(tDc.uErrCode.ucErrCode)
@@ -291,16 +291,16 @@ static void v_dc_set_work_state(DevState_E stat)
 
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ÉèÖÃ´íÎó´úÂë
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    
+-----å‡½æ•°åŠŸèƒ½    è®¾ç½®é”™è¯¯ä»£ç 
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    
 				 DC_EC_NULL = 0,
 				 DC_EC_LOW_VBMS,
 				 DC_EC_OUT_ERR,
 				 DC_EC_OT,
 				 DC_EC_OL,
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
 static void v_dc_set_error_code(DcErrCode_E code ,bool set)
 {
@@ -311,20 +311,20 @@ static void v_dc_set_error_code(DcErrCode_E code ,bool set)
 	{
 		if(e_next_code != code || b_next_set != set)
 		{
-			log_e("bDcTask:ÈÎÎñ´íÎó ´úÂë%d ÀàĞÍ%d",code,set);
+			log_e("bDcTask:ä»»åŠ¡é”™è¯¯ ä»£ç %d ç±»å‹%d",code,set);
 			e_next_code = code;
 			b_next_set = set;
 		}
 	}
 	
-	//Çå³ıËùÓĞ´íÎó
+	//æ¸…é™¤æ‰€æœ‰é”™è¯¯
 	if(code == DC_EC_CLEAR_ALL)
 	{
 		tDc.uErrCode.ucErrCode = 0;
 		return;
 	}
 	
-	//ÓĞ´íÎó
+	//æœ‰é”™è¯¯
 	if(set)
 	{
 		ERR_SET(tDc.uErrCode.ucErrCode, (code - 1));
@@ -350,18 +350,18 @@ static void v_dc_set_error_code(DcErrCode_E code ,bool set)
 			cDc_Switch(ST_ON, false);
 			
 			if(uPrint.tFlag.bDcTask || uPrint.tFlag.bImportant)
-				log_i("bDcTask:´íÎóÇå³ı,ÖØĞÂ¿ªÆô");
+				log_i("bDcTask:é”™è¯¯æ¸…é™¤,é‡æ–°å¼€å¯");
 		}
 	}	
 }
 
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ±£»¤´¦Àí
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    ä¿æŠ¤å¤„ç†
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
 static void v_dc_protect_process(void)
 {
@@ -379,7 +379,7 @@ static void v_dc_protect_process(void)
 	static u8 uc_ntc_lost_cnt = 0;
 	static u8 uc_temp = 0;
 	
-	//NTC¼ì²â
+	//NTCæ£€æµ‹
 	if(tDc.eDevState == DS_WORK)
 	{
 		if(tDc.sMaxTemp == 0 && tDc.uErrCode.tCode.bNtcLost == 0)
@@ -403,8 +403,8 @@ static void v_dc_protect_process(void)
 		uc_ntc_lost_cnt = 0;
 	}
 	
-	//--------------------------------------µçÔ´´íÎó¼ì²é-------------------------------------
-	//¹¤×÷×´Ì¬²Å¼ì²é
+	//--------------------------------------ç”µæºé”™è¯¯æ£€æŸ¥-------------------------------------
+	//å·¥ä½œçŠ¶æ€æ‰æ£€æŸ¥
 	if(tDc.eDevState == DS_BOOTING ||
 	   tDc.eDevState == DS_WORK)
 	{
@@ -417,7 +417,7 @@ static void v_dc_protect_process(void)
 				if(uc_pwr_err_cnt >= 10)
 				{
 					uc_pwr_err_cnt = 0;
-					v_dc_set_error_code(DC_EC_PWR_ERR,true); //ÉèÖÃ´íÎó
+					v_dc_set_error_code(DC_EC_PWR_ERR,true); //è®¾ç½®é”™è¯¯
 				}
 			}
 		}
@@ -430,7 +430,7 @@ static void v_dc_protect_process(void)
 				if(uc_clear_pwr_err_cnt >= 10)
 				{
 					uc_clear_pwr_err_cnt = 0;
-					v_dc_set_error_code(DC_EC_PWR_ERR,false); //Çå³ı´íÎó
+					v_dc_set_error_code(DC_EC_PWR_ERR,false); //æ¸…é™¤é”™è¯¯
 				}
 			}
 		}
@@ -442,7 +442,7 @@ static void v_dc_protect_process(void)
 	}
 	
 	
-	//-------------------------------¹ıÎÂ¼ì²é------------------------------------------------
+	//-------------------------------è¿‡æ¸©æ£€æŸ¥------------------------------------------------
 	if(tDc.sMaxTemp > tAppMemParam.tDC.sMaxTemp)
 	{
 		uc_clear_over_temp_cnt = 0;
@@ -451,12 +451,12 @@ static void v_dc_protect_process(void)
 			uc_over_temp_cnt++;
 			if(uc_over_temp_cnt >= 20)
 			{
-				v_dc_set_error_code(DC_EC_OT,true);  //ÉèÖÃ´íÎó
+				v_dc_set_error_code(DC_EC_OT,true);  //è®¾ç½®é”™è¯¯
 				uc_over_temp_cnt = 0;
 			}
 		}
 	}
-	//Ïà²î10ÉãÊÏ¶ÈÔò¿ªÊ¼ÍË³ö¸ßÎÂ±¨¾¯
+	//ç›¸å·®10æ‘„æ°åº¦åˆ™å¼€å§‹é€€å‡ºé«˜æ¸©æŠ¥è­¦
 	else  if(tDc.sMaxTemp < (tAppMemParam.tDC.sMaxTemp - 10))
 	{
 		uc_over_temp_cnt = 0;
@@ -465,14 +465,14 @@ static void v_dc_protect_process(void)
 			uc_clear_over_temp_cnt++;
 			if(uc_clear_over_temp_cnt >= 20)
 			{
-				v_dc_set_error_code(DC_EC_OT,false);   //Çå³ı´íÎó
+				v_dc_set_error_code(DC_EC_OT,false);   //æ¸…é™¤é”™è¯¯
 				uc_clear_over_temp_cnt = 0;
 			}
 		}
 	}
 	
 	
-	//------------------------------------------¹ıÁ÷¼ì²é-------------------------------------
+	//------------------------------------------è¿‡æµæ£€æŸ¥-------------------------------------
 	if(tAdcSamp.fDcOutCurr > 13.0f)
 	{
 		if(tDc.uErrCode.tCode.bOL == 0)
@@ -480,7 +480,7 @@ static void v_dc_protect_process(void)
 			uc_over_curr_cnt++;
 			if(uc_over_curr_cnt >= 5)  //1S
 			{
-				v_dc_set_error_code(DC_EC_OL,true);  //ÉèÖÃ´íÎó
+				v_dc_set_error_code(DC_EC_OL,true);  //è®¾ç½®é”™è¯¯
 				uc_over_curr_cnt = 0;
 			}
 		}
@@ -490,7 +490,7 @@ static void v_dc_protect_process(void)
 	else
 		uc_over_curr_cnt = 0;
 	
-	//ĞèÒª¹Ø±ÕÇå³ı
+	//éœ€è¦å…³é—­æ¸…é™¤
 	if(tAdcSamp.fDcOutCurr > 11.6f)
 	{
 		if(tDc.uErrCode.tCode.bOL == 0)
@@ -498,7 +498,7 @@ static void v_dc_protect_process(void)
 			uc_overload_cnt++;
 			if(uc_overload_cnt >= 25)  //5S
 			{
-				v_dc_set_error_code(DC_EC_OL,true);  //ÉèÖÃ´íÎó
+				v_dc_set_error_code(DC_EC_OL,true);  //è®¾ç½®é”™è¯¯
 				uc_overload_cnt = 0;
 			}
 		}
@@ -510,8 +510,8 @@ static void v_dc_protect_process(void)
 	
 	
 	
-	//----------------------------------------------Êä³ö¶ªÊ§----------------------------------
-	//¹¤×÷×´Ì¬²Å¼ì²é
+	//----------------------------------------------è¾“å‡ºä¸¢å¤±----------------------------------
+	//å·¥ä½œçŠ¶æ€æ‰æ£€æŸ¥
 	if(tDc.eDevState == DS_WORK)
 	{
 		if(c_dc_check_out_volt() < 0)
@@ -576,8 +576,8 @@ static void v_dc_protect_process(void)
 	}
 	
 	
-	//----------------------------------------------¹Ø±ÕÊä³öÊ§°Ü----------------------------------
-	//¹Ø±ÕÖĞ»ò´íÎó²Å¼ì²é
+	//----------------------------------------------å…³é—­è¾“å‡ºå¤±è´¥----------------------------------
+	//å…³é—­ä¸­æˆ–é”™è¯¯æ‰æ£€æŸ¥
 	if(tDc.eDevState == DS_CLOSING ||
 	   tDc.eDevState == DS_ERR)
 	{
@@ -615,13 +615,13 @@ static void v_dc_protect_process(void)
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ	»ñÈ¡ĞÅÏ¢
------ËµÃ÷(±¸×¢)	none
------´«Èë²ÎÊı	none
------Êä³ö²ÎÊı	none
------·µ»ØÖµ		Ğ¡ÓÚ0:Ê§°Ü	
-				0:Î´Íê³É
-				´óÓÚ0:Íê³É
+-----å‡½æ•°åŠŸèƒ½   åˆå§‹åŒ–DCä¿¡æ¯
+-----è¯´æ˜(å¤‡æ³¨)	none
+-----ä¼ å…¥å‚æ•°	none
+-----è¾“å‡ºå‚æ•°	none
+-----è¿”å›å€¼		å°äº0:å¤±è´¥	
+				0:æœªå®Œæˆ
+				å¤§äº0:å®Œæˆ
 ******************************************************************************************************************/
 static s8 c_dc_info_init(void)
 {
@@ -629,27 +629,27 @@ static s8 c_dc_info_init(void)
 	const char* p_obj_str = tDcMemParamStr;
 	static bool b_ret = true;
 	
-	//ÒÑ¾­³õÊ¼»¯
+	//å·²ç»åˆå§‹åŒ–
 	if(tSysInfo.uInit.tFinish.bIF_SysInit == true)
 	{
 		ret = cApp_GetMemParam(p_obj_str);
-		if(ret > 0)//³É¹¦
+		if(ret > 0)//æˆåŠŸ
 			return 1;
 
 		if((uPrint.tFlag.bDcTask || uPrint.tFlag.bImportant) && b_ret == true)
 		{
-			log_e("bDcTask:µ±Ç°ÏµÍ³ÒÑ¾­³õÊ¼»¯Íê³É,µ«ÊÇtDC¶ÁÈ¡ÒÀ¾ÉÎª¿Õ,×¼±¸ÖØÖÃ");
+			log_e("bDcTask:å½“å‰ç³»ç»Ÿå·²ç»åˆå§‹åŒ–å®Œæˆ,ä½†æ˜¯tDCè¯»å–ä¾æ—§ä¸ºç©º,å‡†å¤‡é‡ç½®");
 			b_ret = false;
 		}	
 	}
 	
-	//ÖØĞÂ³õÊ¼»¯
+	//é‡æ–°åˆå§‹åŒ–
 	ret = cApp_MemParamInit(p_obj_str);
-	if(ret <= 0)//Ê§°Ü
+	if(ret <= 0)//å¤±è´¥
 		return -1;
 	
-	ret = cApp_UpdataMemParam(p_obj_str);
-	if(ret <= 0)//Ê§°Ü
+	ret = cApp_UpdateMemParam(p_obj_str);
+	if(ret <= 0)//å¤±è´¥
 		return -2;
 	
 	b_ret = true;
@@ -657,11 +657,11 @@ static s8 c_dc_info_init(void)
 }
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ¼ì²éDCÊä³ö×´Ì¬
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      µçÑ¹×´Ì¬ Ğ¡ÓÚ0;Ç·Ñ¹  0:µçÑ¹Õı³£  1:¹ıÑ¹
+-----å‡½æ•°åŠŸèƒ½    æ£€æŸ¥DCè¾“å‡ºçŠ¶æ€
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      ç”µå‹çŠ¶æ€ å°äº0;æ¬ å‹  0:ç”µå‹æ­£å¸¸  1:è¿‡å‹
 ************************************************************************************************************************/
 static s8 c_dc_check_out_volt(void)
 {
@@ -680,11 +680,11 @@ static s8 c_dc_check_out_volt(void)
 }
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ¼ì²éDC¹©µç×´Ì¬
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      µçÑ¹×´Ì¬ Ğ¡ÓÚ0;Ç·Ñ¹  0:µçÑ¹Õı³£  1:¹ıÑ¹
+-----å‡½æ•°åŠŸèƒ½    æ£€æŸ¥DCä¾›ç”µçŠ¶æ€
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      ç”µå‹çŠ¶æ€ å°äº0;æ¬ å‹  0:ç”µå‹æ­£å¸¸  1:è¿‡å‹
 ************************************************************************************************************************/
 static s8 c_dc_check_in_volt(void)
 {
@@ -722,13 +722,13 @@ static s8 c_dc_check_in_volt(void)
 
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ¿ì³ä¿ª¹Ø
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    ST_NULL=0,//½øĞĞÈ¡·´
+-----å‡½æ•°åŠŸèƒ½    å¿«å……å¼€å…³
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    ST_NULL=0,//è¿›è¡Œå–å
 				 ST_ON,
 				 ST_OFF,
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
 s8 cDc_Switch(SwitchType_E Tri_Type, bool fore_en)
 {
@@ -738,10 +738,10 @@ s8 cDc_Switch(SwitchType_E Tri_Type, bool fore_en)
 		{
 			if((tDc.eDevState == DS_WORK || 
 				tDc.eDevState == DS_BOOTING) && 
-				fore_en == false)  //ÒÑ¾­¿ªÆô,ÔòÍË³ö
+				fore_en == false)  //å·²ç»å¼€å¯,åˆ™é€€å‡º
 			{
 				if(uPrint.tFlag.bDcTask)
-					sMyPrint("bDcTask:µ±Ç°×´Ì¬Îª¹¤×÷,²»ÔÊĞí¿ª»ú\r\n");
+					sMyPrint("bDcTask:å½“å‰çŠ¶æ€ä¸ºå·¥ä½œ,ä¸å…è®¸å¼€æœº\r\n");
 				 
 				return 0;
 			}
@@ -753,10 +753,10 @@ s8 cDc_Switch(SwitchType_E Tri_Type, bool fore_en)
 		{
 			if((tDc.eDevState == DS_SHUT_DOWN ||
 				tDc.eDevState == DS_CLOSING) && 
-				fore_en == false)  //ÒÑ¾­¹Ø±Õ,ÔòÍË³ö
+				fore_en == false)  //å·²ç»å…³é—­,åˆ™é€€å‡º
 			{
 				if(uPrint.tFlag.bDcTask)
-					sMyPrint("bDcTask:µ±Ç°×´Ì¬Îª¹Ø±Õ,²»ÔÊĞí¹Ø»ú\r\n");
+					sMyPrint("bDcTask:å½“å‰çŠ¶æ€ä¸ºå…³é—­,ä¸å…è®¸å…³æœº\r\n");
 				 
 				return 0;
 			}
@@ -765,7 +765,7 @@ s8 cDc_Switch(SwitchType_E Tri_Type, bool fore_en)
 		}
 		
 		default:
-		    if(tDc.eDevState <= DS_SHUT_DOWN)  //¿ªÆô
+		    if(tDc.eDevState <= DS_SHUT_DOWN)  //å¼€å¯
 			{
 				LoopOn:
 				if(tSysInfo.uPerm.tPerm.bDisChgPerm == false)
@@ -775,20 +775,20 @@ s8 cDc_Switch(SwitchType_E Tri_Type, bool fore_en)
 					#endif  //boardBUZ_EN
 
 					if(uPrint.tFlag.bDcTask || uPrint.tFlag.bImportant)
-						log_w("bDcTask:ÏµÍ³²»ÔÊĞí¿ªÆô·Åµç");
+						log_w("bDcTask:ç³»ç»Ÿä¸å…è®¸å¼€å¯æ”¾ç”µ");
 					
 					return -1;
 				}
 
-//				if(c_dc_check_in_volt() != 0)  //µç³ØµçÑ¹µÍÓÚ±£»¤Öµ
-//				{
-//					v_dc_set_error_code(DC_EC_PWR_ERR,true);
-//					
-//					if(uPrint.tFlag.bDcTask || uPrint.tFlag.bImportant)
-//						log_w("bDcTask:¿ªÆôÇ·Ñ¹ µçÑ¹=%dV",tDc.usInVolt/10);
-//					
-//					return -2;
-//				} 
+				// if(c_dc_check_in_volt() != 0)  //ç”µæ± ç”µå‹ä½äºä¿æŠ¤å€¼
+				// {
+				// 	v_dc_set_error_code(DC_EC_PWR_ERR,true);
+					
+				// 	if(uPrint.tFlag.bDcTask || uPrint.tFlag.bImportant)
+				// 		log_w("bDcTask:å¼€å¯æ¬ å‹ ç”µå‹=%dV",tDc.usInVolt/10);
+					
+				// 	return -2;
+				// } 
 
 				v_dc_set_work_state(DS_BOOTING); 
 
@@ -797,15 +797,15 @@ s8 cDc_Switch(SwitchType_E Tri_Type, bool fore_en)
 				#endif  //boardBUZ_EN
 
 				if(uPrint.tFlag.bDcTask)
-					sMyPrint("bDcTask:----DC ¿ªÆô----\r\n");
+					sMyPrint("bDcTask:----DC å¼€å¯----\r\n");
 				
-				xTaskNotifyGive(tDcTaskHandler); //·¢Í¨Öª
+				xTaskNotifyGive(tDcTaskHandler); //å‘é€šçŸ¥
 
 			}
-			else                       //ÆäËûÇé¿ö¶¼ÊÇ¹Ø±Õ
+			else                       //å…¶ä»–æƒ…å†µéƒ½æ˜¯å…³é—­
 			{
 				LoopOff:
-				if(tDc.eDevState != DS_SHUT_DOWN)       //¹ÊÕÏÖĞ¡¢¿ªÆôÖĞ »ò ÒÑ¿ªÆô  £º ½øĞĞ¹Ø±Õ
+				if(tDc.eDevState != DS_SHUT_DOWN)       //æ•…éšœä¸­ã€å¼€å¯ä¸­ æˆ– å·²å¼€å¯  ï¼š è¿›è¡Œå…³é—­
 					v_dc_set_work_state(DS_CLOSING);    
 
 				#if(boardBUZ_EN)
@@ -813,14 +813,14 @@ s8 cDc_Switch(SwitchType_E Tri_Type, bool fore_en)
 				#endif  //boardBUZ_EN
 				
 				if(uPrint.tFlag.bDcTask)
-					sMyPrint("bDcTask:----DC ¹Ø±Õ----\r\n");
+					sMyPrint("bDcTask:----DC å…³é—­----\r\n");
 				
 			}
 			break;
 	}
 	
 	#if(boardSYS_DATA_UPADATA)
-	Sys_Updata_Mod(DC_Mod,true);
+	Sys_Update_Mod(DC_Mod,true);
 	#endif  //boardLOW_POWER
 
 	return 1 ;
@@ -828,23 +828,23 @@ s8 cDc_Switch(SwitchType_E Tri_Type, bool fore_en)
 
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ×Ô¶¯¹Ø±Õ¼ÆÊ±
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    è‡ªåŠ¨å…³é—­è®¡æ—¶
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 void vDc_TickTimer(void) 
 {
-	//·Ç¹¤×÷×´Ì¬ÏÂÍË³ö
+	//éå·¥ä½œçŠ¶æ€ä¸‹é€€å‡º
 	if(bSys_IsWorkState() == false) 
 		return;
 	
-	//·Ç¹¤×÷Ä£Ê½²»¼ÆÊ±
+	//éå·¥ä½œæ¨¡å¼ä¸è®¡æ—¶
 	if(tDc.eDevState != DS_WORK)
 		return;
 	
-	//-----×Ô¶¯¹Ø±Õ--------------------------------------   
+	//-----è‡ªåŠ¨å…³é—­--------------------------------------   
 	if(tDc.usAutoOffTime)
 	{
 		if(tDc.usAutoOffCnt)
@@ -854,7 +854,7 @@ void vDc_TickTimer(void)
 			{
 				cDc_Switch(ST_OFF, false);
 				if(uPrint.tFlag.bDcTask || uPrint.tFlag.bImportant)
-					sMyPrint("Dc_Task:====µ¹¼ÆÊ±½áÊø,¹Ø±ÕDC  Ê±¼ä=%dS====\r\n", tDc.usAutoOffTime);
+					sMyPrint("Dc_Task:====å€’è®¡æ—¶ç»“æŸ,å…³é—­DC  æ—¶é—´=%dS====\r\n", tDc.usAutoOffTime);
 			}
 		}
 	}
@@ -862,11 +862,11 @@ void vDc_TickTimer(void)
 
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    Ë¢ĞÂ¹Ø±ÕÊ±¼ä
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    åˆ·æ–°å…³é—­æ—¶é—´
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 void vDc_RefreshOffTime(void) 
 {  
@@ -877,11 +877,11 @@ void vDc_RefreshOffTime(void)
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ³õÊ¼»¯²ÎÊı
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    p_dc_mem : DC¼ÇÒä²ÎÊı½á¹¹Ìå
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      true:ÉèÖÃ³É¹¦  ·´Ö®Ê§°Ü
+-----å‡½æ•°åŠŸèƒ½    åˆå§‹åŒ–å‚æ•°
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    p_dc_mem : DCè®°å¿†å‚æ•°ç»“æ„ä½“
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      true:è®¾ç½®æˆåŠŸ  åä¹‹å¤±è´¥
 *****************************************************************************************************************/
 bool bDc_MemParamInit(DcMemParam_T* p_dc_mem)
 {
@@ -895,11 +895,11 @@ bool bDc_MemParamInit(DcMemParam_T* p_dc_mem)
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ÉèÖÃ¼ÇÒä²ÎÊı
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    add:true Ôö¼Ó   false:¼õÉÙ
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    è®¾ç½®è®°å¿†å‚æ•°
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    add:true å¢åŠ    false:å‡å°‘
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 *****************************************************************************************************************/
 void vDc_MemParamSet(u8 item, bool add)
 {
@@ -975,33 +975,33 @@ void vDc_MemParamSet(u8 item, bool add)
 
 #if(boardLOW_POWER)
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ½øÈëµÍ¹¦ºÄ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    è¿›å…¥ä½åŠŸè€—
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
 void vDc_EnterLowPower(void)
 {
 	rcu_periph_clock_enable(DC2_SDA_RCU);
 	gpio_init(DC2_SDA_GPIO, GPIO_MODE_AIN, GPIO_OSPEED_2MHZ,DC2_SDA_PIN);
 	
-	vTaskSuspend(tDcTaskHandler); //ÔİÍ£ÈÎÎñ
+	vTaskSuspend(tDcTaskHandler); //æš‚åœä»»åŠ¡
 }
 
 
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ÍË³öµÍ¹¦ºÄ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    é€€å‡ºä½åŠŸè€—
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ******************************************************************************************************************/
 void vDc_ExitLowPower(void)
 {
 	vDc_Init();
-	vTaskResume(tDcTaskHandler); //»Ö¸´ÈÎÎñ
+	vTaskResume(tDcTaskHandler); //æ¢å¤ä»»åŠ¡
 }
 #endif  //boardLOW_POWER
 

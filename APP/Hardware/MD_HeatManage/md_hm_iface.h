@@ -9,7 +9,7 @@
 #define 		fanPWM_SEMI_VALUE    					200
 #define 		fanPWM_FULL_VALUE    					550
 
-//·çÉÈ
+//é£Žæ‰‡
 #define 		fanPWM_GPIO_RCU                    		RCU_GPIOC
 #define 		fanPWM_GPIO_PORT                   		GPIOC
 #define 		fanPWM_PIN                         		GPIO_PIN_8
@@ -32,7 +32,7 @@
 #define 		fanPWM_SET(x)                      		TIMER_CH2CV(fanTIMER) = ((uint32_t)x)
 #define 		fanLED_PWM_SET(x)                  		TIMER_CH1CV(fanTIMER) = ((uint32_t)x)
 
-void vFan_PwmInit(void);
+void vFan_IfaceInit(void);
 
 #if(boardLOW_POWER)
 void vFan_IoEnterLowPower(void);

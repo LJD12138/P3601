@@ -1,6 +1,6 @@
 /*****************************************************************************************************************
 *                                                                                                                *
- *                                         ÏµÍ³µÄ¶ÓÁĞº¯Êı                                                  		*
+ *                                         ç³»ç»Ÿçš„é˜Ÿåˆ—å‡½æ•°                                                  		*
 *                                                                                                                *
 ******************************************************************************************************************/
 #include "Sys/sys_queue_task_eng.h"
@@ -19,18 +19,18 @@
 
 #include "app_info.h"
 
-#define     	sysTASK_ENG_CYCLE_TIME					sysTASK_CYCLE_TIME //ÈÎÎñÊ±¼ä
+#define     	sysTASK_ENG_CYCLE_TIME					sysTASK_CYCLE_TIME //ä»»åŠ¡æ—¶é—´
 
-//****************************************************²ÎÊı³õÊ¼»¯**************************************************//
+//****************************************************å‚æ•°åˆå§‹åŒ–**************************************************//
 EngMode_T tEngMode;
 
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ¹¤×÷
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    å·¥ä½œ
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/ 
 void v_sys_queue_task_eng(Task_T *tp_task)
 {
@@ -46,7 +46,7 @@ void v_sys_queue_task_eng(Task_T *tp_task)
 		
 		case EMS_SYS:
 		{
-			if(tEngMode.ucEngModeItem == 1)  //¿ØÖÆ·çÉÈ
+			if(tEngMode.ucEngModeItem == 1)  //æ§åˆ¶é£æ‰‡
 			{
 				if(tEngMode.cEngModeState == 1)
 					vFan_ForceOpenFan(true);
@@ -108,27 +108,27 @@ void v_sys_queue_task_eng(Task_T *tp_task)
 
 		case EMS_SET:
 		{
-			if(tEngMode.ucEngModeItem == 0)  //±£´æ
+			if(tEngMode.ucEngModeItem == 0)  //ä¿å­˜
 			{
 				if(tEngMode.cEngModeState == 1)
 				{
-//					if(bApp_MemParamUpdata(NULL,NULL,false) == true)
+					if(cApp_UpdateMemParam(tAppMemParamStr) > 0)
 						goto shut_down;
 				}
 			}
-			else if(tEngMode.ucEngModeItem == 1)  //ÖØÖÃ
+			else if(tEngMode.ucEngModeItem == 1)  //é‡ç½®
 			{
 				if(tEngMode.cEngModeState == 1)
 				{
-//					if(bApp_SysInfoInit(true) == true)
+					if(cApp_MemParamInit(tAppMemParamStr) > 0)
 						goto shut_down;
 				}
 			}
-			else if(tEngMode.ucEngModeItem == 2)  //Éı¼¶
+			else if(tEngMode.ucEngModeItem == 2)  //å‡çº§
 			{
 				if(tEngMode.cEngModeState == 1)
 				{
-					vApp_JumpToBoot(mainUPDATA_FLAG);
+					vApp_JumpToBoot(mainUPDATE_FLAG);
 				}
 			}
 		}
@@ -141,16 +141,16 @@ void v_sys_queue_task_eng(Task_T *tp_task)
 			{
 				shut_down:
 				cSys_Switch(SO_KEY, ST_OFF, false);
-				cQueue_GotoStep(tpSysTask, STEP_END);  //½áÊø
+				cQueue_GotoStep(tpSysTask, STEP_END);  //ç»“æŸ
 			}
 		}break;
 	}
 	
 	tp_task->usTaskWaitCnt++;
-	if(tp_task->usTaskWaitCnt > (60000/sysTASK_ENG_CYCLE_TIME))  //µÈ´ı³¬Ê±
+	if(tp_task->usTaskWaitCnt > (60000/sysTASK_ENG_CYCLE_TIME))  //ç­‰å¾…è¶…æ—¶
 	{
 		cSys_Switch(SO_KEY, ST_OFF, false);
-		cQueue_GotoStep(tp_task, STEP_END);  //½áÊø
+		cQueue_GotoStep(tp_task, STEP_END);  //ç»“æŸ
 	}
 	
 	vTaskDelay(sysTASK_ENG_CYCLE_TIME);

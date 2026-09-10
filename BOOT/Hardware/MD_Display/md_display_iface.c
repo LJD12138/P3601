@@ -240,7 +240,7 @@ const unsigned char LCD_NUM_DISP_TAB[]=
 };
 
 
-void DelayMS(uint Ms) /*ÑÓÊ± ms*/
+void DelayMS(uint Ms) /*å»¶æ—¶ ms*/
 {
 	uchar j=0;
 	while(Ms--)
@@ -300,9 +300,9 @@ void FillLcdFromBuff1(void)
 	unsigned short int mDat=0,tmp=0;
 	CS1_L;
 	DelayMS(1);
-	mDat = (0x05<<6); //Ð´Êý¾ÝÃüÁî
+	mDat = (0x05<<6); //å†™æ•°æ®å‘½ä»¤
 	tmp = (1<<(9-1));
-	for (i=0;i<9;i++)//Ð´Èë1 01aa aaaa,a=0±íÊ¾Ê×µØÖ·£¬¼´1 0100 0000
+	for (i=0;i<9;i++)//å†™å…¥1 01aa aaaa,a=0è¡¨ç¤ºé¦–åœ°å€ï¼Œå³1 0100 0000
 	{
 		if (mDat&tmp)
 		DATA_H;
@@ -314,7 +314,7 @@ void FillLcdFromBuff1(void)
 		DelayMS(1);
 		mDat <<= 1;
 	}
-	for (i=0;i<16;i++)//Ð´ÈëÊý¾Ý
+	for (i=0;i<16;i++)//å†™å…¥æ•°æ®
 	{
 		mDat = gsDisplayBuff1[i];
 		for (j=0;j<8;j++)
@@ -342,9 +342,9 @@ void FillLcdFromBuff2(void)
 	unsigned short int mDat=0,tmp=0;
 	CS2_L;
 	DelayMS(1);
-	mDat = (0x05<<6); //Ð´Êý¾ÝÃüÁî
+	mDat = (0x05<<6); //å†™æ•°æ®å‘½ä»¤
 	tmp = (1<<(9-1));
-	for (i=0;i<9;i++)//Ð´Èë1 01aa aaaa,a=0±íÊ¾Ê×µØÖ·£¬¼´1 0100 0000
+	for (i=0;i<9;i++)//å†™å…¥1 01aa aaaa,a=0è¡¨ç¤ºé¦–åœ°å€ï¼Œå³1 0100 0000
 	{
 		if (mDat&tmp)
 		DATA_H;
@@ -356,7 +356,7 @@ void FillLcdFromBuff2(void)
 		DelayMS(1);
 		mDat <<= 1;
 	}
-	for (i=0;i<16;i++)//Ð´ÈëÊý¾Ý
+	for (i=0;i<16;i++)//å†™å…¥æ•°æ®
 	{
 		mDat = gsDisplayBuff2[i];
 		for (j=0;j<8;j++)
@@ -416,7 +416,7 @@ void DisplayNum2(signed short int mStartX,unsigned char mNum)
 	unsigned char i=0,tmp=0;
 	tmp = LCD_NUM_DISP_TAB[mNum];
 	
-	//ÓëÆÁÒ»ÖÂÐÔ
+	//ä¸Žå±ä¸€è‡´æ€§
 	//if(mStartX==0){return;}
 	//mStartX=mStartX-1;
 	
@@ -430,7 +430,7 @@ void DisplayNum2(signed short int mStartX,unsigned char mNum)
 }
 
 
-void DisplayIN_OUT_OOOO(u8 *set_task)//Ñ­»·ÏÔÊ¾
+void DisplayIN_OUT_OOOO(u8 *set_task)//å¾ªçŽ¯æ˜¾ç¤º
 {
 
 	unsigned char i=0;
@@ -449,7 +449,7 @@ void DisplayIN_OUT_OOOO(u8 *set_task)//Ñ­»·ÏÔÊ¾
 		tmp >>= 1;
 	} 	
 	
-	//printf("ÈÎÎñ:%d,tmp:0x%.2x,s:%d\r\n",*set_task,tmp,s);
+	//printf("ä»»åŠ¡:%d,tmp:0x%.2x,s:%d\r\n",*set_task,tmp,s);
 	
 	switch(*set_task)
 	{
@@ -500,7 +500,7 @@ void DisplayIN_OUT_OOOO(u8 *set_task)//Ñ­»·ÏÔÊ¾
 	
 	
 }
-void DisplayTIM_OO(u8 *set_task)//Ñ­»·ÏÔÊ¾
+void DisplayTIM_OO(u8 *set_task)//å¾ªçŽ¯æ˜¾ç¤º
 {
 
 	unsigned char i=0;
@@ -518,7 +518,7 @@ void DisplayTIM_OO(u8 *set_task)//Ñ­»·ÏÔÊ¾
 		tmp >>= 1;
 	} 	
 	
-	//printf("ÈÎÎñ:%d,tmp:0x%.2x,s:%d\r\n",*set_task,tmp,s);
+	//printf("ä»»åŠ¡:%d,tmp:0x%.2x,s:%d\r\n",*set_task,tmp,s);
 	
 	switch(*set_task)
 	{
@@ -566,7 +566,7 @@ void DisplayTIM_OO(u8 *set_task)//Ñ­»·ÏÔÊ¾
 		}break;
 	}		
 }
-void DisplaySOC_OO(u8 *set_task)//Ñ­»·ÏÔÊ¾
+void DisplaySOC_OO(u8 *set_task)//å¾ªçŽ¯æ˜¾ç¤º
 {
 
 	unsigned char i=0;
@@ -584,7 +584,7 @@ void DisplaySOC_OO(u8 *set_task)//Ñ­»·ÏÔÊ¾
 		tmp >>= 1;
 	} 	
 	
-	//printf("ÈÎÎñ:%d,tmp:0x%.2x,s:%d\r\n",*set_task,tmp,s);
+	//printf("ä»»åŠ¡:%d,tmp:0x%.2x,s:%d\r\n",*set_task,tmp,s);
 	
 	switch(*set_task)
 	{
@@ -632,7 +632,7 @@ void DisplaySOC_OO(u8 *set_task)//Ñ­»·ÏÔÊ¾
 		}break;
 	}		
 }
-//void DisplayOOOO(void)//Ñ­»·ÏÔÊ¾
+//void DisplayOOOO(void)//å¾ªçŽ¯æ˜¾ç¤º
 //{
 
 //	unsigned char i,tmp;
@@ -644,7 +644,7 @@ void DisplaySOC_OO(u8 *set_task)//Ñ­»·ÏÔÊ¾
 //	S_Display(22);//W	
 //	
 //	if(s>9){s=6;}
-//	//SOCÊ®Î»
+//	//SOCåä½
 //	if(t>7){t=0;set=0;}
 //	set|=(1<<t);
 //	tmp=set;
@@ -667,7 +667,7 @@ void DisplayNum1(signed short int mStartX,unsigned char mNum)
 	unsigned char i=0,tmp=0;
 	tmp = LCD_NUM_DISP_TAB[mNum];
 	
-	//ÓëÆÁÒ»ÖÂÐÔ
+	//ä¸Žå±ä¸€è‡´æ€§
 	//if(mStartX<6){return;}
 	//mStartX=mStartX-6;
 	
@@ -864,15 +864,15 @@ void  T_Display(uint8_t  Num)
 }
 
 
-void HT1621_IfaceInit(void) /*HT1621-IO³õÊ¼»¯*/
+void HT1621_IfaceInit(void) /*HT1621-IOåˆå§‹åŒ–*/
 { 	
-	rcu_periph_clock_enable(RCU_AF);  //Ê¹ÄÜÊ±ÖÓ
-	rcu_periph_clock_enable(LCD_RCCB);//Ê¹ÄÜÊ±ÖÓ
-	gpio_pin_remap_config(GPIO_SWJ_SWDPENABLE_REMAP,ENABLE);//Ê¹ÓÃSWÄ£Ê½	½ûÓÃJTAG
+	rcu_periph_clock_enable(RCU_AF);  //ä½¿èƒ½æ—¶é’Ÿ
+	rcu_periph_clock_enable(LCD_RCCB);//ä½¿èƒ½æ—¶é’Ÿ
+	gpio_pin_remap_config(GPIO_SWJ_SWDPENABLE_REMAP,ENABLE);//ä½¿ç”¨SWæ¨¡å¼	ç¦ç”¨JTAG
 
-	gpio_init( LCD_PORTB,               /*¶Ë¿Ú*/
-	           GPIO_MODE_OUT_PP,       /*ÍÆÍìÊä³ö*/
-	           GPIO_OSPEED_50MHZ,      /*ÆµÂÊ*/
+	gpio_init( LCD_PORTB,               /*ç«¯å£*/
+	           GPIO_MODE_OUT_PP,       /*æŽ¨æŒ½è¾“å‡º*/
+	           GPIO_OSPEED_50MHZ,      /*é¢‘çŽ‡*/
 	           dispLIGHT_POWER_PIN|LCD_WR_PIN|LCD_DATA_PIN|LCD_CS1_PIN|LCD_CS2_PIN             /*IO*/
 	);
 	dispLIGHT_POWER_OFF();
@@ -885,7 +885,7 @@ void HT1621_IfaceInit(void) /*HT1621-IO³õÊ¼»¯*/
 	Ht1621Wr_Comd(LCDON,12);
 	Ht1621Wr_Comd(TIMERDIS,12);
 	
-//	Display_SetStandbyMode();//´ý»úÄ£Ê½
+//	Display_SetStandbyMode();//å¾…æœºæ¨¡å¼
 }
 
 #endif  //boardDISPLAY_EN

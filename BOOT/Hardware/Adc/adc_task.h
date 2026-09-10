@@ -7,17 +7,17 @@
 #include "Adc/adc_iface.h"
 
 
-#define     	adcVBMS_R1                      		300.0f //(Kohm)  ·ÖÑ¹µÄÉÏµç×è
-#define     	adcVBMS_R2                      		10.0f  //(Kohm)  ·ÖÑ¹µÄ¶ÔµØµç×è
-#define     	adcVBMS_RES_RATIO               		((((3.3f / 4095.0f) * (adcVBMS_R1 + adcVBMS_R2)) / adcVBMS_R2) * 10.0f) //*10 µçÑ¹µ¥Î»Îª 0.1V 
+#define     	adcVBMS_R1                      		300.0f //(Kohm)  åˆ†å‹çš„ä¸Šç”µé˜»
+#define     	adcVBMS_R2                      		10.0f  //(Kohm)  åˆ†å‹çš„å¯¹åœ°ç”µé˜»
+#define     	adcVBMS_RES_RATIO               		((((3.3f / 4095.0f) * (adcVBMS_R1 + adcVBMS_R2)) / adcVBMS_R2) * 10.0f) //*10 ç”µå‹å•ä½ä¸º 0.1V 
 
-#define     	adcDC_VOLT_R1                      		47.0f //(Kohm)   ·ÖÑ¹µÄÉÏµç×è
-#define     	adcDC_VOLT_R2                      		5.1f  //(Kohm)  ·ÖÑ¹µÄ¶ÔµØµç×è
-#define     	adcDC_VOLT_RES_RATIO               		((((3.3f / 4095.0f) * (adcDC_VOLT_R1 + adcDC_VOLT_R2)) / adcDC_VOLT_R2)* 10.0f)          //µçÑ¹µ¥Î»Îª1V
+#define     	adcDC_VOLT_R1                      		47.0f //(Kohm)   åˆ†å‹çš„ä¸Šç”µé˜»
+#define     	adcDC_VOLT_R2                      		5.1f  //(Kohm)  åˆ†å‹çš„å¯¹åœ°ç”µé˜»
+#define     	adcDC_VOLT_RES_RATIO               		((((3.3f / 4095.0f) * (adcDC_VOLT_R1 + adcDC_VOLT_R2)) / adcDC_VOLT_R2)* 10.0f)          //ç”µå‹å•ä½ä¸º1V
 
-#define     	adcUSB_VOLT_R1                        	100.0f //(Kohm)  ·ÖÑ¹µÄÉÏµç
-#define     	adcUSB_VOLT_R2                        	5.1f  //(Kohm)  ·ÖÑ¹µÄ¶ÔµØµç×è
-#define     	adcUSB_VOLT_RES_RATIO                 	((((3.3f / 4095.0f) * (adcUSB_VOLT_R1 + adcUSB_VOLT_R2)) / adcUSB_VOLT_R2) * 10.0f) //*10 µçÑ¹µ¥Î»Îª 0.1V
+#define     	adcUSB_VOLT_R1                        	100.0f //(Kohm)  åˆ†å‹çš„ä¸Šç”µ
+#define     	adcUSB_VOLT_R2                        	5.1f  //(Kohm)  åˆ†å‹çš„å¯¹åœ°ç”µé˜»
+#define     	adcUSB_VOLT_RES_RATIO                 	((((3.3f / 4095.0f) * (adcUSB_VOLT_R1 + adcUSB_VOLT_R2)) / adcUSB_VOLT_R2) * 10.0f) //*10 ç”µå‹å•ä½ä¸º 0.1V
 
 #define     	adcSYS_IN_VOLT    						0
 #define     	adcDC_TEMP           					1
@@ -28,7 +28,7 @@
 #define     	adcUSB_VOLT          					6
 #define     	adcKEY_POWER          					7
 
-//µçÑ¹×´Ì¬
+//ç”µå‹çŠ¶æ€
 typedef enum
 {
 	VS_NORMAL = 0,
@@ -38,7 +38,7 @@ typedef enum
 
 typedef struct
 {
-	s16            		sDcTemp;          	//ÉãÊÏ¶È
+	s16            		sDcTemp;          	//æ‘„æ°åº¦
 	vu16           		usDcOutVolt;    	//0.1V
 	float				fDcOutCurr;     	//A
 	

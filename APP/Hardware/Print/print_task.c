@@ -1,9 +1,10 @@
 /*****************************************************************************************************************
 *                                                                                                                *
- *                                         ÏµÍ³×ÜÈÎÎñ                                                           *
+ *                                         ç³»ç»Ÿæ€»ä»»åŠ¡                                                           *
 *                                                                                                                *
 ******************************************************************************************************************/
 #include "Print/print_task.h"
+#include <stdbool.h>
 
 DebugPrint_U   	uPrint;
 
@@ -17,48 +18,57 @@ DebugPrint_U   	uPrint;
 #include "Usb/usb_task.h"
 #endif  //boardUSB_EN
 
-//****************************************************ÈÎÎñ³õÊ¼»¯**************************************************//
+#if(boardWDGT_EN)
+#include "fwdgt.h"
+#endif  //boardWDGT_EN
+
+//****************************************************ä»»åŠ¡åˆå§‹åŒ–**************************************************//
 #if(boardUSE_OS)
-#define       	printTASK_PRIO                        	1        						//ÈÎÎñÓÅÏÈ¼¶ 
-#define       	printTASK_SIZE                        	1024     						//ÈÎÎñ¶ÑÕ»  Êµ¼Ê×Ö½ÚÊý *4
+#define       	printTASK_PRIO                        	1        						//ä»»åŠ¡ä¼˜å…ˆçº§ 
+#define       	printTASK_SIZE                        	384    							//ä»»åŠ¡å †æ ˆ  å®žé™…å­—èŠ‚æ•° *4
 TaskHandle_t	tPrintTaskHandler = NULL;
 void          	vPrint_Task(void *pvParameters);
 #endif  //boardUSE_OS
 
-//****************************************************²ÎÊý³õÊ¼»¯**************************************************//
-//µ÷ÊÔ»º´æÆ÷
-#define       	printTX_BUFF_SIZE                     	512
+//****************************************************å‚æ•°åˆå§‹åŒ–**************************************************//
+Print_T tPrint;
+
+//è°ƒè¯•ç¼“å­˜å™¨
+#define       	printTX_BUFF_SIZE                     	384
 lwrb_t tPrintTxBuff;
-__ALIGNED(4) static u8 uca_print_tx_buff[printTX_BUFF_SIZE];          //ÓÃÓÚ·¢ËÍÊý¾ÝµÄ»º´æÇø
+__ALIGNED(4) static u8 uca_print_tx_buff[printTX_BUFF_SIZE];          //ç”¨äºŽå‘é€æ•°æ®çš„ç¼“å­˜åŒº
 
 static Task_T *tp_task = NULL;
 														
 /*
-»¥³âÐÅºÅÁ¿ ±ØÐëÊÇÍ¬Ò»¸öÈÎÎñÉêÇë£¬Í¬Ò»¸öÈÎÎñÊÍ·Å£¬ÆäËûÈÎÎñÊÍ·ÅÎÞÐ§£¬ÖÐ¶ÏÄÚ²»¿ÉÓÃ£¬ÓÅÏÈ¼¶¿É¼Ì³Ð
-¶þÖµÐÅºÅÁ¿ ¿ÉÒÔÓÉÁíÒ»¸öÈÎÎñÊÍ·Å£¬¿ÉÒÔÔÚÖÐ¶ÏÖÐÊ¹ÓÃ£¬Ã»ÓÐÓÅÏÈ¼¶¼Ì³Ð£¨´æÔÚÓÅÏÈ¼¶·­×ªµÄÏÖÏó£©
+äº’æ–¥ä¿¡å·é‡ å¿…é¡»æ˜¯åŒä¸€ä¸ªä»»åŠ¡ç”³è¯·ï¼ŒåŒä¸€ä¸ªä»»åŠ¡é‡Šæ”¾ï¼Œå…¶ä»–ä»»åŠ¡é‡Šæ”¾æ— æ•ˆï¼Œä¸­æ–­å†…ä¸å¯ç”¨ï¼Œä¼˜å…ˆçº§å¯ç»§æ‰¿
+äºŒå€¼ä¿¡å·é‡ å¯ä»¥ç”±å¦ä¸€ä¸ªä»»åŠ¡é‡Šæ”¾ï¼Œå¯ä»¥åœ¨ä¸­æ–­ä¸­ä½¿ç”¨ï¼Œæ²¡æœ‰ä¼˜å…ˆçº§ç»§æ‰¿ï¼ˆå­˜åœ¨ä¼˜å…ˆçº§ç¿»è½¬çš„çŽ°è±¡ï¼‰
 */
 #if(boardUSE_OS)
-/*´´½¨ÐÅºÅÁ¿¾ä±ú */
-SemaphoreHandle_t PrintSemaphoreBinary = NULL;   //¶þ½øÖÆÐÅºÅÁ¿,ÓÃÓÚ×ªÔØ´®¿ÚÊý¾Ý 
-/* »¥³âÐÅºÅÁ¿¾ä±ú */
+/*åˆ›å»ºä¿¡å·é‡å¥æŸ„ */
+SemaphoreHandle_t PrintSemaphoreBinary = NULL;   //äºŒè¿›åˆ¶ä¿¡å·é‡,ç”¨äºŽè½¬è½½ä¸²å£æ•°æ® 
+/* äº’æ–¥ä¿¡å·é‡å¥æŸ„ */
 //SemaphoreHandle_t PrintSemMutex = NULL;
 #endif  //boardUSE_OS
 
 /***********************************************************************************************************************
------º¯Êý¹¦ÄÜ    ¸´Î»½ÓÊÕ²ÎÊýBUFF
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    none
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    å¤ä½æŽ¥æ”¶å‚æ•°BUFF
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      none
 ************************************************************************************************************************/
-static void b_print_task_param_init(void)
+static bool b_print_task_param_init(void)
 {
+	if(tpPrintTask == NULL)
+		return false;
+
 	#if(boardUSE_OS)
-	/* ´´½¨¶þ½øÖÆÐÅºÅÁ¿ */
+	/* åˆ›å»ºäºŒè¿›åˆ¶ä¿¡å·é‡ */
     PrintSemaphoreBinary = xSemaphoreCreateBinary(); 
 	xSemaphoreGive(PrintSemaphoreBinary);
 	
-	/* ´´½¨»¥³âÐÅºÅÁ¿ */
+	/* åˆ›å»ºäº’æ–¥ä¿¡å·é‡ */
 //    PrintSemMutex = xSemaphoreCreateMutex();
 	#endif  //boardUSE_OS
 	
@@ -69,44 +79,48 @@ static void b_print_task_param_init(void)
     vPrint_MyPrintParamInit();
 	
 	tSysInfo.uInit.tFinish.bIF_Print = 1;
+
+	tPrint.eDevState = DS_SHUT_DOWN;
+	return true;
 }
 
 
 /***********************************************************************************************************************
------º¯Êý¹¦ÄÜ    Äæ±ä½ÓÊÕÈÎÎñ³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    none
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    é€†å˜æŽ¥æ”¶ä»»åŠ¡åˆå§‹åŒ–
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      none
 ************************************************************************************************************************/
 bool bPrint_TaskInit(void)
 {
-	//½ÓÊÕÐ­Òé³õÊ¼»¯
+	//æŽ¥æ”¶åè®®åˆå§‹åŒ–
 	if(bPrint_RecProtInit() == false)
 		return false;
 	
-	//·¢ËÍÐ­Òé³õÊ¼»¯
+	//å‘é€åè®®åˆå§‹åŒ–
 	if(bPrint_SendProtInit() == false)
 		return false;
 	
-	//ÈÎÎñ¶ÓÁÐ³õÊ¼»¯
+	//ä»»åŠ¡é˜Ÿåˆ—åˆå§‹åŒ–
 	if(bPrint_QueueInit() == false)
 		return false;
 	
-	//µ÷ÊÔ»º´æÆ÷³õÊ¼»¯
+	//è°ƒè¯•ç¼“å­˜å™¨åˆå§‹åŒ–
     lwrb_init(&tPrintTxBuff, uca_print_tx_buff, printTX_BUFF_SIZE);  
 
-	//ÈÎÎñ²ÎÊý³õÊ¼»¯
-	b_print_task_param_init();
+	//ä»»åŠ¡å‚æ•°åˆå§‹åŒ–
+	if(b_print_task_param_init() == false)
+		return false;
 	
-	//Êý¾Ý½âÎöÈÎÎñ
+	//æ•°æ®è§£æžä»»åŠ¡
 	#if(boardUSE_OS)
-    xTaskCreate((TaskFunction_t )vPrint_Task,          	//ÈÎÎñº¯Êý
-                (const char* )"PrintTask",				//ÈÎÎñÃû³Æ
-                (uint16_t ) printTASK_SIZE,             //ÈÎÎñ¶ÑÕ»´óÐ¡
-                (void* )NULL,                           //´«µÝ¸øÈÎÎñº¯ÊýµÄ²ÎÊý
-                (UBaseType_t ) printTASK_PRIO,          //ÈÎÎñÓÅÏÈ¼¶
-                (TaskHandle_t*)&tPrintTaskHandler);     //ÈÎÎñ¾ä±ú
+    xTaskCreate((TaskFunction_t )vPrint_Task,          	//ä»»åŠ¡å‡½æ•°
+                (const char* )"PrintTask",				//ä»»åŠ¡åç§°
+                (uint16_t ) printTASK_SIZE,             //ä»»åŠ¡å †æ ˆå¤§å°
+                (void* )NULL,                           //ä¼ é€’ç»™ä»»åŠ¡å‡½æ•°çš„å‚æ•°
+                (UBaseType_t ) printTASK_PRIO,          //ä»»åŠ¡ä¼˜å…ˆçº§
+                (TaskHandle_t*)&tPrintTaskHandler);     //ä»»åŠ¡å¥æŸ„
 	#endif  //boardUSE_OS
 
 	return true;
@@ -116,11 +130,11 @@ bool bPrint_TaskInit(void)
 
 
 /***********************************************************************************************************************
------º¯Êý¹¦ÄÜ    ½ÓÊÕÈÎÎñ
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    none
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    æŽ¥æ”¶ä»»åŠ¡
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      none
 ************************************************************************************************************************/
 void vPrint_Task(void *pvParameters)
 {
@@ -146,7 +160,7 @@ void vPrint_Task(void *pvParameters)
 		}
 
 		#if(boardUSB_EN)
-		if(tUsb.eDevState == DS_SHUT_DOWN)
+		if(tUsb.eDevState == DS_SHUT_DOWN || tSysInfo.eDevState == DS_UPDATE_MODE)
 			printIFACE_EN_ON();
 		else
 			printIFACE_EN_OFF();
@@ -158,7 +172,7 @@ void vPrint_Task(void *pvParameters)
 		{
 			#if(boardUSE_OS)
 			if(lwrb_get_full(&tp_task->tQueueBuff) == 0)
-				ulTaskNotifyTake(pdTRUE, printTASK_CYCLE_TIME);//pdFALSE:ÈÎÎñÍ¨Öª¶àÉÙ´Î¾ÍÖ´ÐÐ¶àÉÙ´Î
+				ulTaskNotifyTake(pdTRUE, printTASK_CYCLE_TIME);//pdFALSE:ä»»åŠ¡é€šçŸ¥å¤šå°‘æ¬¡å°±æ‰§è¡Œå¤šå°‘æ¬¡
 			#endif  //boardUSE_OS
 			
 			if(tp_task->bp_task_manage_func != NULL)
@@ -168,11 +182,11 @@ void vPrint_Task(void *pvParameters)
 }
 
 /***********************************************************************************************************************
------º¯Êý¹¦ÄÜ    °Ñ»º´æÇøµÄÊý¾Ý¶ÁÈ¡³öÀ´·¢ËÍ
------ËµÃ÷(±¸×¢)  MyPrintº¯ÊýÐ´ÈëµÄÊý¾Ý
------´«Èë²ÎÊý    none
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      true:¿ªÊ¼·¢ËÍ    false:»¹ÓÐÊý¾ÝÎ´·¢ËÍÍê³É   
+-----å‡½æ•°åŠŸèƒ½    æŠŠç¼“å­˜åŒºçš„æ•°æ®è¯»å–å‡ºæ¥å‘é€
+-----è¯´æ˜Ž(å¤‡æ³¨)  MyPrintå‡½æ•°å†™å…¥çš„æ•°æ®
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      true:å¼€å§‹å‘é€    false:è¿˜æœ‰æ•°æ®æœªå‘é€å®Œæˆ   
 ************************************************************************************************************************/
 bool bPrint_SendDataToUsart(void)
 {
@@ -201,7 +215,7 @@ bool bPrint_SendDataToUsart(void)
 			flag = bPrint_DataSendStart(us_data_len);	
 		#endif
 		
-		//ÊÍ·ÅÐÅºÅÁ¿
+		//é‡Šæ”¾ä¿¡å·é‡
 		#if(boardUSE_OS)
         xSemaphoreGive(PrintSemaphoreBinary);
 		#endif
@@ -210,34 +224,35 @@ bool bPrint_SendDataToUsart(void)
 }
 
 /***********************************************************************************************************************
------º¯Êý¹¦ÄÜ    ¼ì²âÉè±¸µÄÁ¬½Ó×´Ì¬
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊý    none
------Êä³ö²ÎÊý    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    æ£€æµ‹è®¾å¤‡çš„è¿žæŽ¥çŠ¶æ€
+-----è¯´æ˜Ž(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›žå€¼      none
 ************************************************************************************************************************/
 void vPrint_RecTickTimer(void)
 {
 	if(tpPrintProtoRx ==NULL)
 		return;
 	
-	//******************************************Êý¾ÝÖ¡½ÓÊÕ³¬Ê±¼ÆËã***************************************************
+	//******************************************æ•°æ®å¸§æŽ¥æ”¶è¶…æ—¶è®¡ç®—***************************************************
 	if(tpPrintProtoRx->usRecOverTimeCnt > 0)
 	{    
 		tpPrintProtoRx->usRecOverTimeCnt--;
 	
 		if(tpPrintProtoRx->usRecOverTimeCnt == 0)        
 		{
-			cBaiku_StepWaitOutTime(tpPrintProtoRx);
+//			cBaiku_StepWaitOutTime(tpPrintProtoRx);
+			cBaiku_ResetRxBuff(tpPrintProtoRx);
 		}
 	}
 	
-	//******************************************Äæ±äÄ£¿éÁ¬½Ó³¬Ê±¼ÆËã*************************************************		
+	//******************************************é€†å˜æ¨¡å—è¿žæŽ¥è¶…æ—¶è®¡ç®—*************************************************		
 	if(tpPrintProtoRx->usLostOverTimeCnt > 0)
 	{    
 		tpPrintProtoRx->usLostOverTimeCnt--;
 	
-		if(tpPrintProtoRx->usLostOverTimeCnt == 0)      //¶ªÊ§    
+		if(tpPrintProtoRx->usLostOverTimeCnt == 0)      //ä¸¢å¤±    
 		{
 			cBaiku_ResetRxBuff(tpPrintProtoRx);
 		}

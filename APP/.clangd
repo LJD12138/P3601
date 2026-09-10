@@ -1,0 +1,58 @@
+# Clangd 配置 (需与 APP/.eide/eide.yml 的 defineList / incList 保持同步)
+#
+# 说明:
+#   - EIDE 生成的 build/APP/compile_commands.json 是 AC5(armcc) 命令格式, 里面带了
+#     --apcs=interwork / --cpu / --li / --c99 / --split_sections / --diag_suppress /
+#     --no_depend_system_headers / --depend 等 ARMCC 专用参数。clang 无法识别, 会报
+#     [drv_unknown_argument] 错误。因此这里用 CompileFlags.Remove 把这些参数剔除,
+#     再由 Add 补齐绝对 -I 路径与语言模式, 让 clangd 能正确索引。
+CompileFlags:
+  Remove:
+    - --apcs=interwork
+    - --cpu
+    - --li
+    - --c99
+    - --split_sections
+    - --diag_suppress=1
+    - --diag_suppress=1295
+    - --no_multibyte_chars
+    - --no_depend_system_headers
+    - --depend
+
+  Add:
+    # ---- 语言模式: 纯 C 工程, 强制按 C 解析, 避免 CMSIS 头文件里的
+    #     `register` 存储类被按 C++17 解析而误报错误 ----
+    - -x
+    - c
+
+    # ---- 宏定义 (对应 eide.yml defineList) ----
+    - -DUSE_STDPERIPH_DRIVER
+    - -DGD32F30X_HD
+
+    # ---- 兼容 AC5/CMSIS 代码 ----
+    - -D__GNUC__
+    - -Wno-builtin-macro-redefined
+    - -Wno-unknown-pragmas
+
+    # ---- 头文件路径 (对应 eide.yml incList, "." 即工程根目录) ----
+    - -Ig:/1-Baiku_Projects/24-P36/1.software/P3601/APP
+    - -Ig:/1-Baiku_Projects/24-P36/1.software/P3601/APP/Firmware/CMSIS/GD/GD32F30x/Include
+    - -Ig:/1-Baiku_Projects/24-P36/1.software/P3601/APP/Firmware/GD32F30x_standard_peripheral/Include
+    - -Ig:/1-Baiku_Projects/24-P36/1.software/P3601/APP/Firmware/CMSIS
+    - -Ig:/1-Baiku_Projects/24-P36/1.software/P3601/APP/Middlewares/FreeRTOS/portable/RVDS/ARM_CM4F
+    - -Ig:/1-Baiku_Projects/24-P36/1.software/P3601/APP/Middlewares/FreeRTOS/include
+    - -Ig:/1-Baiku_Projects/24-P36/1.software/P3601/APP/Middlewares/SeggerRtt
+    - -Ig:/1-Baiku_Projects/24-P36/1.software/P3601/APP/ComFunc
+    - -Ig:/1-Baiku_Projects/24-P36/1.software/P3601/APP/Application
+    - -Ig:/1-Baiku_Projects/24-P36/1.software/P3601/APP/Hardware
+    - -Ig:/1-Baiku_Projects/24-P36/1.software/P3601/APP/Hardware/BSP
+    - -Ig:/1-Baiku_Projects/24-P36/1.software/P3601/APP/Middlewares/CmBacktrace
+    - -Ig:/1-Baiku_Projects/24-P36/1.software/P3601/APP/Middlewares/CmBacktrace/Languages/zh-CN
+    - -Ig:/1-Baiku_Projects/24-P36/1.software/P3601/APP/Middlewares/LightweightRingBuffer/src
+    - -Ig:/1-Baiku_Projects/24-P36/1.software/P3601/APP/Middlewares/EasyLogger/inc
+    - -Ig:/1-Baiku_Projects/24-P36/1.software/P3601/APP/Middlewares/EasyLogger/plugins/flash
+    - -Ig:/1-Baiku_Projects/24-P36/1.software/P3601/APP/Middlewares/EasyFlash/inc
+    - -Ig:/1-Baiku_Projects/24-P36/1.software/P3601/APP/Middlewares/Protocol
+    - -Ig:/1-Baiku_Projects/24-P36/1.software/P3601/APP/.cmsis/include
+    - -Ig:/1-Baiku_Projects/24-P36/1.software/P3601/APP/Middlewares/TaskQueue
+    - -Ig:/1-Baiku_Projects/24-P36/1.software/P3601/APP/Middlewares/MultiFuncKey

@@ -3,7 +3,7 @@
 
 #include "main.h"
 
-//�ۼӺ�
+//累加和
 uint8_t ucCheck_Sum(uint8_t *str, int str_length);
 uint8_t ucCheck_SumReflect(uint8_t *str, int str_length);
 
@@ -23,6 +23,7 @@ uint16_t usCheck_GetCrc16Tab(uint8_t *buf, uint16_t len);
 
 //CRC32
 uint32_t ulCheck_GetCRC32(uint32_t init, uint8_t* data, uint32_t length);
+uint32_t ulCheck_Crc32Update(uint32_t crc_state, const uint8_t* data, uint16_t len);
 
 #endif
 

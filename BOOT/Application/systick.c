@@ -32,11 +32,17 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 OF SUCH DAMAGE.
 */
 
+#include "board_config.h"
+
+#if (boardIC_TYPE == boardIC_GD32F50X)
+#include "gd32f50x.h"
+#else
 #include "gd32f30x.h"
+#endif
 #include "systick.h"
 
-#if(boardUPDATA)
-#include "Sys/sys_queue_task_updata.h"
+#if(boardUPDATE)
+#include "Sys/sys_queue_task_update.h"
 #endif
 
 #if(boardDISPLAY_EN)
@@ -106,7 +112,7 @@ void vSys_Tick(void)
 	
 	#if(boardBMS_485_IFACE_EN)
 	static vu16 cnt = 0;
-	//BMS485���ͽӿڹرյ���ʱ
+	//BMS485发送接口关闭倒计时
 	if(bSysTick_BmsSendFinish == true)
 	{
 		cnt++;
@@ -120,7 +126,7 @@ void vSys_Tick(void)
 	
 	#if(boardPRINT_485_IFACE_EN)
 	static vu16 cnt1 = 0;
-	//BMS485���ͽӿڹرյ���ʱ
+	//BMS485发送接口关闭倒计时
 	if(bSysTick_PrintSendFinish == true)
 	{
 		cnt1++;
@@ -132,7 +138,7 @@ void vSys_Tick(void)
 	}
 	#endif
 	
-	//10MS��ʱ
+	//10MS计时
 	static vu16 us_10ms_cnt = 0;
 	us_10ms_cnt++;
 	if(us_10ms_cnt >= 10)
@@ -140,13 +146,13 @@ void vSys_Tick(void)
 		us_10ms_cnt = 0;
 		bSystick_10MsFlag = true;
 		
-		#if(boardUPDATA)
-		vUpdata_TickTimer();
+		#if(boardUPDATE)
+		vUpdate_TickTimer();
 		#endif
 		
 	}
 	
-	//100MS��ʱ
+	//100MS计时
 	static vu16 us_100ms_cnt = 0;
 	us_100ms_cnt++;
 	if(us_100ms_cnt >= 100)

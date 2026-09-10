@@ -7,25 +7,25 @@
 #include "Adc/adc_iface.h"
 
 
-#define     	adcVBMS_R1                      		1020.0f //(Kohm)  ทึันตฤษฯต็ื่
-#define     	adcVBMS_R2                      		39.0f  //(Kohm)  ทึันตฤถิตุต็ื่
-#define     	adcVBMS_RES_RATIO               		((((3.3f / 4095.0f) * (adcVBMS_R1 + adcVBMS_R2)) / adcVBMS_R2) * 10.0f) //*10 ต็ันตฅฮปฮช 0.1V 
+#define     	adcVBMS_R1                      		1020.0f //(Kohm)  ๅๅ็ไธ็”ต้ป
+#define     	adcVBMS_R2                      		39.0f  //(Kohm)  ๅๅ็ๅฏนๅฐ็”ต้ป
+#define     	adcVBMS_RES_RATIO               		((((3.3f / 4095.0f) * (adcVBMS_R1 + adcVBMS_R2)) / adcVBMS_R2) * 10.0f) //*10 ็”ตๅๅ•ไฝไธบ 0.1V 
 
-#define     	adcDC_VOLT_R1                      		47.0f //(Kohm)   ทึันตฤษฯต็ื่
-#define     	adcDC_VOLT_R2                      		10.1f  //(Kohm)  ทึันตฤถิตุต็ื่
-#define     	adcDC_VOLT_RES_RATIO               		((((3.3f / 4095.0f) * (adcDC_VOLT_R1 + adcDC_VOLT_R2)) / adcDC_VOLT_R2)* 10.0f)          //ต็ันตฅฮปฮช1V
+#define     	adcDC_VOLT_R1                      		47.0f //(Kohm)   ๅๅ็ไธ็”ต้ป
+#define     	adcDC_VOLT_R2                      		10.1f  //(Kohm)  ๅๅ็ๅฏนๅฐ็”ต้ป
+#define     	adcDC_VOLT_RES_RATIO               		((((3.3f / 4095.0f) * (adcDC_VOLT_R1 + adcDC_VOLT_R2)) / adcDC_VOLT_R2)* 10.0f)          //็”ตๅๅ•ไฝไธบ1V
 
-#define     	adcUSB_VOLT_R1                        	47.0f //(Kohm)  ทึันตฤษฯต็
-#define     	adcUSB_VOLT_R2                        	5.1f  //(Kohm)  ทึันตฤถิตุต็ื่
-#define     	adcUSB_VOLT_RES_RATIO                 	((((3.3f / 4095.0f) * (adcUSB_VOLT_R1 + adcUSB_VOLT_R2)) / adcUSB_VOLT_R2) * 10.0f) //*10 ต็ันตฅฮปฮช 0.1V
+#define     	adcUSB_VOLT_R1                        	47.0f //(Kohm)  ๅๅ็ไธ็”ต
+#define     	adcUSB_VOLT_R2                        	5.1f  //(Kohm)  ๅๅ็ๅฏนๅฐ็”ต้ป
+#define     	adcUSB_VOLT_RES_RATIO                 	((((3.3f / 4095.0f) * (adcUSB_VOLT_R1 + adcUSB_VOLT_R2)) / adcUSB_VOLT_R2) * 10.0f) //*10 ็”ตๅๅ•ไฝไธบ 0.1V
 
-#define     	adcUSB_A_VOLT_R1                        130.0f //(Kohm)  ทึันตฤษฯต็
-#define     	adcUSB_A_VOLT_R2                        20.0f  //(Kohm)  ทึันตฤถิตุต็ื่
-#define     	adcUSB_A_VOLT_RES_RATIO                 ((((3.3f / 4095.0f) * (adcUSB_A_VOLT_R1 + adcUSB_A_VOLT_R2)) / adcUSB_A_VOLT_R2) * 10.0f) //*10 ต็ันตฅฮปฮช 0.1V
+#define     	adcUSB_A_VOLT_R1                        130.0f //(Kohm)  ๅๅ็ไธ็”ต
+#define     	adcUSB_A_VOLT_R2                        20.0f  //(Kohm)  ๅๅ็ๅฏนๅฐ็”ต้ป
+#define     	adcUSB_A_VOLT_RES_RATIO                 ((((3.3f / 4095.0f) * (adcUSB_A_VOLT_R1 + adcUSB_A_VOLT_R2)) / adcUSB_A_VOLT_R2) * 10.0f) //*10 ็”ตๅๅ•ไฝไธบ 0.1V
 
-#define     	adcFAN_VOLT_R1                        	47.0f //(Kohm)  ทึันตฤษฯต็
-#define     	adcFAN_VOLT_R2                        	10.0f  //(Kohm)  ทึันตฤถิตุต็ื่
-#define     	adcFAN_VOLT_RES_RATIO                 	((((3.3f / 4095.0f) * (adcFAN_VOLT_R1 + adcFAN_VOLT_R2)) / adcFAN_VOLT_R2) * 10.0f) //*10 ต็ันตฅฮปฮช 0.1V
+#define     	adcFAN_VOLT_R1                        	47.0f //(Kohm)  ๅๅ็ไธ็”ต
+#define     	adcFAN_VOLT_R2                        	10.0f  //(Kohm)  ๅๅ็ๅฏนๅฐ็”ต้ป
+#define     	adcFAN_VOLT_RES_RATIO                 	((((3.3f / 4095.0f) * (adcFAN_VOLT_R1 + adcFAN_VOLT_R2)) / adcFAN_VOLT_R2) * 10.0f) //*10 ็”ตๅๅ•ไฝไธบ 0.1V
 
 #define     	adcSYS_IN_VOLT    						0
 #define     	adcDC_TEMP           					1
@@ -39,7 +39,7 @@
 // #define     	adcKEY_POWER          					7
 #define     	adcFAN_VOLT          					7
 
-//ต็ันืดฬฌ
+//็”ตๅ็ถๆ€
 typedef enum
 {
 	VS_NORMAL = 0,
@@ -49,7 +49,7 @@ typedef enum
 
 typedef struct
 {
-	s16            		sDcTemp;          	//ษใสฯถศ
+	s16            		sDcTemp;          	//ๆ‘ๆฐๅบฆ
 	vu16           		usDcOutVolt;    	//0.1V
 	float				fDcOutCurr;     	//A
 	

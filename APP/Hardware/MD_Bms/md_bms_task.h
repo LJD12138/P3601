@@ -7,6 +7,10 @@
 #include "queue_task.h"
 #include "MD_Bms/md_bms_rec_task.h"
 
+#if(boardUPDATE)
+#include "Sys/sys_queue_task_update.h"
+#endif
+
 #if(boardUSE_OS)
 #include "freertos.h"
 #include "task.h"
@@ -22,70 +26,70 @@ extern TaskHandle_t tBmsTaskHandler;
 #endif  //boardUSE_OS
 
 
-//*********************************ÈÎÎñID***********************************
+//*********************************ä»»åŠ¡ID***********************************
 typedef enum
 {										
-	BTI_NULL = 0,      	//¿ÕÈÎÎñº¯Êı
-    BTI_INIT,           //³õÊ¼»¯µç³Ø°ü
-    BTI_MAIN,      		//Ñ­»·»ñÈ¡µç³Ø°üµÄÊı¾İ
-    BTI_CTRL_BMS_SW,    //¿ØÖÆBMS¿ªÆô
-	BTI_ERR_PROCESS,   	//´íÎó´¦Àí
-	BTI_REQ_SET_CMD,   	//ÉèÖÃÖ¸Áî
-	BTI_GET_INFO,   	//»ñÈ¡BMSĞÅÏ¢
-	BTI_CALI,			//Ğ£×¼
-	BTI_UPDATA,			//Éı¼¶
+	BTI_NULL = 0,      	//ç©ºä»»åŠ¡å‡½æ•°
+    BTI_INIT,           //åˆå§‹åŒ–ç”µæ± åŒ…
+    BTI_MAIN,      		//å¾ªç¯è·å–ç”µæ± åŒ…çš„æ•°æ®
+    BTI_CTRL_BMS_SW,    //æ§åˆ¶BMSå¼€å¯
+	BTI_ERR_PROCESS,   	//é”™è¯¯å¤„ç†
+	BTI_REQ_SET_CMD,   	//è®¾ç½®æŒ‡ä»¤
+	BTI_GET_INFO,   	//è·å–BMSä¿¡æ¯
+	BTI_CALI,			//æ ¡å‡†
+	BTI_UPDATE,			//å‡çº§
 }BmsTaskId_E;
 
-//*********************************¹¤×÷×´Ì¬***********************************
+//*********************************å·¥ä½œçŠ¶æ€***********************************
 typedef enum
 {
-	BWS_NULL = 0,  		//¹Ø±Õ
-	BWS_DISCHG,  		//·Åµç
-    BWS_CHG,         	//³äµç
+	BWS_NULL = 0,  		//å…³é—­
+	BWS_DISCHG,  		//æ”¾ç”µ
+    BWS_CHG,         	//å……ç”µ
 }BmsWorkState_E;
 
-//*****************************´íÎó×´Ì¬*************************************
+//*****************************é”™è¯¯çŠ¶æ€*************************************
 typedef enum
 {						
-    BEC_CLEAR_ALL = 0,	//ÇåËùÓĞ´íÎó
+    BEC_CLEAR_ALL = 0,		//æ¸…æ‰€æœ‰é”™è¯¯
 
-	BEC_BMS_ERR = 1,	//Ä£¿éÉÏ±¨±¨´í
+	BEC_BMS_ERR = 1,		//æ¨¡å—ä¸ŠæŠ¥æŠ¥é”™
 	
-	BEC_SYS_DEV_LOST = 18,//Ä£¿é¶ªÊ§
-	BEC_SYS_CHG_OT,		//³äµç¹ıÎÂ
-	BEC_SYS_DISCHG_OT,	//·Åµç¹ıÎÂ
-	BEC_SYS_CHG_UT,		//³äµçµÍÎÂ
-	BEC_SYS_DISCHG_UT,	//·ÅµçµÍÎÂ
-	BEC_SYS_LOW_VOLT,	//Ç·Ñ¹
+	BEC_SYS_DEV_LOST = 34,	//æ¨¡å—ä¸¢å¤±
+	BEC_SYS_CHG_OT,			//å……ç”µè¿‡æ¸©
+	BEC_SYS_DISCHG_OT,		//æ”¾ç”µè¿‡æ¸©
+	BEC_SYS_CHG_UT,			//å……ç”µä½æ¸©
+	BEC_SYS_DISCHG_UT,		//æ”¾ç”µä½æ¸©
+	BEC_SYS_LOW_VOLT,		//æ¬ å‹
 }BmsErrCode_E;
 
 typedef union
 {
 	struct
 	{
-		//BMSÉÏ±¨´íÎó(¿ªÊ¼)
-		ErrCode_U       uBmsCode;			//´íÎó´úÂë
-		//µç³Ø°üÆ÷ÉÏ±¨´íÎó(½áÊø)
+		//BMSä¸ŠæŠ¥é”™è¯¯(å¼€å§‹)
+		ErrCode_U       uBmsCode;			//é”™è¯¯ä»£ç 
+		//ç”µæ± åŒ…å™¨ä¸ŠæŠ¥é”™è¯¯(ç»“æŸ)
 		
-		//ÏµÍ³ÅĞ¶ÏµÄ´íÎó
-		vu32 			bSysDevLost:1;
-		vu32 			bSysChgOT:1;
-		vu32 			bSysDisChgOT:1;
-		vu32 			bSysChgUT:1;
-		vu32 			bSysDisChgUT:1;
-		vu32 			bSysLV:1;
+		//ç³»ç»Ÿåˆ¤æ–­çš„é”™è¯¯
+		vu32 			bSysDevLost:1;      //æ¨¡å—ä¸¢å¤±
+		vu32 			bSysChgOT:1;        //å……ç”µè¿‡æ¸©
+		vu32 			bSysDisChgOT:1;     //æ”¾ç”µè¿‡æ¸©
+		vu32 			bSysChgUT:1;        //å……ç”µä½æ¸©
+		vu32 			bSysDisChgUT:1;     //æ”¾ç”µä½æ¸©
+		vu32 			bSysLV:1;           //æ¬ å‹
 	}tCode;
-	vu32 ulCode;  
+	vu64 ullCode;  
 }BmsErrCode_N;
 
-//*********************************Ğí¿É*************************************
+//*********************************è®¸å¯*************************************
 typedef union
 {
 	struct 
 	{
-		u8 				bChgPerm:1;//³äµçĞí¿É
-		u8 				bDisChgPerm:1;//·ÅµçĞí¿É
-		u8 				bForceClose:1;//Ç¿ÖÆ¹Ø±Õ
+		u8 				bChgPerm:1;//å……ç”µè®¸å¯
+		u8 				bDisChgPerm:1;//æ”¾ç”µè®¸å¯
+		u8 				bForceClose:1;//å¼ºåˆ¶å…³é—­
 		u8 				temp:5;
 	}tPerm;
 	u8 ucPerm;
@@ -93,42 +97,42 @@ typedef union
 
 typedef enum
 {
-	BPO_CHG = 0,		//³äµç
-	BPO_DISCHG,    		//·Åµç
+	BPO_CHG = 0,		//å……ç”µ
+	BPO_DISCHG,    		//æ”¾ç”µ
 	BPO_ALL,			//
 }BmsPermObject_E;
 
 
-//*********************************ÈÎÎñ¶ÔÏó**********************************
+//*********************************ä»»åŠ¡å¯¹è±¡**********************************
 #pragma pack(1)
 typedef struct
 {
-	DevState_E  		eDevState;          //Éè±¸×´Ì¬
-	BmsErrCode_N 		uErrCode;           //tBms´íÎó×´Ì¬
-    BmsWorkState_E 		eWorkState;         //tBms¹¤×÷×´Ì¬
-	BmsPerm_U			uPerm;				//Ğí¿É
-	vu16            	usAutoOffCnt;		//¹Ø±Õµç³Ø°üÆ÷µÄÊ±¼ä,0Îª²»¿ªÆô
-    vu16            	usAutoOffTime;		//Ê±¼ä´Á´óÓÚÕâ¸öÖµ¾Í¹Ø±Õµç³Ø°üÆ÷
-	s16             	sMaxTemp;			//1ÉãÊÏ¶È
-	s16            		sMinTemp;			//1ÉãÊÏ¶È
+	DevState_E  		eDevState;          //è®¾å¤‡çŠ¶æ€
+	BmsErrCode_N 		uErrCode;           //tBmsé”™è¯¯çŠ¶æ€
+    BmsWorkState_E 		eWorkState;         //tBmså·¥ä½œçŠ¶æ€
+	BmsPerm_U			uPerm;				//è®¸å¯
+	vu16            	usAutoOffCnt;		//å…³é—­ç”µæ± åŒ…å™¨çš„æ—¶é—´,0ä¸ºä¸å¼€å¯
+    vu16            	usAutoOffTime;		//æ—¶é—´æˆ³å¤§äºè¿™ä¸ªå€¼å°±å…³é—­ç”µæ± åŒ…å™¨
+	s16             	sMaxTemp;			//1æ‘„æ°åº¦
+	s16            		sMinTemp;			//1æ‘„æ°åº¦
 }
 Bms_T;
 #pragma pack()
 extern Bms_T 			tBms;
 
-//*********************************¼ÇÒä²ÎÊı**********************************
-#pragma pack(1)//Ç¿ÖÆÒ»¸ö×Ö½Ú¶ÔÆë
+//*********************************è®°å¿†å‚æ•°**********************************
+#pragma pack(1)//å¼ºåˆ¶ä¸€ä¸ªå­—èŠ‚å¯¹é½
 typedef struct
 {
-	s8               	cChgMaxTemp;    	//³äµçÔÊĞíµÄ×î´óÎÂ¶È
-	s8               	cDisChgMaxTemp; 	//·ÅµçÔÊĞíµÄ×î´óÎÂ¶È
-	s8               	cChgMinTemp;    	//³äµçÔÊĞíµÄ×îĞ¡ÎÂ¶È
-    s8               	cDisChgMinTemp; 	//·ÅµçÔÊĞíµÄ×îĞ¡ÎÂ¶È
-	vu16             	usMaxVolt;			//×î´óÊäÈëµçÑ¹
-	vu16             	usMinVolt;			//×îĞ¡ÊäÈëµçÑ¹
-	vu16             	usChgVolt;			//³äµçµçÑ¹
+	s8               	cChgMaxTemp;    	//å……ç”µå…è®¸çš„æœ€å¤§æ¸©åº¦
+	s8               	cDisChgMaxTemp; 	//æ”¾ç”µå…è®¸çš„æœ€å¤§æ¸©åº¦
+	s8               	cChgMinTemp;    	//å……ç”µå…è®¸çš„æœ€å°æ¸©åº¦
+    s8               	cDisChgMinTemp; 	//æ”¾ç”µå…è®¸çš„æœ€å°æ¸©åº¦
+	vu16             	usMaxVolt;			//æœ€å¤§è¾“å…¥ç”µå‹
+	vu16             	usMinVolt;			//æœ€å°è¾“å…¥ç”µå‹
+	vu16             	usChgVolt;			//å……ç”µç”µå‹
 }BmsMemParam_T;
-#pragma pack() //È¡ÏûÒ»¸ö×Ö½Ú¶ÔÆë
+#pragma pack() //å–æ¶ˆä¸€ä¸ªå­—èŠ‚å¯¹é½
 
 
 bool bBms_TaskInit(void);
@@ -138,10 +142,15 @@ bool bBms_SetDevState(DevState_E state);
 bool bBms_SetErrCode(BmsErrCode_E code, bool set);
 s8 cBms_Switch(SwitchObject_E obj, SwitchType_E type, bool fore_en);
 u8 ucBms_GetSoc(void);
+u16 usBms_GetPermMaxChgPwr(void);
 bool bBms_MemParamInit(BmsMemParam_T* p_bms_mem);
 void vBms_MemParamSet(u8 item, bool add);
 bool bBms_SetPerm(BmsPermObject_E obj, bool en);
 s8 cBms_CheckPerm(void);
+
+#if(boardUPDATE)
+s8 cBms_GetUpdateStage(void);
+#endif
 
 #if(!boardUSE_OS)
 void vBms_Task(void *pvParameters);

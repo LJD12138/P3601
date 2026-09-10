@@ -1,0 +1,17 @@
+# Binary files
+*.bin binary
+
+# Source code - Windows line endings (CRLF)
+*.c     text eol=crlf
+*.h     text eol=crlf
+*.s     text eol=crlf
+*.S     text eol=crlf
+*.bat   text eol=crlf
+*.sct   text eol=crlf
+*.md    text eol=crlf
+*.yml   text eol=crlf
+*.yaml  text eol=crlf
+*.json  text eol=crlf
+*.cfg   text eol=crlf
+*.ini   text eol=crlf
+*.txt   text eol=crlf

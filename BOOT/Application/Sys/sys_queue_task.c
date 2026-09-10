@@ -1,13 +1,11 @@
 /*****************************************************************************************************************
 *                                                                                                                *
- *                                         ÏµÍ³×ÜÈÎÎñµÄ¶ÓÁĞº¯Êı                                                  *
+ *                                         ç³»ç»Ÿæ€»ä»»åŠ¡çš„é˜Ÿåˆ—å‡½æ•°                                                  *
 *                                                                                                                *
 ******************************************************************************************************************/
 #include "Sys/sys_queue_task.h"
 #include "Sys/sys_task.h"
 #include "Print/print_task.h"
-#include "Adc/adc_task.h"
-#include "Led/led_iface.h"
 
 #if(boardPRINT_IFACE)
 #include "Print/print_iface.h"
@@ -17,44 +15,52 @@
 #include "MD_Bms/md_bms_iface.h"
 #endif //boardBMS_EN
 
-#if(boardUPDATA)
-#include "Updata/updata_main.h"
-#endif
+#if(boardADC_EN)
+#include "Adc/adc_iface.h"
+#endif  //boardADC_EN
+
+#if(boardWDGT_EN)
+#include "fwdgt.h"
+#endif  //boardWDGT_EN
+
+#if(boardLED_EN)
+#include "Led/led_iface.h"
+#endif  //boardLED_EN
 
 #include "systick.h"
 #include "boot_info.h"
 #include "flash_allot_table.h"
 
 
-//****************************************************²ÎÊı³õÊ¼»¯**************************************************//
-//½á¹¹Ìå
-__ALIGNED(4) 	Task_T *tpSysTask = NULL;  	//¶ÓÁĞÈÎÎñ
+//****************************************************å‚æ•°åˆå§‹åŒ–**************************************************//
+//ç»“æ„ä½“
+__ALIGNED(4) 	Task_T *tpSysTask = NULL;  	//é˜Ÿåˆ—ä»»åŠ¡
 
 
-//****************************************************º¯ÊıÉùÃ÷****************************************************//
+//****************************************************å‡½æ•°å£°æ˜****************************************************//
 static bool b_task_manage_func_cb(Task_T *tp_task);
 
 /***********************************************************************************************************************
------º¯Êı¹¦ÄÜ    ÈÎÎñ²ÎÊı³õÊ¼»¯
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      none
+-----å‡½æ•°åŠŸèƒ½    ä»»åŠ¡å‚æ•°åˆå§‹åŒ–
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      none
 ************************************************************************************************************************/
 bool bSys_QueueInit(void)
 {
-	//ÈÎÎñ¶ÓÁĞ³õÊ¼»¯
+	//ä»»åŠ¡é˜Ÿåˆ—åˆå§‹åŒ–
 	if(cQueue_TaskInit(&tpSysTask, 8, 0, b_task_manage_func_cb, NULL) <= 0)
 	{
 		if(uPrint.tFlag.bSysTask || uPrint.tFlag.bImportant)
-			log_e("bSysTask:tpSysTaskÈÎÎñ¶ÔÏó³õÊ¼»¯Ê§°Ü");
+			log_e("bSysTask:tpSysTaskä»»åŠ¡å¯¹è±¡åˆå§‹åŒ–å¤±è´¥");
 		
 		return false;
 	}
 	else if(tpSysTask == NULL)
 	{
 		if(uPrint.tFlag.bSysTask || uPrint.tFlag.bImportant)
-			log_e("bSysTask:tpSysTaskÈÎÎñ¶ÔÏó´´½¨Ê§°Ü");
+			log_e("bSysTask:tpSysTaskä»»åŠ¡å¯¹è±¡åˆ›å»ºå¤±è´¥");
 		
 		return false;
 	}
@@ -63,45 +69,45 @@ bool bSys_QueueInit(void)
 }
 
 /*****************************************************************************************************************
------º¯Êı¹¦ÄÜ    ×°ÔØÈÎÎñº¯Êı
------ËµÃ÷(±¸×¢)  none
------´«Èë²ÎÊı    none
------Êä³ö²ÎÊı    none
------·µ»ØÖµ      true:³É¹¦   false:Ê§°Ü 
+-----å‡½æ•°åŠŸèƒ½    è£…è½½ä»»åŠ¡å‡½æ•°
+-----è¯´æ˜(å¤‡æ³¨)  none
+-----ä¼ å…¥å‚æ•°    none
+-----è¾“å‡ºå‚æ•°    none
+-----è¿”å›å€¼      true:æˆåŠŸ   false:å¤±è´¥ 
 ******************************************************************************************************************/
 static bool b_task_manage_func_cb(Task_T *tp_task)
 {
-	static vu16 uc_temp = 0;
-	
-	tp_task->bNowRun = false;
-	tp_task->ucStep = 0;
-	tp_task->usTaskWaitCnt = 0;
-	tp_task->usTaskWaitCnt = 0;
-	tp_task->usStepRepeatCnt = 0;
-	
-	uc_temp = lwrb_get_full(&tp_task->tQueueBuff);
-	if(uc_temp%3 != 0 && uc_temp != 0)
-	{
-		if(uPrint.tFlag.bSysTask || uPrint.tFlag.bImportant)
-			log_e("bSysTask:ÈÎÎñ¶ÓÁĞ³¤¶ÈÒì³£ ³¤¶È%d",uc_temp);
-		lwrb_reset(&tp_task->tQueueBuff);
-		return false;
-	}	
-	
-	if(tSysInfo.uInit.tFinish.bIF_SysTask == 0)
-	{
-		tp_task->ucID = STI_INIT;           
-		tp_task->usInParam = 0;
-	}
-    else if(uc_temp)//¶ÓÁĞÀïÃæÓĞÈÎÎñ   
+    static vu16 uc_temp = 0;
+    
+    tp_task->bNowRun = false;
+    tp_task->ucStep = 0;
+    tp_task->usTaskWaitCnt = 0;
+    tp_task->usTaskWaitCnt = 0;
+    tp_task->usStepRepeatCnt = 0;
+    
+    uc_temp = lwrb_get_full(&tp_task->tQueueBuff);
+    if(uc_temp%3 != 0 && uc_temp != 0)
+    {
+        if(uPrint.tFlag.bSysTask || uPrint.tFlag.bImportant)
+            log_e("bSysTask:ä»»åŠ¡é˜Ÿåˆ—é•¿åº¦å¼‚å¸¸ é•¿åº¦%d",uc_temp);
+        lwrb_reset(&tp_task->tQueueBuff);
+        return false;
+    }    
+    
+    if(tSysInfo.uInit.tFinish.bIF_SysTask == 0)
+    {
+        tp_task->ucID = STI_INIT;           
+        tp_task->usInParam = 0;
+    }
+    else if(uc_temp)//é˜Ÿåˆ—é‡Œé¢æœ‰ä»»åŠ¡   
     {
         lwrb_read(&tp_task->tQueueBuff, (u8*)&tp_task->ucID, 1);
-		lwrb_read(&tp_task->tQueueBuff, (u8*)&tp_task->usInParam, 2);
+        lwrb_read(&tp_task->tQueueBuff, (u8*)&tp_task->usInParam, 2);
     }
     else
     {
-		tp_task->ucID = STI_NULL;           
-		tp_task->usInParam = 0;
+        tp_task->ucID = STI_NULL;           
+        tp_task->usInParam = 0;
     }
     
     switch (tp_task->ucID)
@@ -109,41 +115,41 @@ static bool b_task_manage_func_cb(Task_T *tp_task)
         case STI_INIT:
             tp_task->vp_func = v_sys_queue_task_init;
         break;
-		
-		case STI_ENTER_APP:
-			tp_task->vp_func = v_sys_queue_task_enter_app;
+        
+        case STI_ENTER_APP:
+            tp_task->vp_func = v_sys_queue_task_enter_app;
         break;
-		
-		case STI_ERR:
-			tp_task->vp_func = v_sys_queue_task_err;
+        
+        case STI_ERR:
+            tp_task->vp_func = v_sys_queue_task_err;
         break;
-		
-		case STI_RESET: 
-			tp_task->vp_func = v_sys_queue_task_reset;
+        
+        case STI_RESET: 
+            tp_task->vp_func = v_sys_queue_task_reset;
         break;
-		
-		#if(boardUPDATA)
-		case STI_UPDATA:	
-			tp_task->vp_func = v_sys_queue_task_updata;
+        
+        #if(boardUPDATE)
+        case STI_UPDATE:	
+            tp_task->vp_func = v_sys_queue_task_update;
         break;
-		#endif
-		
-		#if(boardDISPLAY_EN)
-		case STI_DISPLAY: 
-			tp_task->vp_func = v_sys_queue_task_disp;
+        #endif
+        
+        #if(boardDISPLAY_EN)
+        case STI_DISPLAY: 
+            tp_task->vp_func = v_sys_queue_task_disp;
         break;
-		#endif
-		
-		#if(boardLOW_POWER)
-		case STI_LOW_POWER: 
-			tp_task->vp_func = v_sys_queue_task_low_power;
+        #endif
+        
+        #if(boardLOW_POWER)
+        case STI_LOW_POWER: 
+            tp_task->vp_func = v_sys_queue_task_low_power;
         break;
-		#endif
+        #endif
 
-		case STI_NULL:
+        case STI_NULL:
         default:
             tp_task->vp_func = NULL;
-			tp_task->usInParam = 0;
+            tp_task->usInParam = 0;
         break;
     }
 
@@ -152,45 +158,47 @@ static bool b_task_manage_func_cb(Task_T *tp_task)
 
 
 /**********************************************************************************************************
-*	º¯ Êı Ãû: JumpToApp
-*	¹¦ÄÜËµÃ÷: Ìø×ªµ½APP³ÌĞò 0x0800 2000
-*	ĞÎ    ²Î: ÎŞ
-*	·µ »Ø Öµ: ÎŞ
+*	å‡½ æ•° å: JumpToApp
+*	åŠŸèƒ½è¯´æ˜: è·³è½¬åˆ°APPç¨‹åº 0x0800 2000
+*	å½¢    å‚: æ— 
+*	è¿” å› å€¼: æ— 
 **********************************************************************************************************/
-/* ¿ª¹ØÈ«¾ÖÖĞ¶ÏµÄºê */
-#define ENABLE_INT()	__set_PRIMASK(0)	/* Ê¹ÄÜÈ«¾ÖÖĞ¶Ï */
-#define DISABLE_INT()	__set_PRIMASK(1)	/* ½ûÖ¹È«¾ÖÖĞ¶Ï */
+/* å¼€å…³å…¨å±€ä¸­æ–­çš„å® */
+#define ENABLE_INT()	__set_PRIMASK(0)	/* ä½¿èƒ½å…¨å±€ä¸­æ–­ */
+#define DISABLE_INT()	__set_PRIMASK(1)	/* ç¦æ­¢å…¨å±€ä¸­æ–­ */
 typedef void (*pAppFunction) (void);
 pAppFunction  application;
 s8 cSys_JumpToApp(void)
 {
 	uint32_t JumpAddress = 0;
 	
-	/* APPÕ»¶¥Ö¸ÕëºÏ·¨ */
+	/* APPæ ˆé¡¶æŒ‡é’ˆåˆæ³• */
 	if(0x20000000 != ((*(__IO uint32_t*)flashAPP_START) & 0x2FFE0000))
 		return -1;
 	
 	if(tBootMemParam.tParam.eAppState == AS_ERASE)
 		return -2;
 	
-//	1)¹Ø±ÕËùÓĞÍâÉèµÄÊ±ÖÓ
-//	2) ¹Ø±ÕÊ¹ÓÃµÄPLL
-//	3) ½ûÓÃËùÓĞÖĞ¶Ï 
-//	4) Çå³ıËùÓĞ¹ÒÆğµÄÖĞ¶Ï±êÖ¾Î»
+//	1)å…³é—­æ‰€æœ‰å¤–è®¾çš„æ—¶é’Ÿ
+//	2) å…³é—­ä½¿ç”¨çš„PLL
+//	3) ç¦ç”¨æ‰€æœ‰ä¸­æ–­ 
+//	4) æ¸…é™¤æ‰€æœ‰æŒ‚èµ·çš„ä¸­æ–­æ ‡å¿—ä½
 	
 	#if(boardADC_EN)
 	vAdc_DeInit();
 	#endif  //boardADC_EN
 	
+	#if(boardLED_EN)
 	vLed_IfaceDeInit();
+	#endif  //boardLED_EN
 	
 	#if(boardLOW_POWER)
-	vPrint_EnterLowPower();                                 //¹Ø±Õ´®¿Ú
+	vPrint_EnterLowPower();                                 //å…³é—­ä¸²å£
 	#endif
 	
 	#if(boardLOW_POWER)
-	vGPIO_EnterApp();                                       //¹Ø±ÕÖĞ¶Ï
-	vAdc_IoEnterLowPower();                                 //¹Ø±ÕAD
+	vGPIO_EnterApp();                                       //å…³é—­ä¸­æ–­
+	vAdc_IoEnterLowPower();                                 //å…³é—­AD
 	#endif  //boardLOW_POWER
 	
 	#if(boardBMS_EN)
@@ -198,7 +206,7 @@ s8 cSys_JumpToApp(void)
 	#endif
 	
 	#if( boardPRINT_IFACE )
-	cBoot_CtrlUpdata(false, AS_OK);                               //°ÑtBootInfo.ulCmd±êÖ¾Î»ÉèÖÃÎªÌø×ªµ½APP,ÏÂ´ÎÖØÆô¾Í»áÖ±½Ó½øÀ´APP
+	cBoot_CtrlUpdate(false, AS_OK);                               //æŠŠtBootInfo.ulCmdæ ‡å¿—ä½è®¾ç½®ä¸ºè·³è½¬åˆ°APP,ä¸‹æ¬¡é‡å¯å°±ä¼šç›´æ¥è¿›æ¥APP
 	vPrint_DeInit();
 	#endif
 	
@@ -208,24 +216,24 @@ s8 cSys_JumpToApp(void)
 	vFwdgt_Reload();
 	#endif
 	
-//		3) ½ûÓÃËùÓĞÖĞ¶Ï
-//		4) Çå³ıËùÓĞ¹ÒÆğµÄÖĞ¶Ï±êÖ¾Î»
-	__disable_irq();	                                    //¹Ø±ÕËùÓĞÖĞ¶Ï,Èç¹ûÓĞ¿ªÍâÉèÒ²Òª¹Øµô
+//		3) ç¦ç”¨æ‰€æœ‰ä¸­æ–­
+//		4) æ¸…é™¤æ‰€æœ‰æŒ‚èµ·çš„ä¸­æ–­æ ‡å¿—ä½
+	__disable_irq();	                                    //å…³é—­æ‰€æœ‰ä¸­æ–­,å¦‚æœæœ‰å¼€å¤–è®¾ä¹Ÿè¦å…³æ‰
 	
-	/* ¹Ø±ÕµÎ´ğ¶¨Ê±Æ÷£¬¸´Î»µ½Ä¬ÈÏÖµ */
+	/* å…³é—­æ»´ç­”å®šæ—¶å™¨ï¼Œå¤ä½åˆ°é»˜è®¤å€¼ */
 	SysTick->CTRL = 0;
 	SysTick->LOAD = 0;
 	SysTick->VAL = 0;
 	
-	JumpAddress = *(__IO uint32_t*)(flashAPP_START + 4);	//Reset_Handler Èë¿ÚµØÖ·
+	JumpAddress = *(__IO uint32_t*)(flashAPP_START + 4);	//Reset_Handler å…¥å£åœ°å€
 	
-	application = (pAppFunction) JumpAddress;
+	application = (pAppFunction)(uintptr_t)JumpAddress;
 	
-	__set_MSP(*(__IO uint32_t*) flashAPP_START);	        //APP³ÌĞò¶ÑÕ»Ö¸ÕëÆğÊ¼(ÓÃ»§´úÂëÇøµÄµÚÒ»¸ö×ÖÓÃÓÚ´æ·ÅÕ»¶¥µØÖ·)
+	__set_MSP(*(__IO uint32_t*) flashAPP_START);	        //APPç¨‹åºå †æ ˆæŒ‡é’ˆèµ·å§‹(ç”¨æˆ·ä»£ç åŒºçš„ç¬¬ä¸€ä¸ªå­—ç”¨äºå­˜æ”¾æ ˆé¡¶åœ°å€)
 	
-	application();	                                        //Ìø×ªµ½Reset_Handler¼´APP
+	application();	                                        //è·³è½¬åˆ°Reset_Handlerå³APP
 
-	/* Ìø×ª³É¹¦µÄ»°£¬²»»áÖ´ĞĞµ½ÕâÀï£¬ÓÃ»§¿ÉÒÔÔÚÕâÀïÌí¼Ó´úÂë */
+	/* è·³è½¬æˆåŠŸçš„è¯ï¼Œä¸ä¼šæ‰§è¡Œåˆ°è¿™é‡Œï¼Œç”¨æˆ·å¯ä»¥åœ¨è¿™é‡Œæ·»åŠ ä»£ç  */
 	return -3;
 }
 

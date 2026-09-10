@@ -14,13 +14,14 @@
 
 bool bDcac_QueueInit(void);
 
-//¶ÓÁÐº¯Êý
+//é˜Ÿåˆ—å‡½æ•°
 void v_dcac_queue_task_init(Task_T *tp_task);
 void v_dcac_queue_task_main(Task_T *tp_task);
 void v_dcac_queue_task_dcac_out(Task_T *tp_task);
 void v_dcac_queue_task_dcac_in(Task_T *tp_task);
 void v_dcac_queue_task_para_in(Task_T *tp_task);
 void v_dcac_queue_task_err_proc(Task_T *tp_task);
+void v_dcac_queue_task_update(Task_T *tp_task);
 
 #endif  //boardDCAC_EN
 
