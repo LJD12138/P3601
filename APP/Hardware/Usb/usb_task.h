@@ -67,6 +67,9 @@ typedef struct
 	vu16				usInVolt;     		//0.1V
 	vu16    			usInCurr;			//0.1A
 	vu16    			usOutPwr;     		//W
+	vu16    			usWcPwr;     		//W
+	vu16    			usPdPwr;     		//W
+	vu16    			usQcPwr;     		//W
 	vs16             	sMaxTemp;			//1…„ œ∂»
 }Usb_T;   
 #pragma pack()

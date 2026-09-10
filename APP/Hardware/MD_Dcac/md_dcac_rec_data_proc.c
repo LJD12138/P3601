@@ -84,11 +84,14 @@ s8 c_dcac_rec_proc_data(ModbusProtoRx_t* proto_rx, ModbusProtoTx_t* proto_tx)
 			//G3604 0.1A     G2404 0.01A
 			if(strstr(boardSOFTWARE_VERSION, "G3604") != NULL)
 				tDcacRx.usOutCurr = LIMIT_MIN(tParam1.sOutCurr, 0);
-			else if(strstr(boardSOFTWARE_VERSION, "G2404") != NULL
-				|| strstr(boardSOFTWARE_VERSION, "P3601") != NULL)
+			else
 				tDcacRx.usOutCurr = LIMIT_MIN(tParam1.sOutCurr / 10, 0);
 			
-			tDcacRx.usOutPwr = tParam1.usOutPwr;
+			if(tParam1.usOutPwr > 2)
+				tDcacRx.usOutPwr = tParam1.usOutPwr;
+			else
+				tDcacRx.usOutPwr = 0;
+				
 			tDcacRx.usOutFreq = tParam1.usOutFreq / 10;
 			tDcacRx.uState.usState = tParam1.usState;
 
@@ -123,7 +126,7 @@ s8 c_dcac_rec_proc_data(ModbusProtoRx_t* proto_rx, ModbusProtoTx_t* proto_tx)
 			//更新数据
 			tDcacRx.uErrCode.usCode[0] = tParam2.uDcErrCode;
 			tDcacRx.uErrCode.usCode[1] = tParam2.uAcErrCode;
-			tDcacRx.uErrCode.usCode[2] = tParam2.uInErrCode & (~0x40);
+			tDcacRx.uErrCode.usCode[2] = tParam2.uInErrCode & (~0x140);
 			tDcacRx.uErrCode.usCode[3] = tParam2.usSysErr & 0x01;
 		}
 		break;
@@ -147,8 +150,7 @@ s8 c_dcac_rec_proc_data(ModbusProtoRx_t* proto_rx, ModbusProtoTx_t* proto_tx)
 			//G3604 0.1A     G2404 0.01A
 			if(strstr(boardSOFTWARE_VERSION, "G3604") != NULL)
 				tDcacRx.usInCurr = LIMIT_MIN(tParam3.sAcInCurr, 0);
-			else if(strstr(boardSOFTWARE_VERSION, "G2404") != NULL
-				|| strstr(boardSOFTWARE_VERSION, "P3601") != NULL)
+			else
 				tDcacRx.usInCurr = LIMIT_MIN(tParam3.sAcInCurr / 10, 0);
 		}
 		break;

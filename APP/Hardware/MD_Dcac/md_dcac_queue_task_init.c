@@ -10,6 +10,7 @@
 #include "MD_Dcac/md_dcac_prot_frame.h"
 #include "Sys/sys_task.h"
 #include "Print/print_task.h"
+#include "app_info.h"
 
 #define       	dcacTASK_INIT_CYCLE_TIME               		100
 
@@ -38,8 +39,19 @@ void v_dcac_queue_task_init(Task_T *tp_task)
 				break;
 			}
         }
-
+		
 		case 1:
+		{
+			if(b_dcac_cs_set_chg_pwr(tAppMemParam.tDCAC.usInPwrRating) == true)  //获取参数
+				cQueue_GotoStep(tp_task, STEP_NEXT);  //下一步
+			else
+			{
+				vTaskDelay(500);
+				break;
+			}
+		}
+
+		case 2:
         {
 			tSysInfo.uInit.tFinish.bIF_DcacTask = 1;
 			bDcac_SetAcState(OO_ALL, IOS_SHUT_DOWN);

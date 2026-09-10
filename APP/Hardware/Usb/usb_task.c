@@ -41,6 +41,7 @@ static Task_T *tp_task = NULL;
 //****************************************************函数声明****************************************************//
 static bool b_task_param_init(void);
 static void v_usb_check_prote(void);
+static void v_usb_param_update(void);
 
 
 /*****************************************************************************************************************
@@ -121,6 +122,7 @@ void vUsb_Task(void *pvParameters)
 			#endif
 		}
 
+		v_usb_param_update();
 		v_usb_check_prote();
 
 		if(tp_task->vp_func != NULL && tp_task ->bNowRun == false)
@@ -174,6 +176,19 @@ static void v_usb_check_prote(void)
 		if(tUsb.eDevState >= DS_BOOTING)  
 			cUsb_Switch(ST_OFF, true);
 	}
+	
+	static vu16 us_syn_cnt = 0;
+	if(tDc.eDevState == DS_SHUT_DOWN && tUsb.eDevState >= DS_BOOTING)
+	{
+		us_syn_cnt++;
+		if(us_syn_cnt >= (2500 / usbTASK_CYCLE_TIME))
+		{
+			us_syn_cnt = 0;
+			cUsb_Switch(ST_OFF, true);
+		}
+	}
+	else
+		us_syn_cnt = 0;
 
 	if(tUsb.eDevState != DS_WORK && tUsb.eDevState != DS_ERR)
 		return;
@@ -241,6 +256,32 @@ static void v_usb_check_prote(void)
 		{
 			uc_over_temp_cnt = 0;
 		}
+	}
+}
+
+/***********************************************************************************************************************
+-----函数功能	更新参数
+-----作者       LJD
+-----日期       2026-04-10
+************************************************************************************************************************/
+static void v_usb_param_update(void)
+{
+	tUsb.usAutoOffTime = tAppMemParam.tUSB.usAutoOffTime;
+	tUsb.sMaxTemp = tAdcSamp.sUsbTemp;
+	tUsb.usInVolt = tAdcSamp.usSysInVolt;//0.1V
+	
+	if(tUsb.eDevState == DS_WORK)
+	{
+		tUsb.usInCurr = 0;//0.1A
+		tUsb.usQcPwr = tAdcSamp.fUsbA_Curr * tAdcSamp.usUsbA_Volt / 10;//W
+	}
+	else
+	{
+		tUsb.usInCurr = 0;//0.1A
+		tUsb.usPdPwr = 0;//W
+		tUsb.usWcPwr = 0;//W
+		tUsb.usQcPwr = 0;//W
+		tUsb.usOutPwr = 0;//W
 	}
 }
 

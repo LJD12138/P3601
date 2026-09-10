@@ -11,7 +11,6 @@
 #include "Sys/sys_task.h"
 #include "Print/print_task.h"
 
-#include "app_info.h"
 #include "filtration.h"
 #include "gpio_init.h"
 #include "math.h"
@@ -38,6 +37,7 @@ void           	vAdc_Task(void *pvParameters);
 static s32 	usa_acd_sys_input_volt_buff[adcSYS_IN_VOLT_FILTER_BUFF_SIZE];
 FilterHandler_T	tAdc_SysInVoltFilterMadAvg = {usa_acd_sys_input_volt_buff, adcSYS_IN_VOLT_FILTER_BUFF_SIZE, 0, 0, 0, 0, 0};
 
+#if(boardDC_EN)
 //DC温度滤波器
 #define 		adcDC_TEMP_FILTER_BUFF_SIZE     		6 
 static s32 	usa_acd_dc_temp_buff[adcDC_TEMP_FILTER_BUFF_SIZE];
@@ -52,7 +52,9 @@ FilterHandler_T tAdc_DcCurrFilterMadAvg = {usa_adc_dc_curr_buff, adcDC_CURR_FILT
 #define 		adcDC_VOLT_FILTER_BUFF_SIZE     		6 
 static s32 	usa_adc_dc_volt_buff[adcDC_VOLT_FILTER_BUFF_SIZE];
 FilterHandler_T tAdc_DcVoltFilterMadAvg = {usa_adc_dc_volt_buff, adcDC_VOLT_FILTER_BUFF_SIZE, 0, 0, 0, 0, 0};
+#endif  //boardDC_EN
 
+#if(boardUSB_EN)
 // //USB温度滤波器
 // #define 		adcUSB_TEMP_FILTER_BUFF_SIZE     		6 
 // static s32 	usa_acd_usb_temp_buff[adcUSB_TEMP_FILTER_BUFF_SIZE];
@@ -77,6 +79,7 @@ FilterHandler_T tAdc_UsbA_CurrFilterMadAvg = {usa_acd_usb_a_curr_buff, adcUSB_A_
 #define 		adcUSB_A_VOLT_FILTER_BUFF_SIZE     		6 
 static s32 	usa_adc_usb_a_volt_buff[adcUSB_A_VOLT_FILTER_BUFF_SIZE];
 FilterHandler_T tAdc_UsbA_VoltFilterMadAvg = {usa_adc_usb_a_volt_buff, adcUSB_A_VOLT_FILTER_BUFF_SIZE, 0, 0, 0, 0, 0};
+#endif  //boardUSB_EN
 
 //FAN电压滤波器
 #define 		adcFAN_VOLT_FILTER_BUFF_SIZE     		6 
@@ -131,22 +134,19 @@ static void v_adc_param_init(void)
 //	v_power_select(true);	//开启温度采样电源
 	memset((u8*)&usa_acd_sys_input_volt_buff, 0, sizeof(usa_acd_sys_input_volt_buff));
 	
+	#if(boardDC_EN)
 	memset((u8*)&usa_acd_dc_temp_buff, 0, sizeof(usa_acd_dc_temp_buff));
-	
 	memset((u8*)&usa_adc_dc_curr_buff, 0, sizeof(usa_adc_dc_curr_buff));
-	
 	memset((u8*)&usa_adc_dc_volt_buff, 0, sizeof(usa_adc_dc_volt_buff));
+	#endif  //boardDC_EN
 	
+	#if(boardUSB_EN)
 	// memset((u8*)&usa_acd_usb_temp_buff, 0, sizeof(usa_acd_usb_temp_buff));
-	
 	// memset((u8*)&usa_adc_usb_curr_buff, 0, sizeof(usa_adc_usb_curr_buff));
-	
 	memset((u8*)&usa_adc_usb_volt_buff, 0, sizeof(usa_adc_usb_volt_buff));
-
 	memset((u8*)&usa_adc_usb_a_volt_buff, 0, sizeof(usa_adc_usb_a_volt_buff));
-	
 	memset((u8*)&usa_adc_usb_volt_buff, 0, sizeof(usa_adc_usb_volt_buff));
-	
+	#endif  //boardUSB_EN
 	memset((u8*)&usa_adc_fan_volt_buff, 0, sizeof(usa_adc_fan_volt_buff));
 }
 
@@ -161,15 +161,21 @@ void vAdc_Task(void *pvParameters)
 {
 	s32 temp = 0;
 	vu16 us_filter_sys_input_volt_ad = 0;
+
+	#if(boardDC_EN)
 	vu16 us_filter_dc_temp_ad = 0;
 	vu16 us_filter_dc_curr_ad = 0;
 	vu16 us_filter_dc_volt_ad = 0;
+	#endif  //boardDC_EN
+
+	#if(boardUSB_EN)
 	// vu16 us_filter_usb_temp_ad = 0;
 	// vu16 us_filter_usb_curr_ad = 0;
 	vu16 us_filter_usb_volt_ad = 0;
 	vu16 us_filter_usb_a_curr_ad = 0;
 	vu16 us_filter_usb_a_volt_ad = 0;
 	vu16 us_filter_fan_volt_ad = 0;
+	#endif  //boardUSB_EN
 	
 	static vu8  uc_init_adc_cnt = 0;
 	static vu8  uc_delay_cnt = 0;
@@ -187,20 +193,21 @@ void vAdc_Task(void *pvParameters)
 		temp = usAdc_GetChannelValue(adcSYS_IN_VOLT);
 		us_filter_sys_input_volt_ad = lFilter_MadianAverage(&tAdc_SysInVoltFilterMadAvg, &temp);
 		
+		#if(boardDC_EN)
 		//DC 温度
 		temp = usAdc_GetChannelValue(adcDC_TEMP);
 		us_filter_dc_temp_ad = lFilter_MadianAverage(&tAdc_DcTempFilterMadAvg, &temp);   
 		
 		//DC 电流
 		temp = usAdc_GetChannelValue(adcDC_CURR);
-		if(tDc.eDevState != DS_WORK)
-			temp = 0;
 		us_filter_dc_curr_ad = lFilter_MadianAverage(&tAdc_DcCurrFilterMadAvg, &temp);
 		
 		//DC 电压
 		temp = usAdc_GetChannelValue(adcDC_VOLT);
 		us_filter_dc_volt_ad = lFilter_MadianAverage(&tAdc_DcVoltFilterMadAvg, &temp);
-		
+		#endif  //boardDC_EN
+
+		#if(boardUSB_EN)
 		//USB 温度
 		// temp = usAdc_GetChannelValue(adcUSB_TEMP);
 		// us_filter_usb_temp_ad = lFilter_MadianAverage(&tAdc_UsbTempFilterMadAvg, &temp);   
@@ -222,6 +229,7 @@ void vAdc_Task(void *pvParameters)
 		//USB-A 电流
 		temp = usAdc_GetChannelValue(adcUSB_A_CURR);
 		us_filter_usb_a_curr_ad = lFilter_MadianAverage(&tAdc_UsbA_CurrFilterMadAvg, (s32*)&temp);
+		#endif  //boardUSB_EN
 		
 		//风扇 电压
 		temp = usAdc_GetChannelValue(adcFAN_VOLT);
@@ -251,7 +259,6 @@ void vAdc_Task(void *pvParameters)
 		
 		//USB电压
 		tAdcSamp.usUsbInVolt = us_filter_usb_volt_ad * adcUSB_VOLT_RES_RATIO;
-		tUsb.usInVolt = tAdcSamp.usUsbInVolt;//0.1V
 
 		//USB-A 电流
 		tAdcSamp.fUsbA_Curr = us_filter_usb_a_curr_ad * 0.0017f;

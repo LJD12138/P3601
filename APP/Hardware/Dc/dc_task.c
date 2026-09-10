@@ -119,6 +119,20 @@ void vDc_Task(void *pvParameters)
 			}
 		}
 		
+		static vu16 us_syn_cnt = 0;
+		if(tDc.eDevState >= DS_BOOTING && tUsb.eDevState == DS_SHUT_DOWN)
+		{
+			us_syn_cnt++;
+			if(us_syn_cnt >= (2500 / dcTASK_CYCLE_TIME))
+			{
+				us_syn_cnt = 0;
+				cDc_Switch(ST_OFF, true);
+			}
+		}
+		else
+			us_syn_cnt = 0;
+		
+		
 		//***********************************DC工作状态的任务*********************************************
         switch (tDc.eDevState)
         {
@@ -380,10 +394,13 @@ static void v_dc_protect_process(void)
 		else if(tDc.sMaxTemp > 5)
 		{
 			uc_ntc_lost_cnt = 0;
-			
 			if(tDc.uErrCode.tCode.bNtcLost == 1)
 				v_dc_set_error_code(DC_EC_NTC_LOST,false);
 		}
+	}
+	else
+	{
+		uc_ntc_lost_cnt = 0;
 	}
 	
 	//--------------------------------------电源错误检查-------------------------------------
@@ -412,12 +429,17 @@ static void v_dc_protect_process(void)
 				uc_clear_pwr_err_cnt++;
 				if(uc_clear_pwr_err_cnt >= 10)
 				{
-					v_dc_set_error_code(DC_EC_PWR_ERR,false); //清除错误
 					uc_clear_pwr_err_cnt = 0;
+					v_dc_set_error_code(DC_EC_PWR_ERR,false); //清除错误
 				}
 			}
 		}
     }
+	else
+	{
+		uc_pwr_err_cnt = 0;
+		uc_clear_pwr_err_cnt = 0;
+	}
 	
 	
 	//-------------------------------过温检查------------------------------------------------
@@ -545,6 +567,12 @@ static void v_dc_protect_process(void)
 				}
 			}
 		}
+	}
+	else
+	{
+		uc_output_low_cnt = 0;
+		uc_output_high_cnt = 0;
+		uc_clear_output_err_cnt = 0;
 	}
 	
 	
@@ -752,15 +780,15 @@ s8 cDc_Switch(SwitchType_E Tri_Type, bool fore_en)
 					return -1;
 				}
 
-				if(c_dc_check_in_volt() != 0)  //电池电压低于保护值
-				{
-					v_dc_set_error_code(DC_EC_PWR_ERR,true);
-					
-					if(uPrint.tFlag.bDcTask || uPrint.tFlag.bImportant)
-						log_w("bDcTask:开启欠压 电压=%dV",tDc.usInVolt/10);
-					
-					return -2;
-				} 
+//				if(c_dc_check_in_volt() != 0)  //电池电压低于保护值
+//				{
+//					v_dc_set_error_code(DC_EC_PWR_ERR,true);
+//					
+//					if(uPrint.tFlag.bDcTask || uPrint.tFlag.bImportant)
+//						log_w("bDcTask:开启欠压 电压=%dV",tDc.usInVolt/10);
+//					
+//					return -2;
+//				} 
 
 				v_dc_set_work_state(DS_BOOTING); 
 

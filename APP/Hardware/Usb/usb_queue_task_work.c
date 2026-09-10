@@ -74,11 +74,17 @@ void v_usb_queue_task_work(Task_T *tp_task)
 
 		case 2:
 		{
-			vu16 pwr_twmp  = (tUsb.usInCurr * tUsb.usInVolt)  / 100;
-			pwr_twmp += (tAdcSamp.fUsbA_Curr * tAdcSamp.usUsbA_Volt) / 10;
-			if(pwr_twmp < 2)
-				pwr_twmp = 0;
-			us_usb_total_out_pwr += pwr_twmp;
+			if(tUsb.usPdPwr < 2)
+				tUsb.usPdPwr = 0;
+			us_usb_total_out_pwr += tUsb.usPdPwr;
+
+			if(tUsb.usWcPwr < 2)
+				tUsb.usWcPwr = 0;
+			us_usb_total_out_pwr += tUsb.usWcPwr;
+
+			if(tUsb.usQcPwr < 2)
+				tUsb.usQcPwr = 0;
+			us_usb_total_out_pwr += tUsb.usQcPwr;
 
 			tUsb.usOutPwr = lFilter_MadianAverage(&tAdc_UsbPwrFilterMadAvg, &us_usb_total_out_pwr);
 

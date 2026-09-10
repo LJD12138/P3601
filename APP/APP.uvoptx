@@ -120,7 +120,6 @@
         <SetRegEntry>
           <Number>0</Number>
           <Key>DLGUARM</Key>
-          <Name>6</Name>
         </SetRegEntry>
         <SetRegEntry>
           <Number>0</Number>
@@ -223,7 +222,7 @@
         <Ww>
           <count>14</count>
           <WinNumber>1</WinNumber>
-          <ItemText>tDc,0x10</ItemText>
+          <ItemText>tDc,0x0A</ItemText>
         </Ww>
         <Ww>
           <count>15</count>
@@ -242,6 +241,11 @@
         </Ww>
         <Ww>
           <count>18</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>tAdcSamp,0x0A</ItemText>
+        </Ww>
+        <Ww>
+          <count>19</count>
           <WinNumber>1</WinNumber>
           <ItemText>tAdcSamp,0x0A</ItemText>
         </Ww>
@@ -1236,7 +1240,7 @@
 
   <Group>
     <GroupName>Application</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -2216,7 +2220,7 @@
 
   <Group>
     <GroupName>HW-MD_Display</GroupName>
-    <tvExp>1</tvExp>
+    <tvExp>0</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>

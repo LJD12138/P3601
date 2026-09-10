@@ -11,8 +11,8 @@
 
 
 //充电功率等级(总的,PV+AC)
-#define  		sysCHG_PWR_LEVEL1              		400
-#define  		sysCHG_PWR_LEVEL2              		900
+#define  		sysCHG_PWR_LEVEL1              		800	//0.2C * 75 * 58 = 800W
+#define  		sysCHG_PWR_LEVEL2              		1500 //0.4C * 75 * 55 = 1500W
 //0-100;1-110;2-120;3-220;4-230;5-240
 #if(boardDCAC_VOLT_TYPE==0)	//110V
 #define  		sysCHG_PWR_LEVEL3              		1500	
