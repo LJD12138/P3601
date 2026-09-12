@@ -897,6 +897,14 @@ u16 usDisp_ErrCodeDisplay(void)
 				break;
 			else
 			#endif  //boardUSB_EN
+				us_err_step++;
+
+		case 508:
+			#if(boardUSB_EN)
+			if(tUsb.uErrCode.tCode.bQcPowerErr)
+				break;
+			else
+			#endif  //boardUSB_EN
 				us_err_step = 0;
 		}
 
@@ -921,7 +929,7 @@ u16 usDisp_ErrCodeDisplay(void)
 		else if(us_err_step == 217)	us_err_step = 300;		//MPPT->DCAC
 		else if(us_err_step == 327)	us_err_step = 400;		//DCAC->DC
 		else if(us_err_step == 407)	us_err_step = 500;		//DC->USB
-		else if(us_err_step > 507)	us_err_step = 1;		//USB->SYS
+		else if(us_err_step > 508)	us_err_step = 1;		//USB->SYS
 
 		return 0;
 	}

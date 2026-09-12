@@ -91,13 +91,14 @@ void Display_BAT(u8 cds, bool en_sw, u8 soc);
 void Display_Soc(u8 soc);
 void Display_InPwr(u16 power);
 void Display_OutPwr(u16 power);
-void Display_ShowErrCode(u32 list);
+void Display_ShowErrCode(u32 list, bool b_err);
 
 //特殊模式
 void Display_OutNum(s16 num);
 void Display_UpdateProgress(u16 frame_num, u16 rec_frame_num);
 void Display_UpdateState(u8 obj, u8 proto, u8 num);
 void Display_UpdateTime(u16 min);
+void Display_UpdateErrorGuide(u32 ul_err_code, u16 us_countdown);
 #endif  // boardDISPLAY_EN
 
 #ifdef __cplusplus

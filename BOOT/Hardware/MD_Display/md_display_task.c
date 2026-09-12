@@ -165,9 +165,7 @@ __STATIC_INLINE void v_disp_update(void)
 		
 		Display_IconUpdate();
 		
-
-		
-		Display_ShowErrCode(tBootMemParam.tParam.eAppState);
+		// Display_ShowErrCode(tBootMemParam.tParam.eAppState);
 		Display_UpdateState(1, tUpdate.eProtoType, 0);
 		Display_UpdateProgress(tUpdate.usRecFrameCnt, tUpdate.usTotalFrmValue);
 		Display_UpdateTime(tUpdate.tpProtoRx->usLostOverTimeCnt/100);

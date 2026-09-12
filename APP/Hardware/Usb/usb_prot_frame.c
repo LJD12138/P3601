@@ -9,9 +9,10 @@
 #include "Print/print_task.h"
 #endif  //boardPRINT_IFACE
 
-// #include "check.h"
 #include "filtration.h"
 #include "math.h"
+// #include "check.h"
+
 
 // #define       	usbDEV_ADRR                          	0x01
 // #define  		usbWAIT_NOTIFY_OUTTIME              	1000     //任务通知超时时间 MS
@@ -21,10 +22,12 @@
 //*********************************寄存器地址********************************
 #define     	SW3516_SYS_STATE1_ADDR        			0x08//系统状态1
 #define     	SW3516_VOUT_ADDR              			0x31//VOUT
-#define     	SW3516_IOUT1_ADDR             			0x33//IOUT1
+#define     	SW3516_IOUT_C_ADDR             			0x33//IOUT1
+#define     	SW3516_IOUT_A_ADDR             			0x34//IOUT2
 #define     	SW3516_ADC_CFG_ADDR           			0x3A//ADC配置
 #define     	SW3516_ADC_DATA_H_ADDR        			0x3B//ADC-DATA
 #define     	SW3516_ADC_DATA_L_ADDR        			0x3C//ADC-DATA
+
 
 //****************************************************参数初始化**************************************************//
 // __ALIGNED(4) 	ModbusProtoTx_t *tpUsbProtoTx = NULL;	//发送协议
@@ -32,10 +35,10 @@
 #pragma pack(1)
 typedef struct
 {
+	vu8					ucState;          	//设备状态
 	vs8            		cTemp;              //温度
     vs16           		sPower;             //1W 总功率 
     vu16           		usVolt;             //mV
-	vu16           		usCurr;       		//mA
     vu16           		usPdCurr;       	//mA
 	vu16           		usQcCurr;       	//mA
 	vu16           		usPdPwr;        	//1W
@@ -46,7 +49,7 @@ typedef struct
 //PD100W温度滤波器
 #define 		usbPD_TEMP_FILTER_BUFF_SIZE     		10 
 static s32 usa_pd_temp_buff[usbPD_TEMP_FILTER_BUFF_SIZE];
-FilterHandler_T    tAdc_PDTempFilterMadAvg = {usa_pd_temp_buff, usbPD_TEMP_FILTER_BUFF_SIZE, 0, 0, 0, 0, 0};
+FilterHandler_T tAdc_PDTempFilterMadAvg = {usa_pd_temp_buff, usbPD_TEMP_FILTER_BUFF_SIZE, 0, 0, 0, 0, 0};
 
 //****************************************************函数声明****************************************************//
 // static s8 c_usb_data_trans(u8 cmd, u16 reg_addr, u8* data, u8 len);
@@ -92,577 +95,199 @@ bool bUsb_RecProtInit(void)
 	return true;
 }
 
-/*****************************************************************************************************************
------函数功能    指令:初始化IC
------说明(备注)  none
------传入参数    none
------输出参数    none
------返回值      none
-******************************************************************************************************************/
-s8 c_usb_cs_ic1_init(void)
-{
-	// u8 data[1] = {0};
-	// static u8 index = 0;
-	// static u8 uc_lost_cnt = 0;
-	
-	// switch(index)
-	// {
-	// 	case 0:
-	// 	{
-	// 		data[0] = 0x7F;
-	// 		if(cI2C_WriteBytes(&tUSB_IC1_I2C, SW3516_REG1_ADDR, data, sizeof(data)) <= 0)
-	// 		{
-	// 			if(uc_lost_cnt < 0xff) 
-	// 				uc_lost_cnt++;
-	// 			break;
-	// 		}
-	// 		else
-	// 		{
-	// 			uc_lost_cnt = 0;
-	// 			index++;
-	// 		}
-	// 	}
 
-	// 	case 1:
-	// 	{
-	// 		data[0] = 0x06;
-	// 		if(cI2C_WriteBytes(&tUSB_IC1_I2C, 0x03, data, sizeof(data)) <= 0)
-	// 		{
-	// 			if(uc_lost_cnt < 0xff) 
-	// 				uc_lost_cnt++;
-	// 			break;
-	// 		}
-	// 		else
-	// 		{
-	// 			uc_lost_cnt = 0;
-	// 			index++;
-	// 		}
-	// 	}
-		
-	// 	case 2:
-	// 	{
-	// 		data[0] = 0xA0;
-	// 		if(cI2C_WriteBytes(&tUSB_IC1_I2C, SW3516_ADC_EN_ADDR, data, sizeof(data)) <= 0)
-	// 		{
-	// 			if(uc_lost_cnt < 0xff) 
-	// 				uc_lost_cnt++;
-	// 			break;
-	// 		}
-	// 		else
-	// 		{
-	// 			uc_lost_cnt = 0;
-	// 			index++;
-	// 		}
-	// 	}
-
-	// 	case 3:
-	// 	{
-	// 		// data[0] = 0xFF;
-	// 		// if(cI2C_WriteBytes(&tUSB_IC1_I2C, SW3516_PD1_ADDR, data, sizeof(data)) <= 0)
-	// 		// {
-	// 		// 	if(uc_lost_cnt < 0xff) 
-	// 		// 		uc_lost_cnt++;
-	// 		// 	break;
-	// 		// }
-	// 		// else
-	// 		{
-	// 			data[0] = 0x48;
-	// 			cI2C_WriteBytes(&tUSB_IC1_I2C, 0x30, data, sizeof(data));
-
-	// 			data[0] = 0xFF;
-	// 			cI2C_WriteBytes(&tUSB_IC1_I2C, 0x31, data, sizeof(data));
-
-	// 			data[0] = 0x80;
-	// 			cI2C_WriteBytes(&tUSB_IC1_I2C, 0x4A, data, sizeof(data));
-
-	// 			data[0] = 0x40;
-	// 			cI2C_WriteBytes(&tUSB_IC1_I2C, 0x70, data, sizeof(data));
-
-	// 			data[0] = 0x8C;
-	// 			cI2C_WriteBytes(&tUSB_IC1_I2C, 0x04, data, sizeof(data));
-
-	// 			// data[0] = 0xFF;
-	// 			// cI2C_WriteBytes(&tUSB_IC1_I2C, 0x31, data, sizeof(data));
-
-	// 			// data[0] = 0x40;
-	// 			// cI2C_WriteBytes(&tUSB_IC1_I2C, 0x70, data, sizeof(data));
-
-	// 			// data[0] = (u8)(280/2);
-	// 			// cI2C_WriteBytes(&tUSB_IC1_I2C, 0x46, data, sizeof(data));
-
-	// 			// data[0] = 0x64;
-	// 			// cI2C_WriteBytes(&tUSB_IC1_I2C, 0x47, data, sizeof(data));
-
-	// 			// data[0] = 0xFF;
-	// 			// cI2C_WriteBytes(&tUSB_IC1_I2C, 0x33, data, sizeof(data));
-
-	// 			uc_lost_cnt = 0;
-	// 			index++;
-	// 		}
-	// 	}
-		
-	// 	case 4:
-	// 	{
-	// 		index = 0;
-			return 1;
-	// 	}
-		
-	// 	default:
-	// 		index = 0;
-	// 	break;
-	// }
-
-	// if(uc_lost_cnt >= 10)
-	// {
-	// 	if(tUsb.uErrCode.tCode.bIc1Lost == 0)
-	// 	{
-	// 		bUsb_SetErrCode(UEC_IC1_LOST,true);
-		
-	// 		if(uPrint.tFlag.bUsbTask || uPrint.tFlag.bImportant)
-	// 			log_e("bUsbTask:IC1丢失");
-	// 	}
-	// 	return -1;
-	// }
-	// else 
-	// {
-	// 	if(tUsb.uErrCode.tCode.bIc1Lost == 1)
-	// 		bUsb_SetErrCode(UEC_IC1_LOST,false);
-	// 	return 0;
-	// }
-}
-
-/*****************************************************************************************************************
------函数功能    指令:初始化IC
------说明(备注)  none
------传入参数    none
------输出参数    none
------返回值      none
-******************************************************************************************************************/
-s8 c_usb_cs_ic2_init(void)
-{
-	// u8 data[1] = {0};
-	// static u8 index = 0;
-	// static u8 uc_lost_cnt = 0;
-	
-	// switch(index)
-	// {
-	// 	case 0:
-	// 	{
-	// 		data[0] = 0x7F;
-	// 		if(cI2C_WriteBytes(&tUSB_IC2_I2C, SW3516_REG1_ADDR, data, sizeof(data)) <= 0)
-	// 		{
-	// 			if(uc_lost_cnt < 0xff) 
-	// 				uc_lost_cnt++;
-	// 			break;
-	// 		}
-	// 		else
-	// 		{
-	// 			uc_lost_cnt = 0;
-	// 			index++;
-	// 		}
-	// 	}
-
-	// 	case 1:
-	// 	{
-	// 		data[0] = 0x06;
-	// 		if(cI2C_WriteBytes(&tUSB_IC2_I2C, 0x03, data, sizeof(data)) <= 0)
-	// 		{
-	// 			if(uc_lost_cnt < 0xff) 
-	// 				uc_lost_cnt++;
-	// 			break;
-	// 		}
-	// 		else
-	// 		{
-	// 			uc_lost_cnt = 0;
-	// 			index++;
-	// 		}
-	// 	}
-		
-	// 	case 2:
-	// 	{
-	// 		data[0] = 0xA0;
-	// 		if(cI2C_WriteBytes(&tUSB_IC2_I2C, SW3516_ADC_EN_ADDR, data, sizeof(data)) <= 0)
-	// 		{
-	// 			if(uc_lost_cnt < 0xff) 
-	// 				uc_lost_cnt++;
-	// 			break;
-	// 		}
-	// 		else
-	// 		{
-	// 			uc_lost_cnt = 0;
-	// 			index++;
-	// 		}
-	// 	}
-
-	// 	case 3:
-	// 	{
-	// 		// data[0] = 0xFF;
-	// 		// if(cI2C_WriteBytes(&tUSB_IC2_I2C, SW3516_PD1_ADDR, data, sizeof(data)) <= 0)
-	// 		// {
-	// 		// 	if(uc_lost_cnt < 0xff) 
-	// 		// 		uc_lost_cnt++;
-	// 		// 	break;
-	// 		// }
-	// 		// else
-	// 		{
-	// 			data[0] = 0x48;
-	// 			cI2C_WriteBytes(&tUSB_IC2_I2C, 0x30, data, sizeof(data));
-
-	// 			data[0] = 0xFF;
-	// 			cI2C_WriteBytes(&tUSB_IC2_I2C, 0x31, data, sizeof(data));
-
-	// 			data[0] = 0x80;
-	// 			cI2C_WriteBytes(&tUSB_IC2_I2C, 0x4A, data, sizeof(data));
-
-	// 			data[0] = 0x40;
-	// 			cI2C_WriteBytes(&tUSB_IC2_I2C, 0x70, data, sizeof(data));
-
-	// 			data[0] = 0x8C;
-	// 			cI2C_WriteBytes(&tUSB_IC2_I2C, 0x04, data, sizeof(data));
-
-	// 			uc_lost_cnt = 0;
-	// 			index++;
-	// 		}
-	// 	}
-		
-	// 	case 4:
-	// 	{
-	// 		index = 0;
-			return 1;
-	// 	}
-		
-	// 	default:
-	// 		index = 0;
-	// 	break;
-	// }
-
-	// if(uc_lost_cnt >= 10)
-	// {
-	// 	if(tUsb.uErrCode.tCode.bIc2Lost == 0)
-	// 	{
-	// 		bUsb_SetErrCode(UEC_IC2_LOST,true);
-		
-	// 		if(uPrint.tFlag.bUsbTask || uPrint.tFlag.bImportant)
-	// 			log_e("bUsbTask:IC2丢失");
-	// 	}
-		
-	// 	return -1;
-	// }
-	// else 
-	// {
-	// 	if(tUsb.uErrCode.tCode.bIc2Lost == 1)
-	// 		bUsb_SetErrCode(UEC_IC2_LOST,false);
-		
-	// 	return 0;
-	// }
-}
-USB_IC_T tUsbIc1 = {0}; //PD100W芯片
+USB_IC_T tUsbIc[2] = {0}; //IC参数: [0]PD100W + QC300W芯片     [1]PD100W芯片
 /*****************************************************************************************************************
 -----函数功能    指令:获取参数
------说明(备注)  none
------传入参数    none
+-----说明(备注)  p_i2c_obj: 传入&tUSB_IC1_I2C或&tUSB_IC2_I2C
+-----传入参数    p_i2c_obj: I2C对象指针
 -----输出参数    none
------返回值      none
+-----返回值      -1:IC丢失  0:进行中  1:成功
 ******************************************************************************************************************/
-s8 c_usb_cs_get_ic1_param(void)
+s8 c_usb_cs_get_ic_param(const I2cObj_T *p_i2c_obj)
 {
-	static u8 index;
-	u8 buff[6] = {0};
+	static u8 uc_index[2] = {0};
+	static u8 uc_lost_cnt[2] = {0};
+	static u8 s_uca_buff[2][6] = {0};
+	u8 ch = (p_i2c_obj == &tUSB_IC1_I2C) ? 0 : 1;
 	u8 data[1] = {0};
-	
-	static u8 uc_lost_cnt = 0;
+	USB_IC_T *p_ic = &tUsbIc[ch];
 
-	switch (index)
+	switch (uc_index[ch])
 	{
-		//获取状态
+		/* 初始化温度ADC转换 */
 		case 0:
 		{
-			if(cI2C_ReadBytes(&tUSB_IC1_I2C, SW3516_SYS_STATE1_ADDR, data, sizeof(data)) <= 0)
+			data[0] = 0x06;
+			if(cI2C_WriteBytes(p_i2c_obj, SW3516_ADC_CFG_ADDR, data, sizeof(data)) <= 0)
 			{
-				if(uc_lost_cnt < 0xff) 
-					uc_lost_cnt++;
+				if(uc_lost_cnt[ch] < 0xff) 
+					uc_lost_cnt[ch]++;
 				break;
 			}
-			else
-			{
-				uc_lost_cnt = 0;
-				index++;
-			}
+
+			uc_lost_cnt[ch] = 0;
+			uc_index[ch]++;
 		}
-		
-		//获取参数
+
+		/* 读取温度AD */
 		case 1:
 		{
 			memset(&data, 0, sizeof(data));
-			if(cI2C_ReadBytes(&tUSB_IC1_I2C, SW3516_VOUT_ADDR, data, sizeof(data)) <= 0)
+			if(cI2C_ReadBytes(p_i2c_obj, SW3516_ADC_DATA_H_ADDR, data, sizeof(data)) <= 0)
 			{
-				if(uc_lost_cnt < 0xff) uc_lost_cnt++;
+				if(uc_lost_cnt[ch] < 0xff) uc_lost_cnt[ch]++;
 				break;
 			}
 			else 
-				uc_lost_cnt = 0;
-			buff[0] = data[0];
+				uc_lost_cnt[ch] = 0;
+
+			s_uca_buff[ch][0] = data[0];
 			
 			memset(&data, 0, sizeof(data));
-			if(cI2C_ReadBytes(&tUSB_IC1_I2C, SW3516_IOUT1_ADDR, data, sizeof(data)) <= 0)
+			if(cI2C_ReadBytes(p_i2c_obj, SW3516_ADC_DATA_L_ADDR, data, sizeof(data)) <= 0)
 			{
-				if(uc_lost_cnt < 0xff) uc_lost_cnt++;
+				if(uc_lost_cnt[ch] < 0xff) uc_lost_cnt[ch]++;
 				break;
 			}
 			else 
-				uc_lost_cnt = 0;
-			buff[1] = data[0];
+				uc_lost_cnt[ch] = 0;
+
+			s_uca_buff[ch][1] = data[0];
+			uc_index[ch]++;
+		}
+		
+		/* 读取电压与Type-C电流 */
+		case 2:
+		{
+			memset(&data, 0, sizeof(data));
+			if(cI2C_ReadBytes(p_i2c_obj, SW3516_VOUT_ADDR, data, sizeof(data)) <= 0)
+			{
+				if(uc_lost_cnt[ch] < 0xff) uc_lost_cnt[ch]++;
+				break;
+			}
+			else 
+				uc_lost_cnt[ch] = 0;
+
+			s_uca_buff[ch][2] = data[0];
 			
 			memset(&data, 0, sizeof(data));
-			data[0] = 0x06;
-			if(cI2C_WriteBytes(&tUSB_IC1_I2C, SW3516_ADC_CFG_ADDR, data, sizeof(data)) <= 0)
+			if(cI2C_ReadBytes(p_i2c_obj, SW3516_IOUT_C_ADDR, data, sizeof(data)) <= 0)
 			{
-				if(uc_lost_cnt < 0xff) uc_lost_cnt++;
+				if(uc_lost_cnt[ch] < 0xff) uc_lost_cnt[ch]++;
 				break;
 			}
 			else 
-				uc_lost_cnt = 0;
-			
+				uc_lost_cnt[ch] = 0;
+
+			s_uca_buff[ch][3] = data[0];
+			uc_index[ch]++;
+		}
+
+		/* 读取Type-A (QC)电流 */
+		case 3:
+		{
 			memset(&data, 0, sizeof(data));
-			if(cI2C_ReadBytes(&tUSB_IC1_I2C, SW3516_ADC_DATA_H_ADDR, data, sizeof(data)) <= 0)
+			if(cI2C_ReadBytes(p_i2c_obj, SW3516_IOUT_A_ADDR, data, sizeof(data)) <= 0)
 			{
-				if(uc_lost_cnt < 0xff) uc_lost_cnt++;
+				if(uc_lost_cnt[ch] < 0xff) uc_lost_cnt[ch]++;
 				break;
 			}
 			else 
-				uc_lost_cnt = 0;
-			buff[2] = data[0];
-			
-			memset(&data, 0, sizeof(data));
-			if(cI2C_ReadBytes(&tUSB_IC1_I2C, SW3516_ADC_DATA_L_ADDR, data, sizeof(data)) <= 0)
-			{
-				if(uc_lost_cnt < 0xff) uc_lost_cnt++;
-				break;
-			}
-			else 
-				uc_lost_cnt = 0;
-			buff[3] = data[0];
-			
-			tUsbIc1.usVolt = buff[0] * 96;//mv
-			tUsbIc1.usCurr = buff[1] * 40;//ma
+				uc_lost_cnt[ch] = 0;
 
-			s16 s_temp = (buff[3] & 0x0f) | (buff[2] << 4);
+			s_uca_buff[ch][4] = data[0];
+			uc_index[ch]++;
+		}
 
+		/* 结算 */
+		case 4:
+		{
+			/* ********************************************************************************* */
+			s32 temp = (s_uca_buff[ch][0] << 4) | (s_uca_buff[ch][1] & 0x0f);  /* 温度AD值 */
+			temp = lFilter_MadianAverage(&tAdc_PDTempFilterMadAvg, &temp);
+			/* 用户通讯 */
+//			if(s_uca_buff[ch][0] > 100 )  
+				p_ic->cTemp = LIMIT((307 - (37 * log((float)temp))), -128, 127) / 2;
+			
+			p_ic->usVolt = s_uca_buff[ch][2] * 96;    /* mV */
+			/* if(p_ic->usVolt >= 100) */
+			/* 	p_ic->usVolt -= 100; */
+			
+			p_ic->usPdCurr = s_uca_buff[ch][3] * 40;    /* mA */
+			/* if(p_ic->usPdCurr >= 255) */
+			/* 	p_ic->usPdCurr -= 255; */
+			
+			p_ic->usQcCurr = s_uca_buff[ch][4] * 40;    /* mA */
 
-
-			// tUsbIc1.usVolt = (buff[0] << 8) | buff[1];    //mV
-			// if(tUsbIc1.usVolt >= 100)
-			// 	tUsbIc1.usVolt -= 100;
+			/* ********************************************************************************* */
+			p_ic->usPdPwr = (p_ic->usPdCurr / 1000.0f) * (p_ic->usVolt / 1000.0f);
+			// p_ic->usQcPwr = (p_ic->usQcCurr / 1000.0f) * (p_ic->usVolt / 1000.0f);
+			p_ic->usQcPwr = usQcPwr;
+			p_ic->sPower = p_ic->usPdPwr + p_ic->usQcPwr;
+			us_usb_total_out_pwr += p_ic->sPower;
 			
-			// tUsbIc1.usPdCurr = (buff[2] << 8) | buff[3];    //mA
-			// if(tUsbIc1.usPdCurr >= 255)
-			// 	tUsbIc1.usPdCurr -= 255;
+			if(tUsb.eDevState == DS_WORK)
+				s_max_temp = MAX2(s_max_temp, p_ic->cTemp);
 			
-			// tUsbIc1.usQcCurr = (buff[4] << 8) | buff[5];    //mA
-			// if(tUsbIc1.usQcCurr >= 255)
-			// 	tUsbIc1.usQcCurr -= 255;
-			
-			//***************************************处理数据******************************************
-			// tUsbIc1.usPdPwr = (tUsbIc1.usPdCurr / 1000.0f) * (tUsbIc1.usVolt / 1000.0f);
-			// tUsbIc1.usQcPwr = (tUsbIc1.usQcCurr / 1000.0f) * (tUsbIc1.usVolt / 1000.0f);
-			// tUsbIc1.sPower = tUsbIc1.usPdPwr + tUsbIc1.usQcPwr;
-			tUsbIc1.sPower = (tUsbIc1.usCurr / 1000.0f) * (tUsbIc1.usVolt / 1000.0f);
-			us_usb_total_out_pwr += tUsbIc1.sPower;
-			
-			s_temp = lFilter_MadianAverage(&tAdc_PDTempFilterMadAvg, (s32*)&s_temp);
-			//避免没通讯上
-			if(s_temp > 100)  
-				tUsbIc1.cTemp = LIMIT((307 - (37 * log((float)s_temp))), -128, 127) / 2;
-
-			index = 0;
+			uc_index[ch] = 0;
 			
 			if(uPrint.tFlag.bUsbTask)
-			{
-				sMyPrint("bUsbTask:IC1电压 = %dmV, 功率 = %dW \r\n",tUsbIc1.usVolt,tUsbIc1.sPower);
-				sMyPrint("USB_Task:IC1温度 = %d摄氏度", tUsbIc1.cTemp);
-			}
+				sMyPrint("bUsbTask:SW3518[%d]电压 = %dmV, 功率 = %dW \r\n", ch, p_ic->usVolt, p_ic->sPower);
 		}
 		break;
 
 		default:
-			index = 0;
+			uc_index[ch] = 0;
 			break ;
 	}
 
-	//处理状态
-	if(uc_lost_cnt >= 16)  //标志
+	/* 状态 */
+	if(uc_lost_cnt[ch] >= 16)  /* 丢失 */
 	{
-		if(tUsb.uErrCode.tCode.bIc1Lost == 0)
+		uc_lost_cnt[ch] = 0;
+		if(ch == 0)
 		{
-			bUsb_SetErrCode(UEC_IC1_LOST, true);
-		
-			if(uPrint.tFlag.bUsbTask || uPrint.tFlag.bImportant)
-				log_e("bUsbTask:IC1丢失");
+			if(tUsb.uErrCode.tCode.bIc1Lost == 0)
+			{
+				bUsb_SetErrCode(UEC_IC1_LOST,true);
+			
+				if(uPrint.tFlag.bUsbTask || uPrint.tFlag.bImportant)
+					log_e("bUsbTask:IC1丢失");
+			}
+		}
+		else
+		{
+			if(tUsb.uErrCode.tCode.bIc2Lost == 0)
+			{
+				bUsb_SetErrCode(UEC_IC2_LOST,true);
+			
+				if(uPrint.tFlag.bUsbTask || uPrint.tFlag.bImportant)
+					log_e("bUsbTask:IC2丢失");
+			}
 		}
 		return -1;
 	}
-	else if(!uc_lost_cnt)  //清除
+	else if(!uc_lost_cnt[ch])  /* 正常 */
 	{
-		if(tUsb.uErrCode.tCode.bIc1Lost == 1)
-			bUsb_SetErrCode(UEC_IC1_LOST, false);
+		if(ch == 0)
+		{
+			if(tUsb.uErrCode.tCode.bIc1Lost == 1)
+				bUsb_SetErrCode(UEC_IC1_LOST,false);
+		}
+		else
+		{
+			if(tUsb.uErrCode.tCode.bIc2Lost == 1)
+				bUsb_SetErrCode(UEC_IC2_LOST,false);
+		}
 		return 1;
 	}
 	else
 		return 0;
 }
 
-USB_IC_T tUsbIc2 = {0}; //无线充芯片
 /*****************************************************************************************************************
------函数功能    指令:获取参数
------说明(备注)  none
------传入参数    none
------输出参数    none
------返回值      none
-******************************************************************************************************************/
-s8 c_usb_cs_get_ic2_param(void)
-{
-	// static u8 index;
-	// u8 buff[6] = {0};
-	// u8 data[3] = {0};
-	
-	// static u8 uc_lost_cnt = 0;
-
-	// switch (index)
-	// {
-	// 	case 0:
-	// 	{
-	// 		data[0] = 0xA0;
-	// 		if(cI2C_WriteBytes(&tUSB_IC2_I2C, SW3516_ADC_EN_ADDR, data, sizeof(data)) <= 0)
-	// 		{
-	// 			if(uc_lost_cnt < 0xff) 
-	// 				uc_lost_cnt++;
-	// 			break;
-	// 		}
-	// 		else
-	// 		{
-	// 			uc_lost_cnt = 0;
-	// 			index++;
-	// 		}
-	// 	}
-		
-	// 	//获取功率
-	// 	case 1:
-	// 	{
-	// 		//******************************获取参数*********************************
-	// 		memset(&data, 0, sizeof(data));
-	// 		if(cI2C_ReadBytes(&tUSB_IC2_I2C, SW3516_VOUT1_ADDR, data, sizeof(data)) <= 0)
-	// 		{
-	// 			if(uc_lost_cnt < 0xff) uc_lost_cnt++;
-	// 			break;
-	// 		}
-	// 		else 
-	// 			uc_lost_cnt = 0;
-	// 		buff[0] = data[1];
-			
-	// 		memset(&data, 0, sizeof(data));
-	// 		if(cI2C_ReadBytes(&tUSB_IC2_I2C, SW3516_VOUT2_ADDR, data, sizeof(data)) <= 0)
-	// 		{
-	// 			if(uc_lost_cnt < 0xff) uc_lost_cnt++;
-	// 			break;
-	// 		}
-	// 		else 
-	// 			uc_lost_cnt = 0;
-	// 		buff[1] = data[1];
-
-	// 		memset(&data, 0, sizeof(data));
-	// 		if(cI2C_ReadBytes(&tUSB_IC2_I2C, SW3516_PD_IOUT1_ADDR, data, sizeof(data)) <= 0)
-	// 		{
-	// 			if(uc_lost_cnt < 0xff) uc_lost_cnt++;
-	// 			break;
-	// 		}
-	// 		else 
-	// 			uc_lost_cnt = 0;
-	// 		buff[2] = data[1];
-			
-	// 		memset(&data, 0, sizeof(data));
-	// 		if(cI2C_ReadBytes(&tUSB_IC2_I2C, SW3516_PD_IOUT2_ADDR, data, sizeof(data)) <= 0)
-	// 		{
-	// 			if(uc_lost_cnt < 0xff) uc_lost_cnt++;
-	// 			break;
-	// 		}
-	// 		else 
-	// 			uc_lost_cnt = 0;
-	// 		buff[3] = data[1];
-			
-	// 		memset(&data, 0, sizeof(data));
-	// 		if(cI2C_ReadBytes(&tUSB_IC2_I2C, SW3516_QC_IOUT1_ADDR, data, sizeof(data)) <= 0)
-	// 		{
-	// 			if(uc_lost_cnt < 0xff) uc_lost_cnt++;
-	// 			break;
-	// 		}
-	// 		else 
-	// 			uc_lost_cnt = 0;
-	// 		buff[4] = data[1];
-			
-	// 		memset(&data, 0, sizeof(data));
-	// 		if(cI2C_ReadBytes(&tUSB_IC2_I2C, SW3516_QC_IOUT2_ADDR, data, sizeof(data)) <= 0)
-	// 		{
-	// 			if(uc_lost_cnt < 0xff) uc_lost_cnt++;
-	// 			break;
-	// 		}
-	// 		else 
-	// 			uc_lost_cnt = 0;
-	// 		buff[5] = data[1];
-			
-	// 		tUsbIc2.usVolt = (buff[0] << 8) | buff[1];    //mV
-	// 		if(tUsbIc2.usVolt >= 100)
-	// 			tUsbIc2.usVolt -= 100;
-			
-	// 		tUsbIc2.usPdCurr = (buff[2] << 8) | buff[3];    //mA
-	// 		if(tUsbIc2.usPdCurr >= 255)
-	// 			tUsbIc2.usPdCurr -= 255;
-			
-	// 		tUsbIc2.usQcCurr = (buff[4] << 8) | buff[5];    //mA
-	// 		if(tUsbIc2.usQcCurr >= 255)
-	// 			tUsbIc2.usQcCurr -= 255;
-			
-	// 		//***************************************处理参数******************************************
-	// 		tUsbIc2.usPdPwr = (tUsbIc2.usPdCurr / 1000.0f) * (tUsbIc2.usVolt / 1000.0f);
-	// 		tUsbIc2.usQcPwr = (tUsbIc2.usQcCurr / 1000.0f) * (tUsbIc2.usVolt / 1000.0f);
-	// 		tUsbIc2.sPower = tUsbIc2.usPdPwr + tUsbIc2.usQcPwr;
-	// 		us_usb_total_out_pwr += tUsbIc2.sPower;
-			
-	// 		index = 0;
-			
-	// 		if(uPrint.tFlag.bUsbTask)
-	// 			sMyPrint("bUsbTask:SW3518电压 = %dmV, 功率 = %dW \r\n", tUsbIc2.usVolt, tUsbIc2.sPower);
-	// 	}
-	// 	break;
-
-	// 	default:
-	// 		index = 0;
-	// 		break ;
-	// }
-	
-	// //处理状态
-	// if(uc_lost_cnt >= 16)  //标志
-	// {
-	// 	if(tUsb.uErrCode.tCode.bIc2Lost == 0)
-	// 	{
-	// 		bUsb_SetErrCode(UEC_IC2_LOST,true);
-		
-	// 		if(uPrint.tFlag.bUsbTask || uPrint.tFlag.bImportant)
-	// 			log_e("bUsbTask:IC2丢失");	
-	// 	}
-	// 	return -1;
-	// }
-	// else if(!uc_lost_cnt)  //清除
-	// {
-	// 	if(tUsb.uErrCode.tCode.bIc2Lost == 1)
-	// 		bUsb_SetErrCode(UEC_IC2_LOST,false);
-		return 1;
-	// }
-	// else
-	// 	return 0;
-}
-
-/*****************************************************************************************************************
------函数功能    指令:
+-----函数功能    指令:开关MPPT
 -----说明(备注)  none
 -----传入参数    none
 -----输出参数    none

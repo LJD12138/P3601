@@ -20,24 +20,12 @@
 #define     	adcUSB_VOLT_RES_RATIO                 	((((3.3f / 4095.0f) * (adcUSB_VOLT_R1 + adcUSB_VOLT_R2)) / adcUSB_VOLT_R2) * 10.0f) //*10 电压单位为 0.1V
 
 #define     	adcUSB_A_VOLT_R1                        130.0f //(Kohm)  分压的上电
-#define     	adcUSB_A_VOLT_R2                        20.0f  //(Kohm)  分压的对地电阻
+#define     	adcUSB_A_VOLT_R2                        10.0f  //(Kohm)  分压的对地电阻
 #define     	adcUSB_A_VOLT_RES_RATIO                 ((((3.3f / 4095.0f) * (adcUSB_A_VOLT_R1 + adcUSB_A_VOLT_R2)) / adcUSB_A_VOLT_R2) * 10.0f) //*10 电压单位为 0.1V
 
 #define     	adcFAN_VOLT_R1                        	47.0f //(Kohm)  分压的上电
 #define     	adcFAN_VOLT_R2                        	10.0f  //(Kohm)  分压的对地电阻
 #define     	adcFAN_VOLT_RES_RATIO                 	((((3.3f / 4095.0f) * (adcFAN_VOLT_R1 + adcFAN_VOLT_R2)) / adcFAN_VOLT_R2) * 10.0f) //*10 电压单位为 0.1V
-
-#define     	adcSYS_IN_VOLT    						0
-#define     	adcDC_TEMP           					1
-#define     	adcDC_CURR           					2
-#define     	adcDC_VOLT           					3
-// #define     	adcUSB_TEMP          					4
-// #define     	adcUSB_CURR          					5
-#define     	adcUSB_VOLT          					4
-#define     	adcUSB_A_CURR          					5
-#define     	adcUSB_A_VOLT          					6
-// #define     	adcKEY_POWER          					7
-#define     	adcFAN_VOLT          					7
 
 //电压状态
 typedef enum
@@ -55,7 +43,7 @@ typedef struct
 	
 	vu16           		usSysInVolt;    	//0.1V
 	
-	s16            		sUsbTemp;
+	s16            		sUsbTemp;           //摄氏度
 	vu16           		usUsbInVolt;    	//0.1V
 	float				fUsbInCurr;     	//A
 
@@ -67,7 +55,6 @@ typedef struct
 extern AdcSamp_T 	tAdcSamp;
 
 void vAdc_TaskInit(void);
-u16 usAdc_GetChannelValue(u8 channel);
 
 #if(!boardUSE_OS)
 void vAdc_Task(void *pvParameters);

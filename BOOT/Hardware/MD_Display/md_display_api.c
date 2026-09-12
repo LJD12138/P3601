@@ -829,6 +829,8 @@ void Display_OutNum(s16 num)
 ************************************************************************************************************************/
 void Display_UpdateProgress(u16 frame_num, u16 rec_frame_num)
 {
+	u8 i=0;
+
 	if(frame_num==0)
 	{		 
 		DisplayNum1(6,0);//0
@@ -839,7 +841,9 @@ void Display_UpdateProgress(u16 frame_num, u16 rec_frame_num)
 	else
 	{
 	  Display_OutNum(frame_num);
-	  Display_Soc((frame_num * 100)/rec_frame_num);
+	  i = (frame_num * 100)/rec_frame_num;
+	  Display_Soc(i);
+	  Display_BAT(1,true,i);
 	}
 }
 

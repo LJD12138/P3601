@@ -8,8 +8,8 @@
 #if(boardUSB_EN)
 #include "Usb/usb_task.h"
 #include "Usb/usb_prot_frame.h"
+#include "Usb/usb_iface.h"
 #include "Sys/sys_task.h"
-#include "Adc/adc_task.h"
 
 #include "app_info.h"
 #include "filtration.h"
@@ -21,6 +21,7 @@
 #define       	usbTASK_WORK_CYCLE_TIME               		100
 
 s32 us_usb_total_out_pwr = 0;
+s16 s_max_temp = 0;
 
 //PD100W温度滤波器
 // #define 		usbPD_TEMP_FILTER_BUFF_SIZE     		10 
@@ -58,32 +59,25 @@ void v_usb_queue_task_work(Task_T *tp_task)
 		case 0:
         {
 			us_usb_total_out_pwr = 0;
+			s_max_temp = 25;
 			if(tUsb.uErrCode.tCode.bIc1Lost == false)
-				c_usb_cs_get_ic1_param();
+				c_usb_cs_get_ic_param(&tUSB_IC1_I2C);
 			cQueue_GotoStep(tp_task, STEP_NEXT);  	//下一步
         }
 
 		case 1:
         {
 			if(tUsb.uErrCode.tCode.bIc2Lost == false)
-				c_usb_cs_get_ic2_param();
+				c_usb_cs_get_ic_param(&tUSB_IC2_I2C);
 			cQueue_GotoStep(tp_task, STEP_NEXT);  	//下一步
         }
 
 		case 2:
 		{
-			if(tUsb.usPdPwr < 2)
-				tUsb.usPdPwr = 0;
-			us_usb_total_out_pwr += tUsb.usPdPwr;
-
-			if(tUsb.usWcPwr < 2)
-				tUsb.usWcPwr = 0;
-			us_usb_total_out_pwr += tUsb.usWcPwr;
-
-			if(tUsb.usQcPwr < 2)
-				tUsb.usQcPwr = 0;
-			us_usb_total_out_pwr += tUsb.usQcPwr;
-
+			// if(usWcPwr < 2)
+			// 	usWcPwr = 0;
+			// us_usb_total_out_pwr += usWcPwr;
+			
 			tUsb.usOutPwr = lFilter_MadianAverage(&tAdc_UsbPwrFilterMadAvg, &us_usb_total_out_pwr);
 
 			vTaskDelay(400);

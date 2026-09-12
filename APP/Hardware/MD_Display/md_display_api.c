@@ -844,14 +844,56 @@ void Display_OutPwr(u16 power)
 
 /***********************************************************************************************************************
 -----函数功能	显示错误代码
------传入参数   list
+-----传入参数   list  b_err(true:错误码,采用E开头滚动显示;false:正常显示2位数字)
 -----作者       LJD
 -----日期       2026-01-10
 ************************************************************************************************************************/
-void Display_ShowErrCode(uint32_t list)//Out错误界面
+void Display_ShowErrCode(uint32_t list, bool b_err)//Out错误界面
 {
-	DisplayNum2(0,list/10%10);
-	DisplayNum2(1,list%10);
+	static bool b_err_roll = false;//错误码滚动显示页标记
+
+	if(b_err)//错误码模式:采用E开头的滚动显示
+	{
+		if(list >= 100)//三位错误码:E+百位 <-> 十位+个位
+		{
+			if(b_err_roll)
+			{
+				DisplayNum2(0,list/10%10);
+				DisplayNum2(1,list%10);
+			}
+			else
+			{
+				DisplayNum2(0,16);//E
+				DisplayNum2(1,list/100%10);
+			}
+
+			b_err_roll = !b_err_roll;
+		}
+		else if(list >= 10)//两位错误码:E+十位 <-> 个位
+		{
+			if(b_err_roll)
+			{
+				DisplayNum2(1,list%10);
+			}
+			else
+			{
+				DisplayNum2(0,16);//E
+				DisplayNum2(1,list/10%10);
+			}
+
+			b_err_roll = !b_err_roll;
+		}
+		else//一位错误码:E+个位(无需滚动)
+		{
+			DisplayNum2(0,16);//E
+			DisplayNum2(1,list%10);
+		}
+	}
+	else//正常模式:显示2位数字
+	{
+		DisplayNum2(0,list/10%10);
+		DisplayNum2(1,list%10);
+	}
 }
 
 /***********************************************************************************************************************
@@ -941,6 +983,8 @@ void Display_OutNum(s16 num)
 ************************************************************************************************************************/
 void Display_UpdateProgress(u16 frame_num, u16 rec_frame_num)
 {
+	u8 i=0;
+
 	if(frame_num==0)
 	{		 
 		DisplayNum1(6,0);//0
@@ -951,7 +995,9 @@ void Display_UpdateProgress(u16 frame_num, u16 rec_frame_num)
 	else
 	{
 	  Display_OutNum(frame_num);
-	  Display_Soc((frame_num * 100)/rec_frame_num);
+	  i = (frame_num * 100)/rec_frame_num;
+	  Display_Soc(i);
+	  Display_BAT(1,true,i);
 	}
 }
 
@@ -1007,6 +1053,56 @@ void Display_UpdateTime(u16 min)
 
 	Y_Display(9);//显示时间图标
 	for(i=1;i<9;i++){Y_Display(i);}//显示时间外框
-} 
+}
+
+/***********************************************************************************************************************
+-----函数功能	升级错误态操作引导显示
+-----说明(备注)  错误区复用显示区:状态区(2-5)轮显"rEtr"(短按power重试)/"HoLd"(长按power关机),
+                错误码区(0-1)以1Hz闪烁(亮时E开头滚动显示,灭时留空),Out区(6-9)显示倒计时(秒,超时自动关机)。
+                每周期先清屏(HT1621DispIcon只置位不清位,清屏支持闪烁灭态与轮显切换,避免残留段码)。
+                字符索引见 LCD_NUM_DISP_TAB: E=16 r=28 H=21 o=24 L=11 d=15 t=22
+-----传入参数	ul_err_code: 错误码
+                us_countdown: 倒计时(秒,tUpdate.usLostOverTimeCnt/10)
+-----输出参数	none
+-----作者       LJD
+-----日期       2026-09-11
+************************************************************************************************************************/
+void Display_UpdateErrorGuide(u32 ul_err_code, u16 us_countdown)
+{
+	static u8 uc_err_cnt = 0;	//错误区显示计数,每250ms(显示任务周期)+1
+	bool b_blink = false;
+	bool b_phase = false;
+
+	uc_err_cnt++;
+	/* 1Hz闪烁:每2周期(500ms)切换;1.5s轮显:每6周期切换 */
+	b_blink = ((uc_err_cnt / 2) % 2) == 0;
+	b_phase = ((uc_err_cnt / 6) % 2) == 0;
+
+	Display_ClearData();			//清屏,避免残留段码,支持闪烁灭态与轮显切换
+	Display_IconUpdate();			//升级图标S1
+
+	/* 状态区(2-5): 轮显 rEtr(短按重试) / HoLd(长按关机) */
+	if(b_phase)
+	{
+		DisplayNum2(2, 28);	//r
+		DisplayNum2(3, 16);	//E
+		DisplayNum2(4, 22);	//t
+		DisplayNum2(5, 28);	//r
+	}
+	else
+	{
+		DisplayNum2(2, 21);	//H
+		DisplayNum2(3, 24);	//o
+		DisplayNum2(4, 11);	//L
+		DisplayNum2(5, 15);	//d
+	}
+
+	/* Out区(6-9): 倒计时(秒),无操作超时自动关机 */
+	Display_OutNum(us_countdown);
+
+	/* 错误码区(0-1): 1Hz闪烁,亮时E+code滚动显示,灭时留空(已清屏) */
+	if(b_blink)
+		Display_ShowErrCode(ul_err_code, true);
+}
 
 #endif  //boardDISPLAY_EN

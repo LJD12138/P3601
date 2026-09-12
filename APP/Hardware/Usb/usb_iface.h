@@ -13,36 +13,42 @@
 
 #define     	usbIC1_SDA_RCU          				RCU_GPIOC
 #define     	usbIC1_SDA_PORT     					GPIOC
-#define     	usbIC1_SDA_PIN          				GPIO_PIN_15
+#define     	usbIC1_SDA_PIN          				GPIO_PIN_13
 #define     	usbIC1_SDA_OFF()        				GPIO_BC(usbIC1_SDA_PORT) = (uint32_t)usbIC1_SDA_PIN
 
-// #define     	usbIC2_SCL_RCU          				RCU_GPIOC
-// #define     	usbIC2_SCL_PORT     					GPIOC
-// #define     	usbIC2_SCL_PIN          				GPIO_PIN_13
-// #define     	usbIC2_SCL_OFF()        				GPIO_BC(usbIC2_SCL_PORT) = (uint32_t)usbIC2_SCL_PIN
+#define     	usbIC2_SCL_RCU          				RCU_GPIOC
+#define     	usbIC2_SCL_PORT     					GPIOC
+#define     	usbIC2_SCL_PIN          				GPIO_PIN_14
+#define     	usbIC2_SCL_OFF()        				GPIO_BC(usbIC2_SCL_PORT) = (uint32_t)usbIC2_SCL_PIN
 
-// #define     	usbIC2_SDA_RCU          				RCU_GPIOC
-// #define     	usbIC2_SDA_PORT     					GPIOC
-// #define     	usbIC2_SDA_PIN          				GPIO_PIN_14
-// #define     	usbIC2_SDA_OFF()        				GPIO_BC(usbIC2_SDA_PORT) = (uint32_t)usbIC2_SDA_PIN
+#define     	usbIC2_SDA_RCU          				RCU_GPIOC
+#define     	usbIC2_SDA_PORT     					GPIOC
+#define     	usbIC2_SDA_PIN          				GPIO_PIN_15
+#define     	usbIC2_SDA_OFF()        				GPIO_BC(usbIC2_SDA_PORT) = (uint32_t)usbIC2_SDA_PIN
 
 #define     	usbPD_EN_RCU          					RCU_GPIOC
 #define     	usbPD_EN_PORT     						GPIOC
 #define     	usbPD_EN_PIN          					GPIO_PIN_1
-#define     	usbPD_EN_ON()         					GPIO_BOP(usbPD_EN_PORT) = (uint32_t)usbPD_EN_PIN   //gpio_bit_set
+#define     	usbPD_EN_ON()         					GPIO_BOP(usbPD_EN_PORT) = (uint32_t)usbPD_EN_PIN
 #define     	usbPD_EN_OFF()        					GPIO_BC(usbPD_EN_PORT) = (uint32_t)usbPD_EN_PIN
 
 #define     	usbA_EN_RCU          					RCU_GPIOC
 #define     	usbA_EN_PORT     						GPIOC
 #define     	usbA_EN_PIN          					GPIO_PIN_0
-#define     	usbA_EN_ON()         					GPIO_BOP(usbA_EN_PORT) = (uint32_t)usbA_EN_PIN 
+#define     	usbA_EN_ON()         					GPIO_BOP(usbA_EN_PORT) = (uint32_t)usbA_EN_PIN
 #define     	usbA_EN_OFF()        					GPIO_BC(usbA_EN_PORT) = (uint32_t)usbA_EN_PIN
 
-#define     	usbPOWER_EN_RCU       					RCU_GPIOC
-#define     	usbPOWER_EN_PORT      					GPIOC
-#define     	usbPOWER_EN_PIN       					GPIO_PIN_13
+// #define     	usbPD2_EN_RCU          					RCU_GPIOC
+// #define     	usbPD2_EN_PORT     						GPIOC
+// #define     	usbPD2_EN_PIN          					GPIO_PIN_11
+// #define     	usbPD2_EN_ON()         					GPIO_BOP(usbPD2_EN_PORT) = (uint32_t)usbPD2_EN_PIN
+// #define     	usbPD2_EN_OFF()        					GPIO_BC(usbPD2_EN_PORT) = (uint32_t)usbPD2_EN_PIN
+
+#define     	usbPOWER_EN_RCU       					RCU_GPIOB
+#define     	usbPOWER_EN_PORT      					GPIOB
+#define     	usbPOWER_EN_PIN       					GPIO_PIN_8
 #define     	usbPOWER_EN_ON()      					GPIO_BOP(usbPOWER_EN_PORT) = (uint32_t)usbPOWER_EN_PIN 
-#define     	usbPOWER_EN_OFF()     					{GPIO_BC(usbPOWER_EN_PORT) = (uint32_t)usbPOWER_EN_PIN;usbA_EN_OFF();usbPD_EN_OFF();}
+#define     	usbPOWER_EN_OFF()     					GPIO_BC(usbPOWER_EN_PORT) = (uint32_t)usbPOWER_EN_PIN
 
 
 extern I2cObj_T tUSB_IC1_I2C;

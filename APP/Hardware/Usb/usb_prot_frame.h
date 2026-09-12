@@ -8,13 +8,11 @@
 #include "i2c.h"
 // #include "Modbus/modbus_proto.h"
 
+
 // extern			ModbusProtoTx_t 						*tpUsbProtoTx;
 // extern 			ModbusProtoRx_t 						*tpUsbProtoRx;
 
-s8 c_usb_cs_ic1_init(void);
-s8 c_usb_cs_ic2_init(void);
-s8 c_usb_cs_get_ic1_param(void);
-s8 c_usb_cs_get_ic2_param(void);
+s8 c_usb_cs_get_ic_param(const I2cObj_T *p_i2c_obj);
 s8 c_usb_set_pwr_cs(u16 pwr);
 
 bool bUsb_SendProtInit(void);

@@ -304,26 +304,6 @@ void vAdc_Task(void *pvParameters)
     }
 }
 
-/***********************************************************************************************************************
------函数功能    ADC循环任务
------说明(备注)  none
------传入参数    channel             通道数
-		#define     adcSYS_IN_VOLT    	 0
-		#define     adcDC_TEMP           1
-		#define     adcDC_CURR           2
-		#define     adcDC_VOLT           3
-		#define     adcUSB_TEMP          4
-		#define     adcUSB_CURR          5
------输出参数    none
------返回值      选择通道的16位AD数据
-************************************************************************************************************************/
-u16 usAdc_GetChannelValue(u8 channel)	
-{
-	if(channel >= ADC_CHANNEL_NUM) return 0;
-	
-	return adc_value[channel];
-}
-
 #if(boardLOW_POWER)
 /*****************************************************************************************************************
 -----函数功能    进入低功耗
@@ -334,9 +314,8 @@ u16 usAdc_GetChannelValue(u8 channel)
 *****************************************************************************************************************/
 bool bAdc_EnterLowPower(void)
 {
-	vTaskSuspend(ADC_Task_Handler);  //先挂起任务
+	vTaskSuspend(tAdcTaskHandler);  //先挂起任务
 	vAdc_IoEnterLowPower();
-	v_power_select(false); 
 	return true;
 }
 
@@ -351,7 +330,7 @@ bool bAdc_EnterLowPower(void)
 bool bAdc_ExitLowPower(void)
 {
 	vAdc_Init();
-	vTaskResume(ADC_Task_Handler);  //初始化外设后再恢复任务
+	vTaskResume(tAdcTaskHandler);  //初始化外设后再恢复任务
 	return true;
 }
 #endif  //boardLOW_POWER

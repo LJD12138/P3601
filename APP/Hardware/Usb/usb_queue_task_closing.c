@@ -35,7 +35,7 @@ void v_usb_queue_task_closing(Task_T *tp_task)
 		{
 			bUsb_SetDevState(DS_CLOSING);
 
-			if(cUsb_CheckInVolt() < 0)
+//			if(cUsb_CheckInVolt() < 0)
 				cQueue_GotoStep(tp_task, STEP_NEXT);  	//下一步
 		}
 		break;

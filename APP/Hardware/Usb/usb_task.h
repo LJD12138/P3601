@@ -13,6 +13,9 @@
 
 extern Task_T *tpUsbTask;
 extern TaskHandle_t tUsbTaskHandler;
+extern vu16 usQcPwr;
+extern vu16 usWcPwr;
+
 
 //*********************************任务ID***********************************
 typedef enum
@@ -38,22 +41,24 @@ typedef enum
 	UEC_IC2_LOST,
 	UEC_COLSE_FAULT,	//关闭失败
 	UEC_BOOT_FAULT,		//开启失败
+	UEC_QC_POWER_ERR,
 }UsbErrCode_E;
 
 typedef union
 {
 	struct
 	{
-		u8 				bPowerErr:1;		//电源错误
-		u8 				bOT:1;				//过温
-		u8 				bOL:1;				//过载
-		u8 				bBatUV:1;			//电池电压低
-		u8 				bIc1Lost:1;			//丢失
-		u8 				bIc2Lost:1;			//丢失
+		u16 			bPowerErr:1;		//电源错误
+		u16 			bOT:1;				//过温
+		u16 			bOL:1;				//过载
+		u16 			bBatUV:1;			//电池电压低
+		u16 			bIc1Lost:1;			//丢失
+		u16 			bIc2Lost:1;			//丢失
 		u16 			bCloseFault :1;
 		u16 			bBootFault :1;
+		u16 			bQcPowerErr:1;		//Qc电源错误
 	}tCode;
-	u8 ucErrCode;
+	u16 ucErrCode;
 }UsbErrCode_U;
 
 //*********************************任务对象**********************************
@@ -67,9 +72,6 @@ typedef struct
 	vu16				usInVolt;     		//0.1V
 	vu16    			usInCurr;			//0.1A
 	vu16    			usOutPwr;     		//W
-	vu16    			usWcPwr;     		//W
-	vu16    			usPdPwr;     		//W
-	vu16    			usQcPwr;     		//W
 	vs16             	sMaxTemp;			//1摄氏度
 }Usb_T;   
 #pragma pack()
@@ -99,6 +101,7 @@ bool bUsb_MemParamInit(UsbMemParam_T* p_usb_mem);
 void vUsb_MemParamSet(u8 item, bool add);
 s8 cUsb_CheckInVolt(void);
 s8 cUsb_CheckBatVolt(void);
+s8 cUsb_CheckQcInVolt(void);
 
 #if(!boardUSE_OS)
 void vUsb_Task(void *pvParameters);

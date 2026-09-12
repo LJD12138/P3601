@@ -341,7 +341,7 @@
               <MiscControls>--no-multibyte-chars</MiscControls>
               <Define>USE_STDPERIPH_DRIVER,GD32F30X_HD</Define>
               <Undefine></Undefine>
-              <IncludePath>.\Firmware\CMSIS\GD\GD32F30x\Include;.\Firmware\GD32F30x_standard_peripheral\Include;.\Firmware\CMSIS;.\Middlewares\FreeRTOS\portable\RVDS\ARM_CM4F;.\Middlewares\FreeRTOS\include;.\Middlewares\SeggerRtt;.\ComFunc;.\Application;.\Hardware;.\Hardware\BSP;.\Middlewares\CmBacktrace;.\Middlewares\CmBacktrace\Languages\zh-CN;.\Middlewares\LightweightRingBuffer\src;.\Middlewares\EasyLogger\inc;.\Middlewares\EasyLogger\plugins\flash;.\Middlewares\EasyFlash\inc;.\Middlewares\Protocol;.\Middlewares\MultiFuncKey</IncludePath>
+              <IncludePath>.\Firmware\CMSIS\GD\GD32F30x\Include;.\Firmware\GD32F30x_standard_peripheral\Include;.\Firmware\CMSIS;.\Middlewares\FreeRTOS\portable\RVDS\ARM_CM4F;.\Middlewares\FreeRTOS\include;.\Middlewares\SeggerRtt;.\ComFunc;.\Application;.\Hardware;.\Hardware\BSP;.\Middlewares\CmBacktrace;.\Middlewares\CmBacktrace\Languages\zh-CN;.\Middlewares\LightweightRingBuffer\src;.\Middlewares\EasyLogger\inc;.\Middlewares\EasyLogger\plugins\flash;.\Middlewares\EasyFlash\inc;.\Middlewares\Protocol;.\Middlewares\TaskQueue;.\Middlewares\MultiFuncKey</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -763,6 +763,36 @@
           </Files>
         </Group>
         <Group>
+          <GroupName>MW-MultiFuncKey</GroupName>
+          <Files>
+            <File>
+              <FileName>mf_key.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Middlewares\MultiFuncKey\mf_key.c</FilePath>
+            </File>
+            <File>
+              <FileName>mf_key.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Middlewares\MultiFuncKey\mf_key.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>MW-TaskQueue</GroupName>
+          <Files>
+            <File>
+              <FileName>queue_task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Middlewares\TaskQueue\queue_task.c</FilePath>
+            </File>
+            <File>
+              <FileName>queue_task.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Middlewares\TaskQueue\queue_task.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
           <GroupName>ComFunc</GroupName>
           <Files>
             <File>
@@ -789,11 +819,6 @@
               <FileName>ntc.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\ComFunc\ntc.c</FilePath>
-            </File>
-            <File>
-              <FileName>queue_task.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\ComFunc\queue_task.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1150,21 +1175,6 @@
               <FileName>key_iface.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Hardware\Key\key_iface.h</FilePath>
-            </File>
-          </Files>
-        </Group>
-        <Group>
-          <GroupName>MW-MultiFuncKey</GroupName>
-          <Files>
-            <File>
-              <FileName>mf_key.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Middlewares\MultiFuncKey\mf_key.c</FilePath>
-            </File>
-            <File>
-              <FileName>mf_key.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Middlewares\MultiFuncKey\mf_key.h</FilePath>
             </File>
           </Files>
         </Group>

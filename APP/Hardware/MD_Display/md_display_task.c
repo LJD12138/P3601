@@ -203,12 +203,23 @@ void vDisp_Task(void *pvParameters)
 				
 				Display_IconUpdate();
 				
-				Display_ShowErrCode(tBootMemParam.tParam.eAppState);
+				
+				if(tUpdate.eErrCode != UEF_NONE)
+				{
+					/* 错误区:操作引导(轮显 rEtr/HoLd + 错误码闪烁) */
+					Display_UpdateErrorGuide(tUpdate.eErrCode, tUpdate.usLostOverTimeCnt/10);
+				}
+				else
+				{
 					Display_UpdateState(tUpdate.eObj, tUpdate.eProtoType, 0);
-				Display_UpdateProgress(tUpdate.usRecFrameCnt, tUpdate.usTotalFrmValue);
+					Display_UpdateProgress(tUpdate.usRecFrameCnt, tUpdate.usTotalFrmValue);
 					Display_UpdateTime(tUpdate.usLostOverTimeCnt/10);
-				Display_RefreshData();            //发送数据    
-				#endif  //boardUPDATE     
+					// Display_UpdateAnimation();
+					// Display_ShowErrCode(tBootMemParam.tParam.eAppState, false);
+				}
+
+				Display_RefreshData();            //发送数据
+				#endif  //boardUPDATE
 			}
 			break;
 			
@@ -365,7 +376,7 @@ __STATIC_INLINE void v_disp_work(void)
 	us_err_code = usDisp_ErrCodeDisplay();
 	if(us_err_code > 0 && us_err_code < 1000)
 	{
-		Display_ShowErrCode(us_err_code);
+		Display_ShowErrCode(us_err_code, true);
 		Display_IconSysErr();
 	}
 	else

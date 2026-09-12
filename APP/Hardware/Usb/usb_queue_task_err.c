@@ -50,10 +50,10 @@ void v_usb_queue_task_err(Task_T *tp_task)
 		//等待恢复
 		case 1:
         {
-			if(tUsb.uErrCode.tCode.bOT)
-				{usbPOWER_EN_OFF();}
-			else
-				usbPOWER_EN_ON();
+			// if(tUsb.uErrCode.tCode.bOT)
+			// 	usbPOWER_EN_OFF();
+			// else
+			// 	usbPOWER_EN_ON();
 			
 			//有任务,退出
 			if(lwrb_get_full(&tp_task->tQueueBuff))
@@ -71,7 +71,7 @@ void v_usb_queue_task_err(Task_T *tp_task)
 		//等待关闭
 		case 2:
 		{
-			usbPOWER_EN_OFF();
+			// usbPOWER_EN_OFF();
 
 			//有任务,退出
 			if(lwrb_get_full(&tp_task->tQueueBuff))

@@ -16,6 +16,7 @@
 
 
 extern s32 us_usb_total_out_pwr;
+extern s16 s_max_temp;
 
 
 bool bUsb_QueueInit(void);

@@ -8,6 +8,7 @@
 #if(boardUSB_EN)
 #include "Usb/usb_task.h"
 #include "Usb/usb_prot_frame.h"
+#include "Usb/usb_iface.h"
 #include "Sys/sys_task.h"
 
 #include "app_info.h"
@@ -44,30 +45,6 @@ void v_usb_queue_task_booting(Task_T *tp_task)
 		break;
 
 		case 1:
-		{
-			tp_task->usStepWaitCnt++;
-			if(tp_task->usStepWaitCnt < (1500 / usbTASK_BOOTING_CYCLE_TIME))
-				break;
-				
-			if(c_usb_cs_ic1_init() != 0)
-			{
-				cQueue_GotoStep(tp_task, STEP_NEXT);  	//下一步
-				return;
-			}
-		}
-		break;
-
-		case 2:
-		{
-			if(c_usb_cs_ic2_init() != 0)
-			{
-				cQueue_GotoStep(tp_task, STEP_NEXT);  	//下一步
-				return;
-			}
-		}
-		break;
-	
-		case 3:
 		{
 			bUsb_SetDevState(DS_WORK);
 			cQueue_GotoStep(tp_task, STEP_END);  //结束

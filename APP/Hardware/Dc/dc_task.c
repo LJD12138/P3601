@@ -234,15 +234,15 @@ void vDc_Task(void *pvParameters)
             break;
             
         }
-
-		tDc.sMaxTemp = tAdcSamp.sDcTemp;
-		tDc.usInVolt = tAdcSamp.usSysInVolt;
-		tDc.usOutVolt = tAdcSamp.usDcOutVolt;
-		tDc.usOutCurr = tAdcSamp.fDcOutCurr * 10;//0.1A
 		
+		tDc.usInVolt = tAdcSamp.usSysInVolt;
+		tDc.sMaxTemp = tAdcSamp.sDcTemp;
 		//*********************************功率**********************************
 		if( tDc.eDevState >= DS_BOOTING)
 		{
+			tDc.usOutVolt = tAdcSamp.usDcOutVolt;
+			tDc.usOutCurr = tAdcSamp.fDcOutCurr * 10;//0.1A
+
 			//计算DC 总功率
             tDc.usOutPwr = (tDc.usOutCurr * tDc.usOutVolt) / 100;
 			
@@ -259,7 +259,12 @@ void vDc_Task(void *pvParameters)
 				vDc_RefreshOffTime();
 		}
 		else
+		{
+			tDc.usOutVolt = 0;
+			tDc.usOutCurr = 0;
 			tDc.usOutPwr = 0;
+		}
+			
 		
 		#if(boardUSE_OS)
 		vTaskDelay(dcTASK_CYCLE_TIME);

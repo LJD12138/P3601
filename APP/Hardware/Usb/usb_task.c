@@ -37,6 +37,10 @@ void           	vUsb_Task(void *pvParameters);
 __ALIGNED(4) Usb_T tUsb;
 static Task_T *tp_task = NULL;
 
+vu16 usQcPwr = 0;
+vu16 usWcPwr = 0;
+
+
 
 //****************************************************函数声明****************************************************//
 static bool b_task_param_init(void);
@@ -166,6 +170,7 @@ static void v_usb_check_prote(void)
 {
 	static u8 uc_pwr_err_cnt = 0;
 	static u8 uc_over_temp_cnt = 0;
+	static u8 uc_usb_a_pwr_err_cnt = 0;
 
 	//关闭USB
 	if(tSysInfo.uPerm.tPerm.bDisChgPerm == false || 
@@ -236,9 +241,7 @@ static void v_usb_check_prote(void)
 			}
 		}
 		else 
-		{
 			uc_over_temp_cnt = 0;
-		}
 	}
 	//相差10摄氏度则开始退出高温报警
 	else  if(tUsb.sMaxTemp < (tAppMemParam.tUSB.sMaxTemp - 10))
@@ -253,9 +256,37 @@ static void v_usb_check_prote(void)
 			}
 		}
 		else 
-		{
 			uc_over_temp_cnt = 0;
+	}
+
+	//Qc供电检查
+	if(cUsb_CheckQcInVolt() != 0)
+	{
+		if(tUsb.uErrCode.tCode.bQcPowerErr == 0)
+		{
+			uc_usb_a_pwr_err_cnt++;
+			if(uc_usb_a_pwr_err_cnt	>= 5)
+			{
+				uc_usb_a_pwr_err_cnt = 0;
+				bUsb_SetErrCode(UEC_QC_POWER_ERR,true); //设置错误
+			}
 		}
+		else 
+			uc_usb_a_pwr_err_cnt = 0;
+	}
+	else
+	{
+		if(tUsb.uErrCode.tCode.bQcPowerErr == 1)
+		{
+			uc_usb_a_pwr_err_cnt++;
+			if(uc_usb_a_pwr_err_cnt >= 5)
+			{
+				uc_usb_a_pwr_err_cnt = 0;
+				bUsb_SetErrCode(UEC_QC_POWER_ERR,false); //清除错误
+			}
+		}
+		else 
+			uc_usb_a_pwr_err_cnt = 0;	
 	}
 }
 
@@ -267,21 +298,23 @@ static void v_usb_check_prote(void)
 static void v_usb_param_update(void)
 {
 	tUsb.usAutoOffTime = tAppMemParam.tUSB.usAutoOffTime;
-	tUsb.sMaxTemp = tAdcSamp.sUsbTemp;
-	tUsb.usInVolt = tAdcSamp.usSysInVolt;//0.1V
+	// tUsb.sMaxTemp = tAdcSamp.sUsbTemp;
+	tUsb.sMaxTemp = 25;//固定25摄氏度
+	tUsb.usInVolt = tAdcSamp.usUsbInVolt;//0.1V
 	
 	if(tUsb.eDevState == DS_WORK)
 	{
 		tUsb.usInCurr = 0;//0.1A
-		tUsb.usQcPwr = tAdcSamp.fUsbA_Curr * tAdcSamp.usUsbA_Volt / 10;//W
+		usQcPwr = tAdcSamp.fUsbA_Curr * tAdcSamp.usUsbA_Volt / 10; //W
+		// usPdPwr = tAdcSamp.fUsbPdCurr * tAdcSamp.usUsbPdVolt / 10;//W
+		// usWcPwr = tAdcSamp.fUsbWcCurr * tAdcSamp.usUsbWcVolt / 10;//W
 	}
 	else
 	{
 		tUsb.usInCurr = 0;//0.1A
-		tUsb.usPdPwr = 0;//W
-		tUsb.usWcPwr = 0;//W
-		tUsb.usQcPwr = 0;//W
 		tUsb.usOutPwr = 0;//W
+		usQcPwr = 0;//W
+		// usWcPwr = 0;//W
 	}
 }
 
@@ -407,18 +440,21 @@ void bUsb_SetDevState(DevState_E stat)
 	{
 		usbPOWER_EN_ON();
 		usbPD_EN_ON();
+		// usbPD2_EN_ON();
 		usbA_EN_ON();
 	}
 	else if(stat == DS_CLOSING)
 	{
 		usbPOWER_EN_OFF();
 		usbPD_EN_OFF();
+		// usbPD2_EN_OFF();
 		usbA_EN_OFF();
 	}
 	else if(stat == DS_SHUT_DOWN)
 	{
 		usbPOWER_EN_OFF();
 		usbPD_EN_OFF();
+		// usbPD2_EN_OFF();
 		usbA_EN_OFF();
 	}
 		
@@ -653,6 +689,29 @@ s8 cUsb_CheckInVolt(void)
 s8 cUsb_CheckBatVolt(void)
 {
 	if(tAdcSamp.usSysInVolt > tAppMemParam.tUSB.usMinOpenVolt)
+	{
+		return 1;
+	}
+	else
+		return -1;
+}
+
+/***********************************************************************************************************************
+-----函数功能    检查Qc供电状态
+-----说明(备注)  none
+-----传入参数    none
+-----输出参数    none
+-----返回值      电压状态 小于0;欠压  0:电压正常  1:过压
+************************************************************************************************************************/
+s8 cUsb_CheckQcInVolt(void)
+{
+	if(RANGE(tAdcSamp.usUsbA_Volt, 
+	   tAppMemParam.tUSB.usMinInVolt, 
+	   tAppMemParam.tUSB.usMaxInVolt))
+	{
+		return 0;
+	}
+	else if(tUsb.usInVolt > tAppMemParam.tUSB.usMaxInVolt)
 	{
 		return 1;
 	}

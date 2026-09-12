@@ -14,6 +14,7 @@
 
 //****************************************************Includes******************************************************************//
 #include "Key/key_iface.h"
+#include "Adc/adc_iface.h"
 
 #if(boardKEY_EN)
 
@@ -78,6 +79,12 @@ void vKey_IfaceInit(void)
 {
 	for(uint8_t i = 0; i < KEY_HW_NUM; ++i)
 	{
+		// Power 按键不初始化, 由 ADC 模块负责
+		if(i == keyPOWER)
+		{
+			continue;
+		}
+
 		rcu_periph_clock_enable(S_tKeyHwConfig[i].rcu);
 		gpio_init(S_tKeyHwConfig[i].gpio, S_tKeyHwConfig[i].mode, GPIO_OSPEED_2MHZ, S_tKeyHwConfig[i].pin);
 	}
@@ -96,6 +103,15 @@ bool bKey_IsPressById(KeyId_E e_id)
 	if(uc_idx >= KEY_HW_NUM)
 	{
 		return false;
+	}
+
+	// Power 按键由 ADC 模块负责
+	if(uc_idx == keyPOWER)
+	{
+		if(usAdc_GetChannelValue(adcKEY_POWER) > 200)//读取按键
+			return true;
+		else
+			return false;
 	}
 
 	bool b_pin_level = (gpio_input_bit_get(S_tKeyHwConfig[uc_idx].gpio, S_tKeyHwConfig[uc_idx].pin) != RESET);
